@@ -1572,9 +1572,9 @@ from kova_constants import get_kova_home, get_kova_home_override, get_process_ko
 _kova_home = get_process_kova_home()
 
 # Load ~/.kova/.env first: user-managed env files must override stale shell exports on restart.
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 _env_path = _kova_home / '.env'
-load_hermes_dotenv(kova_home=_kova_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+load_kova_dotenv(kova_home=_kova_home, project_env=Path(__file__).resolve().parents[1] / '.env')
 
 
 def _reload_runtime_env_preserving_config_authority() -> None:
@@ -1584,7 +1584,7 @@ def _reload_runtime_env_preserving_config_authority() -> None:
     every profile; it still honors the max_turns bridge."""
     from agent.secret_scope import is_multiplex_active
     if not is_multiplex_active():
-        load_hermes_dotenv(
+        load_kova_dotenv(
             kova_home=_kova_home, project_env=Path(__file__).resolve().parents[1] / '.env')
     _bridge_max_turns_from_config(_kova_home)
 
@@ -1910,9 +1910,9 @@ def _platform_has_bot_credential(platform: "Platform", platform_config: "Platfor
     ``PlatformConfig.token`` (Signal session paths, port-binding HTTP adapters) always return True."""
     from gateway.config import PLATFORM_TOKEN_ENV_NAMES, Platform
     if platform is Platform.WHATSAPP:
-        from kova_constants import get_hermes_dir
+        from kova_constants import get_kova_dir
         session = Path(platform_config.extra.get(
-            "session_path", get_hermes_dir("platforms/whatsapp/session", "whatsapp/session")))
+            "session_path", get_kova_dir("platforms/whatsapp/session", "whatsapp/session")))
         return (session / "creds.json").exists()
     if platform not in PLATFORM_TOKEN_ENV_NAMES:
         return True

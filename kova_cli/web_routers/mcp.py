@@ -21,7 +21,7 @@ from kova_cli.web_deps import late
 from kova_cli.web_server_mcp import _mcp_oauth_flows, _mcp_server_summary, _normalize_mcp_server_create
 from kova_cli.web_models import MCPCatalogInstall, MCPEnabledToggle, MCPServerCreate, MCPServersReplace
 from kova_cli.web_routers._common import (
-    _profile_cli_args, _profile_scope, _spawn_hermes_action, config_write_scope, http_failure,
+    _profile_cli_args, _profile_scope, _spawn_kova_action, config_write_scope, http_failure,
     log as _log, scoped_to_thread,
 )
 
@@ -516,7 +516,7 @@ async def install_mcp_catalog_entry(body: MCPCatalogInstall, profile: Optional[s
     if entry.install is not None:
         action = _mcp_install_action_name(name)
         try:
-            _spawn_hermes_action(_profile_cli_args(effective_profile) + ["mcp", "install", name], action)
+            _spawn_kova_action(_profile_cli_args(effective_profile) + ["mcp", "install", name], action)
         except HTTPException:
             raise
         except Exception as exc:

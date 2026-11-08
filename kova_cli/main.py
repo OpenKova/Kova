@@ -617,12 +617,12 @@ if sys.platform == "win32":
 # Load .env from ~/.kova/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from kova_cli.config import get_kova_home
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 
 # ``update`` must not resolve external secret sources (Windows self-lock via cryptography, slow
 # helpers inside the import probe) — ``_early_recovery._should_skip_external_secret_sources``
 # owns that argv check for every dotenv load in the process. See #73381.
-load_hermes_dotenv(project_env=PROJECT_ROOT / ".env")
+load_kova_dotenv(project_env=PROJECT_ROOT / ".env")
 
 # Bridge security.redact_secrets → KOVA_REDACT_SECRETS BEFORE kova_logging
 # imports agent.redact, which snapshots the flag exactly once at import. A

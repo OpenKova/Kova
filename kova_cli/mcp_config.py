@@ -405,8 +405,8 @@ def _resolve_mcp_server_config(config: dict) -> dict:
 
     if current_secret_scope() is None:
         try:
-            from kova_cli.env_loader import load_hermes_dotenv
-            load_hermes_dotenv()
+            from kova_cli.env_loader import load_kova_dotenv
+            load_kova_dotenv()
         except Exception:  # pragma: no cover — defensive
             pass
     return _interpolate_env_vars(config)

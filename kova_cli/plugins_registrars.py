@@ -68,7 +68,7 @@ _SCOPED_PROVIDER_REGISTRARS: tuple[tuple[str, str, str, str, str, str, dict[str,
      {"normalize": "lower", "reject_message": "Plugin '%s' terminal environment provider rejected: %s"}),
     ("register_secret_source", "secret_source", "agent.secret_sources.registry",
      "agent.secret_sources.base:SecretSource", "secret source",
-     "Register a :class:`agent.secret_sources.base.SecretSource`, run by ``load_hermes_dotenv()`` "
+     "Register a :class:`agent.secret_sources.base.SecretSource`, run by ``load_kova_dotenv()`` "
      "(after ``~/.kova/.env``, before credentials are read) when ``secrets.<name>`` is enabled. The "
      "orchestrator owns ordering/precedence/provenance; the source only fetches. Since dotenv usually "
      "loads before discovery, the manager re-pulls enabled plugin sources afterwards.",

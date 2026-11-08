@@ -369,7 +369,7 @@ def _profile_action_environment(
 
     The dashboard loads its own profile's ``.env`` into process-global ``os.environ``. Copying
     that mapping verbatim into ``kova -p <other> ...`` lets the named child see the dashboard
-    profile's platform credentials and ports *before* its own dotenv loads (``load_hermes_dotenv``
+    profile's platform credentials and ports *before* its own dotenv loads (``load_kova_dotenv``
     does not override keys already present): a supposedly A2A-only profile then claims the default
     Discord token and binds the default API/BlueBubbles ports.
 
@@ -475,7 +475,7 @@ def _action_targets_system_gateway(subcommand: list[str]) -> bool:
         reset_kova_home_override(token)
 
 
-def _spawn_hermes_action(
+def _spawn_kova_action(
     subcommand: list[str], name: str, *, env_overrides: Optional[dict[str, str]] = None
 ) -> subprocess.Popen:
     """Spawn ``kova <subcommand>`` detached (via ``kova_cli.main``) and record the handle."""
@@ -702,7 +702,7 @@ _RESTART_REASON_MAX = 300
 
 def _restart_log_last_line(pid: int) -> str:
     """The last line the ``gateway-restart`` child *pid* wrote to its log, or ``""``: its section
-    runs from the offset ``_spawn_hermes_action`` recorded to the next spawn's header."""
+    runs from the offset ``_spawn_kova_action`` recorded to the next spawn's header."""
     start = _ACTION_LOG_STARTS.get("gateway-restart")
     if start is None or start[0] != pid:
         return ""

@@ -275,7 +275,7 @@ def langfuse_in_use(home: Path, *, process_env: bool = False) -> bool:
 def singularity_in_use(home: Path, *, process_env: bool = False) -> bool:
     """What made core run its Singularity backend for *home*: ``terminal.backend`` (or the legacy
     ``terminal.env_type``) set to ``singularity`` in its config (managed overlay applied, as the bridge
-    reads it), else ``TERMINAL_ENV=singularity`` from its dotenv layers as ``load_hermes_dotenv`` resolves
+    reads it), else ``TERMINAL_ENV=singularity`` from its dotenv layers as ``load_kova_dotenv`` resolves
     them (the home's ``.env``, then the administrator-managed ``.env`` with override, ``${VAR}``
     references expanded: :func:`~kova_cli.env_loader.resolve_home_dotenv`). config.yaml wins over
     both, as in the bridge. *process_env* (startup) also counts a ``TERMINAL_ENV`` the process received

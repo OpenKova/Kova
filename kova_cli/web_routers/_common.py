@@ -23,7 +23,7 @@ log = logging.getLogger("kova_cli.web_server")
 
 _profile_scope = late("_profile_scope", "kova_cli.web_server_profiles")
 _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profiles")
-_spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
+_spawn_kova_action = late("_spawn_kova_action", "kova_cli.web_server_gateway")
 # Config read-modify-write serialization for off-loop handlers (live lock —
 # LateState supports ``with``-blocks).
 _CONFIG_MUTATION_LOCK = LateState("_CONFIG_MUTATION_LOCK")
@@ -134,7 +134,7 @@ def spawn_profile_action(
     """Spawn a background ``kova -p <profile> <argv>`` action; a spawn
     failure is logged and becomes ``500 "<prefix>: <exc>"``."""
     with http_failure(log_msg, 500, prefix):
-        proc = _spawn_hermes_action(_profile_cli_args(profile) + argv, name)
+        proc = _spawn_kova_action(_profile_cli_args(profile) + argv, name)
     return {"ok": True, "pid": proc.pid, "name": name}
 
 

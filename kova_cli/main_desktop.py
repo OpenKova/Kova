@@ -1555,9 +1555,9 @@ _DESKTOP_TMPDIR_ENV = "KOVA_DESKTOP_TMPDIR"
 def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
     """Electron child env + config-supplied extra flags. ``desktop.*`` config is bridged to env vars
     Electron already reads; an explicit env var wins over config (and over keychain detection)."""
-    from kova_constants import socket_safe_tmpdir, with_hermes_node_path
-    # with_hermes_node_path() copies os.environ when called with no arg.
-    env = with_hermes_node_path()
+    from kova_constants import socket_safe_tmpdir, with_kova_node_path
+    # with_kova_node_path() copies os.environ when called with no arg.
+    env = with_kova_node_path()
     tmpdir = env.get("TMPDIR", "")
     if sys.platform == "linux" and len(os.fsencode(tmpdir)) > _ELECTRON_TMPDIR_MAX_BYTES:
         # A longer TMPDIR hangs requestSingleInstanceLock(). Only Chromium's socket dir moves:

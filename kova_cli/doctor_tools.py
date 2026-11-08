@@ -399,9 +399,9 @@ def _audit_one(tool: str, cwd, label: str, audit_extra: list[str], manual_issues
     never prescribes a local mutating fix command. See #116774.
     """
     import json
-    from kova_constants import with_hermes_node_path
+    from kova_constants import with_kova_node_path
     from pm.packages import pnpm_env
-    env = with_hermes_node_path()
+    env = with_kova_node_path()
     if audit_extra:  # pnpm rows: its state and metadata cache stay Kova-owned, not in the user's XDG dirs
         env = pnpm_env(env)
     try:

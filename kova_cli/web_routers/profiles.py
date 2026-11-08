@@ -74,7 +74,7 @@ router = APIRouter()
 # Late-bound web_server helpers (resolved at call time; cycle-safe, monkeypatch-transparent).
 _cron_profile_home = late("_cron_profile_home", "kova_cli.web_server_cron")
 _resolve_profile_dir = late("_resolve_profile_dir", "kova_cli.web_server_profiles")
-_spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
+_spawn_kova_action = late("_spawn_kova_action", "kova_cli.web_server_gateway")
 
 # ---------------------------------------------------------------------------
 # Profile management endpoints (minimal — list/create/rename/delete + SOUL.md)
@@ -873,7 +873,7 @@ async def create_profile_endpoint(body: ProfileCreate):
     # Hub installs spawn async, scoped via `-p <name>` (a fresh subprocess re-binds
     # skills_hub.SKILLS_DIR at import). PIDs go back for the UI to poll.
     def _spawn_install(ident: str):
-        return _spawn_hermes_action(["-p", body.name, "skills", "install", ident, "--yes"],
+        return _spawn_kova_action(["-p", body.name, "skills", "install", ident, "--yes"],
                                     _hub_action_name("install", ident)).pid
 
     hub_installs: list[dict[str, Any]] = [

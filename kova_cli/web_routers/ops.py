@@ -43,7 +43,7 @@ _discover_memory_provider_statuses = late("_discover_memory_provider_statuses", 
 _gateway_subcommand = late("_gateway_subcommand", "kova_cli.web_server_gateway")
 _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profiles")
 _resolve_profile_dir = late("_resolve_profile_dir", "kova_cli.web_server_profiles")
-_spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
+_spawn_kova_action = late("_spawn_kova_action", "kova_cli.web_server_gateway")
 _write_platform_enabled = late("_write_platform_enabled", "kova_cli.web_server_messaging")
 get_kova_home = late("get_kova_home", "kova_cli.config")
 load_config = late("load_config", "kova_cli.config")
@@ -302,7 +302,7 @@ async def start_gateway(profile: Optional[str] = None):
     if refusal:
         raise HTTPException(status_code=409, detail=refusal)
     with http_failure("Failed to spawn gateway start", 500, "Failed to start gateway"):
-        proc = _spawn_hermes_action(_gateway_subcommand(profile, "start"), "gateway-start")
+        proc = _spawn_kova_action(_gateway_subcommand(profile, "start"), "gateway-start")
     return {"ok": True, "pid": proc.pid, "name": "gateway-start"}
 
 
@@ -318,7 +318,7 @@ async def stop_gateway(profile: Optional[str] = None, interrupt: bool = False):
     if not interrupt and (refusal := await asyncio.to_thread(live_session_refusal, profile, "stop")):
         raise HTTPException(status_code=409, detail=refusal)
     with http_failure("Failed to spawn gateway stop", 500, "Failed to stop gateway"):
-        proc = _spawn_hermes_action(_gateway_subcommand(profile, "stop") + ["--interrupt"] * interrupt, "gateway-stop")
+        proc = _spawn_kova_action(_gateway_subcommand(profile, "stop") + ["--interrupt"] * interrupt, "gateway-stop")
     return {"ok": True, "pid": proc.pid, "name": "gateway-stop"}
 
 

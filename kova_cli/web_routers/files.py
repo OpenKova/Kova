@@ -334,9 +334,9 @@ def _fs_backend(profile: Optional[str] = None):
 def _chat_image_dir(home: Path) -> Path:
     """Where browser image pastes land: the profile's canonical image staging dir on this host
     (``gateway.platforms.base.get_image_cache_dir``), the only one attachment admission accepts."""
-    from kova_constants import get_hermes_dir
+    from kova_constants import get_kova_dir
 
-    return get_hermes_dir("cache/images", "image_cache", home=home)
+    return get_kova_dir("cache/images", "image_cache", home=home)
 
 
 def _is_host_file(path: str, profile: Optional[str]) -> bool:

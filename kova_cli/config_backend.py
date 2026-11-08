@@ -101,7 +101,7 @@ class ConfigBackend(Protocol):
         ...
 
     def boot(self, home: Path) -> None:
-        """Called once per ``load_hermes_dotenv`` after the ``.env`` loads and before the first
+        """Called once per ``load_kova_dotenv`` after the ``.env`` loads and before the first
         config read (design §4.4): a backend that fetches config does it here, failing closed."""
         ...
 
@@ -294,13 +294,13 @@ def _ensure_bootstrap_env() -> None:
     """Once per process, before the first selection: the deployment that selects, addresses and
     authenticates the backend comes from the process env, the launch home's ``.env`` and the
     managed ``.env`` (design §4.4 steps 1-2, D26/D32) — also when the first config read comes before
-    ``load_hermes_dotenv`` (``kova_cli.config`` reads config at import time)."""
+    ``load_kova_dotenv`` (``kova_cli.config`` reads config at import time)."""
     if not _BOOTSTRAPPED:
         _bootstrap(None, None, once=True)
 
 
 def bootstrap_deployment(home: Optional[PathLike] = None, project_env: Optional[PathLike] = None) -> None:
-    """Publish the deployment from an explicit dotenv load's layers (``load_hermes_dotenv``: its
+    """Publish the deployment from an explicit dotenv load's layers (``load_kova_dotenv``: its
     home and project ``.env``) before that load's first config read. Runs even when the
     once-per-process bootstrap already ran: an earlier one did not know this load's project file."""
     _bootstrap(Path(home) if home is not None else None,

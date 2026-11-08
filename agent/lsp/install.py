@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from kova_cli._subprocess_compat import windows_hide_flags
-from kova_constants import find_node_executable, with_hermes_node_path
+from kova_constants import find_node_executable, with_kova_node_path
 
 logger = logging.getLogger("agent.lsp.install")
 
@@ -264,7 +264,7 @@ def _install_npm(pkg: str, bin_name: str, extra_pkgs: Optional[list] = None) -> 
     logger.info("[install] %s %s", pm, " ".join(cmd[1:]))
     from tools.environments.local import hermes_subprocess_env
     # Package install scripts are third-party code: scrubbed env, never Kova' credentials.
-    if not _run_installer(pm, pkg, cmd, timeout=300, env=with_hermes_node_path(hermes_subprocess_env())):
+    if not _run_installer(pm, pkg, cmd, timeout=300, env=with_kova_node_path(hermes_subprocess_env())):
         return None
     found = _first_existing(staging / "node_modules" / ".bin" / bin_name)
     if found is not None:

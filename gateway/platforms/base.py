@@ -444,7 +444,7 @@ from kova_cli.observability.shared_metrics_gateway import records_delivery, stop
 from kova_cli.home_data_layout import SECRET_CACHE_STORES
 from gateway.session import SessionSource, build_session_key
 from gateway.session_transcript import TranscriptReadError
-from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_kova_root, get_hermes_dir, get_kova_home
+from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_kova_root, get_kova_dir, get_kova_home
 from agent.provider_media import GENERATED_SUBDIR, MEDIA_CACHE_MAX_AGE_HOURS
 
 if TYPE_CHECKING:
@@ -482,7 +482,7 @@ async def ssrf_redirect_guard(response):
 
 # Inbound images are cached locally for the vision tool (platform URLs are ephemeral).
 # Import-time default; tests monkeypatch it, getters re-resolve per call.
-IMAGE_CACHE_DIR = get_hermes_dir("cache/images", "image_cache")
+IMAGE_CACHE_DIR = get_kova_dir("cache/images", "image_cache")
 
 
 # Inbound media cap (``gateway.max_inbound_media_bytes``): payloads are buffered fully in memory,
@@ -538,11 +538,11 @@ async def _read_httpx_body_with_limit(response, *, media_type: str) -> bytes:
 
 def _cache_dir_accessors(kind: str, constant_name: str, new_subpath: str, old_name: str):
     """``(get_<kind>_cache_dir, cleanup_<kind>_cache)`` pair. The getter resolves fresh via
-    get_hermes_dir (active profile) unless a test monkeypatched the module constant away from
+    get_kova_dir (active profile) unless a test monkeypatched the module constant away from
     its import-time default, and creates the directory; ``cleanup(max_age_hours=MEDIA_CACHE_MAX_AGE_HOURS)`` deletes
     older files and returns the count."""
     def get_dir() -> Path:
-        d = get_hermes_dir(new_subpath, old_name)
+        d = get_kova_dir(new_subpath, old_name)
         current = globals().get(constant_name)
         default = _CACHE_DIR_IMPORT_DEFAULTS.get(constant_name)
         if current is not None and default is not None and current != default:
@@ -678,7 +678,7 @@ async def cache_image_from_url(url: str, ext: str = ".jpg", retries: int = 2) ->
 
 
 # Audio cache utilities (same pattern as images; feeds the STT tool).
-AUDIO_CACHE_DIR = get_hermes_dir("cache/audio", "audio_cache")
+AUDIO_CACHE_DIR = get_kova_dir("cache/audio", "audio_cache")
 get_audio_cache_dir, cleanup_audio_cache = _cache_dir_accessors(
     "audio", "AUDIO_CACHE_DIR", "cache/audio", "audio_cache")
 
@@ -704,7 +704,7 @@ async def cache_audio_from_url(url: str, ext: str = ".ogg", retries: int = 2) ->
 
 
 # Video cache utilities (same pattern; referenced by local path).
-VIDEO_CACHE_DIR = get_hermes_dir("cache/videos", "video_cache")
+VIDEO_CACHE_DIR = get_kova_dir("cache/videos", "video_cache")
 get_video_cache_dir, cleanup_video_cache = _cache_dir_accessors(
     "video", "VIDEO_CACHE_DIR", "cache/videos", "video_cache")
 
@@ -725,8 +725,8 @@ async def cache_video_from_bytes_async(data: bytes, ext: str = ".mp4") -> str:
 
 
 # Document / screenshot cache utilities (same pattern; referenced by local path).
-DOCUMENT_CACHE_DIR = get_hermes_dir("cache/documents", "document_cache")
-SCREENSHOT_CACHE_DIR = get_hermes_dir("cache/screenshots", "browser_screenshots")
+DOCUMENT_CACHE_DIR = get_kova_dir("cache/documents", "document_cache")
+SCREENSHOT_CACHE_DIR = get_kova_dir("cache/screenshots", "browser_screenshots")
 get_document_cache_dir, cleanup_document_cache = _cache_dir_accessors(
     "document", "DOCUMENT_CACHE_DIR", "cache/documents", "document_cache")
 get_screenshot_cache_dir, cleanup_screenshot_cache = _cache_dir_accessors(

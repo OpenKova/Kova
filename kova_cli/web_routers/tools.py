@@ -19,7 +19,7 @@ from kova_cli.web_models import (
     TerminalBackendSelect, ToolsetEnvUpdate, ToolsetModelSelect, ToolsetPostSetup,
     ToolsetProviderSelect, ToolsetToggle)
 from kova_cli.web_routers._common import (
-    _CONFIG_MUTATION_LOCK, _profile_cli_args, _profile_scope, _spawn_hermes_action,
+    _CONFIG_MUTATION_LOCK, _profile_cli_args, _profile_scope, _spawn_kova_action,
     config_write_scope, log as _log, scoped_to_thread, spawn_profile_action)
 
 router = APIRouter()
@@ -323,7 +323,7 @@ async def toggle_toolset(name: str, body: ToolsetToggle, profile: Optional[str] 
         try:
             pending_key = await asyncio.to_thread(_pending_install_key)
             if pending_key:
-                _spawn_hermes_action(
+                _spawn_kova_action(
                     _profile_cli_args(scope_profile) + ["tools", "post-setup", pending_key],
                     "tools-post-setup")
                 post_setup_started = pending_key

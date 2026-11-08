@@ -50,7 +50,7 @@ class CachedFetch:
 
 
 def resolve_cache_home(home_path: Optional[Path] = None) -> Path:
-    """``home_path`` as resolved by ``load_hermes_dotenv()``, else ``$KOVA_HOME``/``~/.kova``."""
+    """``home_path`` as resolved by ``load_kova_dotenv()``, else ``$KOVA_HOME``/``~/.kova``."""
     if home_path is None:
         from kova_constants import get_kova_home
 

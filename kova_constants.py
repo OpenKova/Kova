@@ -622,11 +622,14 @@ def find_node_executable(command: str) -> str | None:
     return None
 
 
-def with_hermes_node_path(env: dict[str, str] | None = None) -> dict[str, str]:
+def with_kova_node_path(env: dict[str, str] | None = None) -> dict[str, str]:
     """Compose installed PM npm and its Node dependency without provisioning."""
     from pm import env_for
 
     return env_for("npm", base_env=env)
+
+
+with_hermes_node_path = with_kova_node_path  # legacy alias
 
 
 def _legacy_path_has_content(path: Path) -> bool:

@@ -419,8 +419,8 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
                 # not come back (disabled, removed, or omitted from this discovery pass) so e.g. a disabled
                 # auth plugin's provider does not stay live process-wide until restart. See #91701.
                 self._evict_stale_persistent_registrations()
-                # load_hermes_dotenv() ran at import, before plugin secret sources existed: re-pull.
-                # Plugin secret sources register during discover; the initial load_hermes_dotenv() already
+                # load_kova_dotenv() ran at import, before plugin secret sources existed: re-pull.
+                # Plugin secret sources register during discover; the initial load_kova_dotenv() already
                 # ran at import time. Re-pull so the first process sees plugin backends (tracking #64177).
                 self._refresh_secret_sources_after_discovery()
                 if force:
@@ -450,7 +450,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
         activation), reset the cache and re-apply. Fail-open: never raises into discover_and_load."""
         try:
             from agent.secret_sources.registry import list_plugin_sources
-            from kova_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
+            from kova_cli.env_loader import load_kova_dotenv, reset_secret_source_cache
             plugin_sources = list_plugin_sources()
         except Exception:
             return
@@ -489,7 +489,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
             from kova_constants import get_kova_home
             home = get_kova_home()
             reset_secret_source_cache(home)
-            load_hermes_dotenv(kova_home=home)
+            load_kova_dotenv(kova_home=home)
             # A scope installed for this home was frozen BEFORE these sources existed — a routed cron
             # fire builds its scope in run_one_job and only then, on its first agent build, discovers
             # plugins; under multiplex semantics the load above is hydrate-only, so fold the values

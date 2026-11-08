@@ -417,14 +417,14 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
     if (bridge_dir / "node_modules").exists():
         return
 
-    from kova_constants import find_node_executable, with_hermes_node_path
+    from kova_constants import find_node_executable, with_kova_node_path
     from utils import env_int
     import pm
 
     npm = find_node_executable("npm")
 
     try:
-        env = with_hermes_node_path()
+        env = with_kova_node_path()
         if npm is None:
             env = pm.ensure("npm", explicit=True).env
             installed = pm.installed_package("npm")
@@ -451,7 +451,7 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
 
 def _spawn_whatsapp_pairing_process(session_path: Path, mode: str) -> subprocess.Popen:
     from gateway.platforms.whatsapp_common import resolve_whatsapp_bridge_dir
-    from kova_constants import find_node_executable, with_hermes_node_path
+    from kova_constants import find_node_executable, with_kova_node_path
 
     bridge_dir = resolve_whatsapp_bridge_dir()
     bridge_script = bridge_dir / "bridge.js"
@@ -472,7 +472,7 @@ def _spawn_whatsapp_pairing_process(session_path: Path, mode: str) -> subprocess
             raise HTTPException(status_code=500, detail=f"Node.js preparation failed: {exc}") from exc
     session_path.mkdir(parents=True, exist_ok=True)
 
-    env = with_hermes_node_path()
+    env = with_kova_node_path()
     env["WHATSAPP_MODE"] = mode
     env["WHATSAPP_DM_POLICY"] = "pairing"
     # Owned: a SIGKILLed dashboard must not leave a pairing bridge holding the session dir.

@@ -80,10 +80,10 @@ def _setup_logging() -> None:
 
 def _load_env() -> None:
     """Load .env from KOVA_HOME (default ``~/.kova``)."""
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
 
     kova_home = get_kova_home()
-    loaded = load_hermes_dotenv(kova_home=kova_home)
+    loaded = load_kova_dotenv(kova_home=kova_home)
     log = logging.getLogger(__name__)
     for env_file in loaded or ():
         log.info("Loaded env from %s", env_file)

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional
 
 from gateway.whatsapp_identity import expand_whatsapp_aliases, normalize_whatsapp_identifier
-from kova_constants import get_default_kova_root, get_hermes_dir, get_kova_home
+from kova_constants import get_default_kova_root, get_kova_dir, get_kova_home
 from utils import atomic_json_write, file_cache_version
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ PAIRING_DIR = None
 # ``patch("gateway.pairing.PAIRING_DIR", tmp_path)``); that continues to work unchanged, since a patched
 # (non-``None``) value takes precedence over recomputing.
 def _default_pairing_dir() -> Path:
-    return PAIRING_DIR if PAIRING_DIR is not None else get_hermes_dir("platforms/pairing", "pairing")
+    return PAIRING_DIR if PAIRING_DIR is not None else get_kova_dir("platforms/pairing", "pairing")
 
 
 def _allowlist_env_for_platform(platform: str) -> Optional[str]:
@@ -336,7 +336,7 @@ class PairingStore:
         if profile:
             root = get_default_kova_root()
             profile_home = root if profile == "default" else root / "profiles" / profile
-        self._dir = get_hermes_dir("platforms/pairing", "pairing", home=profile_home) if profile else _default_pairing_dir()
+        self._dir = get_kova_dir("platforms/pairing", "pairing", home=profile_home) if profile else _default_pairing_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         # Merge the alternate old/new layout so upgrades cannot split approvals.
         _migrate_split_pairing_dirs(home=profile_home, active=self._dir)

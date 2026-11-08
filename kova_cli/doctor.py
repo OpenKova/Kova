@@ -8,7 +8,7 @@ import os
 import sys
 
 from kova_cli.config import get_env_path, get_kova_home, get_project_root
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 from kova_constants import display_kova_home
 
 PROJECT_ROOT = get_project_root()
@@ -17,7 +17,7 @@ _DHH = display_kova_home()  # user-facing display path (e.g. ~/.kova or ~/.kova/
 
 # Load environment variables from ~/.kova/.env so API key checks work
 _env_path = get_env_path()
-load_hermes_dotenv(kova_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
+load_kova_dotenv(kova_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
 
 from kova_cli.colors import Colors, color
 from kova_cli.doctor_report import Finding, _section, check_bool, check_info, doctor_check, warn_on_error

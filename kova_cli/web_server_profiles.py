@@ -453,7 +453,7 @@ def _profile_cli_args(profile: Optional[str]) -> list[str]:
 
 
 def _hub_action_name(verb: str, key: str) -> str:
-    """Unique per-skill hub action name (+ registered log file): ``_spawn_hermes_action``
+    """Unique per-skill hub action name (+ registered log file): ``_spawn_kova_action``
     tracks one process/log per name, so a shared "skills-install" would make concurrent
     row-level actions overwrite each other. Slug (readable) + hash (collision-proof)."""
     slug = re.sub(r"[^a-z0-9]+", "-", key.lower()).strip("-")[:48] or "skill"

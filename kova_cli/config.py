@@ -1480,7 +1480,7 @@ def _expand_env_vars(obj):
 def _env_ref_snapshot(obj, snapshot=None):
     """Map each env-sourced ``${...}`` ref in *obj* to its current value.
     Stored with cached ``load_config()`` results so a cache hit can detect that the expansion was
-    made against a different environment (load before ``load_hermes_dotenv()``, in-process
+    made against a different environment (load before ``load_kova_dotenv()``, in-process
     rotation) — file mtime/size alone cannot see either.
 
     See #58514.
@@ -2188,7 +2188,7 @@ def _merge_managed_overlay(expanded: dict[str, Any]) -> tuple[dict[str, Any], An
 def _load_config_cache_hit(path_key: str, cache_sig: Any) -> Optional[dict[str, Any]]:
     """Lookup: the cached expanded config for ``path_key`` if its signature equals
     ``cache_sig`` AND every ``${VAR}`` it was expanded against still has the same value, else
-    ``None``. Signatures matching is not enough: a load before load_hermes_dotenv() would otherwise
+    ``None``. Signatures matching is not enough: a load before load_kova_dotenv() would otherwise
     pin unexpanded literals (e.g. auxiliary.<task>.api_key) for the process lifetime (#58514).
     Shared by the lock-free fast path and the locked re-check of ``_load_config_impl``."""
     cached = _LOAD_CONFIG_CACHE.get(path_key)

@@ -733,7 +733,7 @@ def _spawn_gateway_restart(profile: Optional[str] = None, *, interrupt: bool = F
             )
             return recent_proc, True
 
-    proc = _gateway_mod._spawn_hermes_action(subcommand, "gateway-restart")
+    proc = _gateway_mod._spawn_kova_action(subcommand, "gateway-restart")
     _LAST_GATEWAY_RESTART = (time.monotonic(), proc, tuple(subcommand))
     return proc, False
 

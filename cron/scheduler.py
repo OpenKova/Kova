@@ -1507,9 +1507,9 @@ def _run_no_agent_job(
     # Load .env first so auto-delivery can resolve *_HOME_CHANNEL: the agent path's per-run dotenv
     # reload never runs for no_agent jobs. Does not override existing values.
     try:
-        from kova_cli.env_loader import load_hermes_dotenv
+        from kova_cli.env_loader import load_kova_dotenv
 
-        load_hermes_dotenv(kova_home=_get_kova_home())
+        load_kova_dotenv(kova_home=_get_kova_home())
     except Exception:
         logger.debug("Job '%s': no_agent .env reload failed", job_id, exc_info=True)
 
@@ -2407,11 +2407,11 @@ def _reload_dotenv_and_publish_delivery_target(job: dict) -> None:
     """Re-read .env for this run and publish the auto-deliver target into the session ContextVars."""
     # Reset the secret-source cache FIRST or a Bitwarden/BSM-backed secret is never re-resolved
     # (only the placeholder reloads -> 401s).
-    from kova_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
+    from kova_cli.env_loader import load_kova_dotenv, reset_secret_source_cache
     from gateway.session_context import _VAR_MAP
 
     reset_secret_source_cache(_get_kova_home())
-    load_hermes_dotenv(kova_home=_get_kova_home())
+    load_kova_dotenv(kova_home=_get_kova_home())
 
     delivery_target = _resolve_delivery_target(job)
     if delivery_target:
@@ -3690,7 +3690,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
     # Same hydrate -> scope -> (routed) multiplex-context install the in-process fire uses, for exactly
     # the env build; the helper's reset order keeps the context from outliving its scope.
     with _fire_secret_scope():
-        # No restore_managed_env here: the worker re-runs load_hermes_dotenv -> _apply_managed_env at
+        # No restore_managed_env here: the worker re-runs load_kova_dotenv -> _apply_managed_env at
         # import, and strip_launch_profile_env leaves managed keys in place.
         worker_env = strip_launch_profile_env(build_subprocess_env(
             scrub_secrets=multiplex_active,

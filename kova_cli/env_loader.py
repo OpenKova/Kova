@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # arbitrary user env vars are never silently altered.
 _CREDENTIAL_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET", "_KEY")
 
-# Once-per-process guards: load_hermes_dotenv() runs repeatedly (user + project env, gateway hot-reload,
+# Once-per-process guards: load_kova_dotenv() runs repeatedly (user + project env, gateway hot-reload,
 # lazy imports mid-turn, tests) so warnings/logs fire once per key/path/home.
 _WARNED_KEYS: set[str] = set()          # credential names already given the non-ASCII warning
 _WARNED_UTF32_PATHS: set[str] = set()   # .env paths already given the UTF-32 refuse-to-mangle warning
@@ -60,7 +60,7 @@ _SECRET_SOURCE_RESTORE_BY_HOME: dict[str, dict[str, str]] = {}
 # cleared by a per-home ``reset_secret_source_cache``: it describes ``os.environ``, which a reset does not
 # touch, and the next pass needs it to revoke.
 _SECRET_SOURCE_WRITES_BY_HOME: dict[str, dict[str, tuple[str, str, str | None]]] = {}
-# KOVA_HOME paths already pulled external secrets for: load_hermes_dotenv() runs at import time from
+# KOVA_HOME paths already pulled external secrets for: load_kova_dotenv() runs at import time from
 # several hot modules, so without this the Bitwarden status line prints 3-5x per startup and the config
 # re-parse + ASCII sweep re-run each time (Bitwarden's own cache only saves the network call).
 _APPLIED_HOMES: set[str] = set()
@@ -214,7 +214,7 @@ def _hydrate_profile_secret_sources(home: Path) -> dict[str, str]:
 
         local_env = {name: value for name, value in os.environ.items() if _is_global_env(name)}
         local_env.update(load_env_file(home / ".env"))
-        # Mirror load_hermes_dotenv()'s .op.env bootstrap (1Password token lives in gitignored .op.env)
+        # Mirror load_kova_dotenv()'s .op.env bootstrap (1Password token lives in gitignored .op.env)
         # or cold profiles fail 1Password hydration. .env wins.
         # Without seeding it here a cold profile configured for the supported .op.env flow fails 1Password
         # hydration (sweeper review on #74549). .env values win — never override an existing key.
@@ -395,7 +395,7 @@ def _resolve_dotenv_assignments(
 
 
 def resolve_home_dotenv(home: Path) -> dict[str, str]:
-    """What ``load_hermes_dotenv`` would publish from *home*'s dotenv layers, read-only: the home's
+    """What ``load_kova_dotenv`` would publish from *home*'s dotenv layers, read-only: the home's
     ``.env`` then the administrator-managed ``.env``, both with override and ``${VAR}`` expanded by the
     same rules against the process's own environment (this process's dotenv output peeled back), each
     layer seeing the one before. External secret sources and the project ``.env`` are not included."""
@@ -424,7 +424,7 @@ def _load_dotenv_with_fallback(
     ``${VAR}`` / ``${VAR:-default}`` / precedence rules — except that ``${VAR}`` resolves against the value
     VAR had before this process's earlier passes published it (see ``_DOTENV_PUBLISHED``).
 
-    ``load_pass`` groups the layered files of one ``load_hermes_dotenv`` call: within a pass a later layer
+    ``load_pass`` groups the layered files of one ``load_kova_dotenv`` call: within a pass a later layer
     (project, managed) still sees the earlier layer's output, as it always did; only OTHER passes' output
     is peeled. A bare call (``kova send``'s direct reload) is its own pass."""
     assignments = _parse_dotenv_file(path)
@@ -482,7 +482,7 @@ def _dotenv_assignments(path: Path) -> list:
 
 
 def _bootstrap_env(home: Path | None = None, project_env: Path | None = None) -> dict:
-    """The process env as ``load_hermes_dotenv`` leaves it for the names its dotenv layers define:
+    """The process env as ``load_kova_dotenv`` leaves it for the names its dotenv layers define:
     the home's ``.env`` (override), ``.op.env`` (fills gaps, only without a process
     ``OP_SERVICE_ACCOUNT_TOKEN``), the caller's *project_env* (fills gaps when the home has a
     ``.env``, else overrides) and the managed ``.env`` (override, last); ``${VAR}`` resolved, the
@@ -517,7 +517,7 @@ def _bootstrap_env(home: Path | None = None, project_env: Path | None = None) ->
 
 
 def selected_config_backend_name(home: Path | None = None) -> str:
-    """The config backend ``load_hermes_dotenv`` selects for *home*, decided without loading or
+    """The config backend ``load_kova_dotenv`` selects for *home*, decided without loading or
     booting anything. For a caller that must decide before Kova starts (Docker stage2 skips the
     config-file migration in remote mode, D12)."""
     from kova_cli.config_backend import BACKEND_ENV
@@ -527,16 +527,16 @@ def selected_config_backend_name(home: Path | None = None) -> str:
 
 def apply_config_bootstrap_env(backend_names, home: Path | None = None, project_env: Path | None = None) -> None:
     """Publish ``backend_names(kind)`` (the selected backend's deployment and credential, D26/D32) from the
-    launch home's ``.env`` and the managed ``.env``, with the values ``load_hermes_dotenv`` gives
+    launch home's ``.env`` and the managed ``.env``, with the values ``load_kova_dotenv`` gives
     them. Called before the first config read of a process, which can come before
-    ``load_hermes_dotenv`` (``kova_cli.config`` reads config at import time): the backend is
+    ``load_kova_dotenv`` (``kova_cli.config`` reads config at import time): the backend is
     selected and authenticated from the same deployment either way. A file deployment gets only its
     selector (the file backend needs nothing else before boot); values the process env holds and
-    no file defines are left alone; ``load_hermes_dotenv`` later publishes the same values."""
+    no file defines are left alone; ``load_kova_dotenv`` later publishes the same values."""
     from agent.safe_worker_policy import worker_config_snapshot
     from kova_cli.config_backend import BACKEND_ENV
 
-    # A frozen-policy worker reads no profile dotenv (``load_hermes_dotenv`` returns early there):
+    # A frozen-policy worker reads no profile dotenv (``load_kova_dotenv`` returns early there):
     # its bootstrap supplied the process env explicitly, so nothing is published from the files.
     if worker_config_snapshot() is not None:
         return
@@ -775,14 +775,14 @@ def load_kova_dotenv(
     # with override=True — so a stale TERMINAL_ENV=docker left in ~/.kova/.env (e.g. written by an older
     # `kova setup` before the user switched terminal.backend in config.yaml) silently wins again on every
     # reload. Startup launchers bridge config→env once, but long-lived processes (gateway per-turn reload,
-    # cron standalone runs) call load_hermes_dotenv() repeatedly and used to flip the effective backend back
+    # cron standalone runs) call load_kova_dotenv() repeatedly and used to flip the effective backend back
     # to the stale .env value mid-session (#29186, #67323).
     _reapply_terminal_config_bridge(home_path)
 
     return loaded
 
 
-load_hermes_dotenv = load_kova_dotenv  # legacy alias
+load_kova_dotenv = load_kova_dotenv  # legacy alias
 
 
 def _reapply_terminal_config_bridge(home_path: Path) -> None:

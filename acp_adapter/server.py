@@ -419,13 +419,13 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
             await self._send(state.session_id, update, fail_msg="Failed to send ACP usage update for session %s")
 
     def _provenance_meta(
-        self, acp_session_id: str, current_hermes_session_id: str, previous_hermes_session_id: Optional[str] = None
+        self, acp_session_id: str, current_kova_session_id: str, previous_kova_session_id: Optional[str] = None
     ) -> Optional[dict]:
         """Best-effort ``_meta.kova.sessionProvenance`` for an ACP session."""
         try:
             return session_provenance_meta(
-                self.session_manager._get_db(), acp_session_id, current_hermes_session_id,
-                previous_hermes_session_id=previous_hermes_session_id,
+                self.session_manager._get_db(), acp_session_id, current_kova_session_id,
+                previous_kova_session_id=previous_kova_session_id,
             )
         except Exception:
             logger.debug("Could not build ACP session provenance for %s", acp_session_id, exc_info=True)
@@ -433,9 +433,9 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
 
     async def _send_session_info_update(
         self, session_id: str, *,
-        current_hermes_session_id: Optional[str] = None, previous_hermes_session_id: Optional[str] = None,
+        current_kova_session_id: Optional[str] = None, previous_kova_session_id: Optional[str] = None,
     ) -> None:
-        """Session metadata update; pass ``previous_hermes_session_id`` when the internal head
+        """Session metadata update; pass ``previous_kova_session_id`` when the internal head
         rotated (compression split) so provenance flags the reason."""
         if not self._conn:
             return
@@ -453,7 +453,7 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
             title=title if isinstance(title, str) and title.strip() else None,
             updated_at=datetime.now(UTC).isoformat(),
             field_meta=self._provenance_meta(
-                session_id, current_hermes_session_id or session_id, previous_hermes_session_id
+                session_id, current_kova_session_id or session_id, previous_kova_session_id
             ),
         )
         await self._send(
@@ -913,7 +913,7 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
         try:
             # ACP `session_id` is the stable handle; agent.session_id is the internal head that
             # compression may rotate — snapshot it to detect rotation after the turn.
-            pre_turn_hermes_id = getattr(state.agent, "session_id", None)
+            pre_turn_kova_id = getattr(state.agent, "session_id", None)
             # Fresh context copy: concurrent sessions on the shared executor must not share ContextVars.
             ctx = contextvars.copy_context()
             result = await loop.run_in_executor(_executor, ctx.run, _run_agent)
@@ -924,7 +924,7 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
                 state.current_prompt_text = ""
             return PromptResponse(stop_reason="end_turn")
 
-        return await self._finish_turn(state, session_id, conn, result, pre_turn_hermes_id, cbs.streamed)
+        return await self._finish_turn(state, session_id, conn, result, pre_turn_kova_id, cbs.streamed)
 
     def _flush_turn_tool_calls(
         self, cbs: _TurnCallbacks, session_id: str, conn: Any, loop: asyncio.AbstractEventLoop
@@ -990,7 +990,7 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
         return cbs
 
     async def _finish_turn(
-        self, state: SessionState, session_id: str, conn: Any, result: dict, pre_turn_hermes_id: Any,
+        self, state: SessionState, session_id: str, conn: Any, result: dict, pre_turn_kova_id: Any,
         streamed_message: bool,
     ) -> PromptResponse:
         """Persist, emit provenance/final text, drain queued prompts, report usage."""
@@ -1020,12 +1020,12 @@ class KovaACPAgent(SlashCommandsMixin, acp.Agent):
                         boundary_row_id=result.get("refused_turn_boundary_row_id"))
 
             # Head rotated (compression split): emit provenance so clients can render the boundary.
-            post_turn_hermes_id = getattr(state.agent, "session_id", None)
-            if conn and post_turn_hermes_id and pre_turn_hermes_id and post_turn_hermes_id != pre_turn_hermes_id:
+            post_turn_kova_id = getattr(state.agent, "session_id", None)
+            if conn and post_turn_kova_id and pre_turn_kova_id and post_turn_kova_id != pre_turn_kova_id:
                 try:
                     await self._send_session_info_update(
-                        session_id, current_hermes_session_id=post_turn_hermes_id,
-                        previous_hermes_session_id=pre_turn_hermes_id,
+                        session_id, current_kova_session_id=post_turn_kova_id,
+                        previous_kova_session_id=pre_turn_kova_id,
                     )
                 except Exception:
                     logger.debug("Could not emit ACP provenance update after rotation for %s", session_id, exc_info=True)

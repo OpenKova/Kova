@@ -208,8 +208,8 @@ _whatsapp_onboarding_sessions: dict[str, _WhatsAppOnboardingSession] = {}
 
 
 def _whatsapp_session_path() -> Path:
-    from kova_constants import get_hermes_dir
-    return get_hermes_dir("platforms/whatsapp/session", "whatsapp/session")
+    from kova_constants import get_kova_dir
+    return get_kova_dir("platforms/whatsapp/session", "whatsapp/session")
 
 
 _WHATSAPP_PAYLOAD_FIELDS = (

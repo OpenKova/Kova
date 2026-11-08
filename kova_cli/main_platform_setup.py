@@ -95,7 +95,7 @@ def _whatsapp_allowed_users(wa_mode: str, get_env_value, save_env_value) -> None
 
 def _whatsapp_install_bridge(bridge_dir) -> bool:
     """Step 4 of ``kova whatsapp``: ``npm install`` the bridge when needed. False = stop."""
-    from kova_constants import find_node_executable, with_hermes_node_path
+    from kova_constants import find_node_executable, with_kova_node_path
     if (bridge_dir / "node_modules").exists():
         print("✓ Bridge dependencies already installed")
         return True
@@ -104,7 +104,7 @@ def _whatsapp_install_bridge(bridge_dir) -> bool:
 
     npm = find_node_executable("npm")
     try:
-        env = with_hermes_node_path()
+        env = with_kova_node_path()
         if npm is None:
             env = pm.ensure("npm", explicit=True).env
             installed = pm.installed_package("npm")
@@ -135,7 +135,7 @@ def cmd_whatsapp(args):
     from kova_cli.main import _require_tty, get_kova_home
     _require_tty("whatsapp")
     from kova_cli.config import get_env_value, save_env_value
-    from kova_constants import find_node_executable, with_hermes_node_path
+    from kova_constants import find_node_executable, with_kova_node_path
     _say("", "☤ WhatsApp Setup", "=" * 50)
 
     wa_mode = _whatsapp_choose_mode(get_env_value, save_env_value)
@@ -200,7 +200,7 @@ def cmd_whatsapp(args):
     with contextlib.suppress(KeyboardInterrupt):
         subprocess.run(
             [node, str(bridge_script), "--pair-only", "--session", str(session_dir)],
-            cwd=str(bridge_dir), env=with_hermes_node_path(), check=False)
+            cwd=str(bridge_dir), env=with_kova_node_path(), check=False)
 
     print()
     if not (session_dir / "creds.json").exists():

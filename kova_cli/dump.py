@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from kova_cli.config import get_kova_home, get_env_path, get_project_root, load_config
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 from kova_constants import display_kova_home
 from agent.skill_utils import is_excluded_skill_path
 from datetime import UTC
@@ -303,7 +303,7 @@ def run_dump(args):
     """Output a compact, copy-pasteable setup summary."""
     show_keys = getattr(args, "show_keys", False)
     # Load env from .env file so key checks work
-    load_hermes_dotenv(kova_home=get_env_path().parent, project_env=get_project_root() / ".env")
+    load_kova_dotenv(kova_home=get_env_path().parent, project_env=get_project_root() / ".env")
     project_root, kova_home = get_project_root(), get_kova_home()
     try:
         config = load_config()

@@ -30,7 +30,7 @@ status_router = APIRouter()
 # Late-bound so a test's monkeypatch on the owning module wins at call time.
 _dashboard_local_update_managed_externally = late("_dashboard_local_update_managed_externally", "kova_cli.web_server_files")
 _spawn_gateway_restart = late("_spawn_gateway_restart")
-_spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
+_spawn_kova_action = late("_spawn_kova_action", "kova_cli.web_server_gateway")
 detect_install_method = late("detect_install_method", "kova_cli.config")
 get_kova_home = late("get_kova_home", "kova_cli.config")
 _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profiles")
@@ -178,9 +178,9 @@ async def gateway_migrate_plan():
 async def gateway_migrate():
     """Run ``kova gateway migrate --multiplex --yes`` detached; the CLI re-runs the preflight and
     refuses (exit 1 into the action log) when blocked, so the UI should gate on the plan first."""
-    from kova_cli.web_server_gateway import _spawn_hermes_action
+    from kova_cli.web_server_gateway import _spawn_kova_action
     with http_failure("Failed to spawn gateway migrate", 500, "Failed to start gateway migration"):
-        proc = _spawn_hermes_action(["gateway", "migrate", "--multiplex", "--yes"], "gateway-migrate")
+        proc = _spawn_kova_action(["gateway", "migrate", "--multiplex", "--yes"], "gateway-migrate")
     return {"ok": True, "pid": proc.pid, "name": "gateway-migrate"}
 
 
@@ -271,7 +271,7 @@ async def update_hermes():
 
     action_id = secrets.token_hex(16)
     with http_failure("Failed to spawn kova update", 500, "Failed to start update"):
-        proc = _spawn_hermes_action(["update"], "kova-update", env_overrides={"KOVA_ACTION_ID": action_id})
+        proc = _spawn_kova_action(["update"], "kova-update", env_overrides={"KOVA_ACTION_ID": action_id})
     return {"ok": True, "pid": proc.pid, "name": "kova-update", "action_id": action_id}
 
 

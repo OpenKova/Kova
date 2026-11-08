@@ -47,7 +47,7 @@ _probe_gateway_health = late("_probe_gateway_health", "kova_cli.web_server_gatew
 _require_token = late("_require_token")
 _resolve_profile_dir = late("_resolve_profile_dir", "kova_cli.web_server_profiles")
 _resolve_restart_drain_timeout = late("_resolve_restart_drain_timeout", "kova_cli.web_server_lifecycle")
-_spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
+_spawn_kova_action = late("_spawn_kova_action", "kova_cli.web_server_gateway")
 _ssh_runtime_intact = late("_ssh_runtime_intact")
 app = LateState("app")  # the FastAPI instance (app.state.*)
 check_config_version = late("check_config_version", "kova_cli.config")
@@ -742,7 +742,7 @@ def _spawn_action(argv: list, name: str, prefix: str, profile: Optional[str] = N
     """Spawn a background ``kova -p <profile> <argv>`` action; a spawn failure is
     ``500 "<prefix>: <exc>"``."""
     try:
-        proc = _spawn_hermes_action(_profile_cli_args(profile) + argv, name)
+        proc = _spawn_kova_action(_profile_cli_args(profile) + argv, name)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"{prefix}: {exc}")
     return {"ok": True, "pid": proc.pid, "name": name}
