@@ -17457,11 +17457,11 @@ ipcMain.handle('kova:vscode-theme:fetch', async (_event, id) => fetchMarketplace
 ipcMain.handle('kova:vscode-theme:search', async (_event, query) => searchMarketplaceThemes(String(query || ''), 20))
 
 // ---------------------------------------------------------------------------
-// hermes:// deep links (e.g. hermes://blueprint/morning-brief?time=08:00,
-// hermes://mcp/install?name=NAME&config=B64 — the vendor "Add to Kova"
-// button, or hermes://plugin/install?repo=owner/repo). Dev
+// kova:// deep links (e.g. kova://blueprint/morning-brief?time=08:00,
+// kova://mcp/install?name=NAME&config=B64 — the vendor "Add to Kova"
+// button, or kova://plugin/install?repo=owner/repo). Dev
 // (`KOVA_DESKTOP_DEV_SERVER`) registers hermes-dev:// instead — bare
-// Electron or a stale OS handler often owns hermes:// on dev machines.
+// Electron or a stale OS handler often owns kova:// on dev machines.
 // Parsing is generic ({kind, name, params}); the renderer routes per kind
 // and anything install-shaped requires explicit user confirmation there.
 // A docs/dashboard "Send to App" button opens this URL; we route it into the
@@ -17507,7 +17507,7 @@ function handleDeepLink(url) {
     return
   }
 
-  // hermes://blueprint/<key>?slot=val  -> host="blueprint", path="/<key>"
+  // kova://blueprint/<key>?slot=val  -> host="blueprint", path="/<key>"
   const kind = parsed.hostname || ''
   const name = decodeURIComponent((parsed.pathname || '').replace(/^\//, ''))
   const params = {}
@@ -17528,7 +17528,7 @@ function handleDeepLink(url) {
     return
   }
 
-  // hermes://close-preview — the out-of-band exit hatch for a preview pane
+  // kova://close-preview — the out-of-band exit hatch for a preview pane
   // that fullscreened itself and now owns all input (#97213). Handled here
   // rather than in the renderer because the whole point is to work when the
   // renderer cannot hear anything: exit the fullscreen window and close the
@@ -17639,7 +17639,7 @@ if (!isPrimaryInstance) {
   }
 
   app.on('second-instance', (_event, argv) => {
-    // --close-preview: the same escape hatch as hermes://close-preview, for
+    // --close-preview: the same escape hatch as kova://close-preview, for
     // environments where spawning a URL is harder than a flag (kiosk launchers,
     // SSH-started sessions). Checked before deep links so a carried `kova://`
     // URL still routes normally when no flag is present.
@@ -17815,7 +17815,7 @@ app.whenReady().then(() => {
     createWindow
   })
 
-  // Win/Linux cold start: the launching hermes:// URL is in our own argv.
+  // Win/Linux cold start: the launching kova:// URL is in our own argv.
   const _coldStartLink = _extractDeepLink(process.argv)
 
   if (_coldStartLink) {

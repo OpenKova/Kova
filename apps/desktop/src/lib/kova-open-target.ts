@@ -79,7 +79,7 @@ export function normalizeKovaOpenString(raw: string): string | null {
       const host = url.hostname || ''
       const rest = decodeURIComponent((url.pathname || '').replace(/^\//, ''))
 
-      // hermes://open/<path>?… → /<path>?…
+      // kova://open/<path>?… → /<path>?…
       if (host === 'open') {
         if (!rest) {
           return null
@@ -94,7 +94,7 @@ export function normalizeKovaOpenString(raw: string): string | null {
         return appendSearch(path, url.searchParams)
       }
 
-      // hermes://index-network/intent/1 → /index-network/intent/1
+      // kova://index-network/intent/1 → /index-network/intent/1
       if (!isPluginDeepLinkHost(host) || !rest) {
         return null
       }

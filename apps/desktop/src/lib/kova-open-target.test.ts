@@ -13,14 +13,14 @@ describe('normalizeKovaOpenString', () => {
     expect(normalizeKovaOpenString('#/index-network/intent/1')).toBe('/index-network/intent/1')
   })
 
-  it('maps plugin-scoped hermes:// deep links to the same path', () => {
+  it('maps plugin-scoped kova:// deep links to the same path', () => {
     expect(normalizeKovaOpenString('kova://index-network/intent/1')).toBe('/index-network/intent/1')
     expect(normalizeKovaOpenString('kova://index-network/intent/1?focus=true')).toBe(
       '/index-network/intent/1?focus=true'
     )
   })
 
-  it('maps hermes://open/… deep links by stripping the open host', () => {
+  it('maps kova://open/… deep links by stripping the open host', () => {
     expect(normalizeKovaOpenString('kova://open/index-network/intent/1')).toBe('/index-network/intent/1')
     expect(normalizeKovaOpenString('kova://open/settings/plugins')).toBe('/settings/plugins')
   })
@@ -51,7 +51,7 @@ describe('pathFromKovaDeepLink', () => {
     expect(pathFromKovaDeepLink('index-network', 'intent/1')).toBe('/index-network/intent/1')
   })
 
-  it('builds the navigate path from hermes://open/… payloads', () => {
+  it('builds the navigate path from kova://open/… payloads', () => {
     expect(pathFromOpenDeepLink('index-network/intent/1')).toBe('/index-network/intent/1')
     expect(pathFromKovaDeepLink('open', 'agent/42')).toBe('/agent/42')
   })

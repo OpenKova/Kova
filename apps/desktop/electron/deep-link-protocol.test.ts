@@ -23,7 +23,7 @@ function run(env: NodeJS.ProcessEnv, defaultApp = true) {
   return { calls, log }
 }
 
-test('the E2E/dev guard leaves the OS hermes:// handler untouched; normal launches still register', () => {
+test('the E2E/dev guard leaves the OS kova:// handler untouched; normal launches still register', () => {
   const skipped = run({ KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1' })
   assert.deepEqual(skipped.calls, [])
   assert.match(skipped.log.join('\n'), /registration skipped/)

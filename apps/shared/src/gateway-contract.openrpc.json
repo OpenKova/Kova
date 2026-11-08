@@ -638,7 +638,7 @@
     },
     {
       "name": "connectors.operation.wake",
-      "summary": "The browser leg came back (hermes://connections/done): read the accounts now, not at the next tick.",
+      "summary": "The browser leg came back (kova://connections/done): read the accounts now, not at the next tick.",
       "params": [
         {
           "name": "params",
@@ -2474,7 +2474,7 @@
     },
     {
       "name": "plugins.catalog.lookup",
-      "summary": "One curated plugin-catalog entry by name, from the backend's live catalog (cached, with the in-tree fallback and kill list); backs hermes://plugin/install?catalog= deep links.",
+      "summary": "One curated plugin-catalog entry by name, from the backend's live catalog (cached, with the in-tree fallback and kill list); backs kova://plugin/install?catalog= deep links.",
       "params": [
         {
           "name": "params",

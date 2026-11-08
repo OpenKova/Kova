@@ -6341,7 +6341,7 @@ export interface RpcMethods {
   'connectors.list': { params: ConnectorsListParams; result: ConnectorsListResult }
   /** The current snapshot of one open session or account operation. */
   'connectors.operation.status': { params: ConnectionOperationParams; result: ConnectionOperationStatus }
-  /** The browser leg came back (hermes://connections/done): read the accounts now, not at the next tick. */
+  /** The browser leg came back (kova://connections/done): read the accounts now, not at the next tick. */
   'connectors.operation.wake': { params: ConnectionOperationParams; result: ConnectionWakeResult }
   /** Policy layers for the scoped member, from organization to member scope. */
   'connectors.policy.get': { params: ProfileParams; result: ConnectorPolicyGetResult }
@@ -6545,7 +6545,7 @@ export interface RpcMethods {
   'pet.thumb': { params: PetThumbParams; result: PetThumbResult }
   /** Cheapest liveness probe; answered on the WS reader thread even while every agent is mid-turn. */
   ping: { params: PingParams; result: PingResult }
-  /** One curated plugin-catalog entry by name, from the backend's live catalog (cached, with the in-tree fallback and kill list); backs hermes://plugin/install?catalog= deep links. */
+  /** One curated plugin-catalog entry by name, from the backend's live catalog (cached, with the in-tree fallback and kill list); backs kova://plugin/install?catalog= deep links. */
   'plugins.catalog.lookup': { params: PluginCatalogLookupParams; result: PluginCatalogLookupResult }
   /** Loaded plugin manager entries (legacy flat view); the Plugins Hub uses plugins.manage list. */
   'plugins.list': { params: PluginsListParams; result: PluginsListResult }

@@ -832,7 +832,7 @@ describe('useDesktopIntegrations', () => {
       expect(navigate).toHaveBeenCalledWith('/index-network/intent/1')
     })
 
-    it('navigates hermes://index-network/intent/1 deep links through the same path vocabulary', () => {
+    it('navigates kova://index-network/intent/1 deep links through the same path vocabulary', () => {
       let deepLink: ((payload: { kind: string; name: string; params: Record<string, string> }) => void) | undefined
       desktopWindow.kovaDesktop = {
         ...desktopWindow.kovaDesktop,
@@ -849,7 +849,7 @@ describe('useDesktopIntegrations', () => {
       expect(navigate).toHaveBeenCalledWith('/index-network/intent/1')
     })
 
-    it('routes hermes://mcp/install to the pending-install dialog, not navigation', () => {
+    it('routes kova://mcp/install to the pending-install dialog, not navigation', () => {
       let deepLink: ((payload: { kind: string; name: string; params: Record<string, string> }) => void) | undefined
       desktopWindow.kovaDesktop = {
         ...desktopWindow.kovaDesktop,
@@ -867,7 +867,7 @@ describe('useDesktopIntegrations', () => {
       expect(navigate).not.toHaveBeenCalled()
     })
 
-    it('routes hermes://plugin/install?catalog= to the catalog lookup, not the git-path modal', () => {
+    it('routes kova://plugin/install?catalog= to the catalog lookup, not the git-path modal', () => {
       let deepLink: ((payload: { kind: string; name: string; params: Record<string, string> }) => void) | undefined
       desktopWindow.kovaDesktop = {
         ...desktopWindow.kovaDesktop,
