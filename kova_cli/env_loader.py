@@ -649,7 +649,7 @@ def _load_user_dotenv(path: Path, *, load_pass: int) -> bool:
     return True
 
 
-def load_hermes_dotenv(
+def load_kova_dotenv(
     *,
     kova_home: str | os.PathLike | None = None,
     project_env: str | os.PathLike | None = None,
@@ -780,6 +780,9 @@ def load_hermes_dotenv(
     _reapply_terminal_config_bridge(home_path)
 
     return loaded
+
+
+load_hermes_dotenv = load_kova_dotenv  # legacy alias
 
 
 def _reapply_terminal_config_bridge(home_path: Path) -> None:

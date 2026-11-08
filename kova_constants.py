@@ -498,7 +498,7 @@ def get_bundled_skills_dir(default: Path | None = None) -> Path:
     return _packaged_dir("KOVA_BUNDLED_SKILLS", default, "skills")
 
 
-def get_hermes_dir(new_subpath: str, old_name: str, *, home: Path | None = None) -> Path:
+def get_kova_dir(new_subpath: str, old_name: str, *, home: Path | None = None) -> Path:
     """Resolve a Kova subdirectory, honouring a populated legacy ``<old_name>/`` (no migration).
 
     An empty legacy dir does NOT count (install scaffolds, manual mkdir) so it cannot shadow the new path.
@@ -513,10 +513,16 @@ def get_hermes_dir(new_subpath: str, old_name: str, *, home: Path | None = None)
     return old_path if _legacy_path_has_content(old_path) else home / new_subpath
 
 
+get_hermes_dir = get_kova_dir  # legacy alias for pre-Kova callers (gateway/, plugins/)
+
+
 def iter_hermes_node_dirs(home: Path | None = None) -> list[Path]:
     """Historical layout for old-updater diagnostics, never runtime selection."""
     node_dir = (home or get_kova_home()) / "node"
     return [node_dir, node_dir / "bin"] if sys.platform == "win32" else [node_dir / "bin", node_dir]
+
+
+iter_kova_node_dirs = iter_hermes_node_dirs  # canonical Kova name; old name is the legacy alias
 
 
 _WINDOWS_NODE_SHIMS = {
