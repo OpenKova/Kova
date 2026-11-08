@@ -301,7 +301,10 @@ class IconArt:
         self.source = source
         self.colors = colors
         self.commit = commit
-        self.girls = {color: assets / f"nous-girl-{color}.svg" for color in ("black", "white")}
+        self.girls = {
+            "black": assets / "kova-logo-light.svg",
+            "white": assets / "kova-logo-dark.svg",
+        }
         self.backgrounds = assets / "backgrounds"
         self.paths: dict[str, str] = {}
         self.bboxes: dict[str, tuple[float, float, float, float]] = {}
@@ -317,12 +320,14 @@ class IconArt:
 
 
 def girl_path(art: IconArt, girl: str) -> str:
-    """The girl `<path>` element with editor metadata stripped (resvg rejects
-    undeclared inkscape/sodipodi prefixes)."""
+    """The girl artwork element with editor metadata stripped (resvg rejects
+    undeclared inkscape/sodipodi prefixes). Kova's mark is a raster
+    illustration wrapped in an SVG, so a full-canvas <image> is accepted
+    alongside the original vector <path>."""
     if girl not in art.paths:
         src = art.girls[girl].read_text(encoding="utf-8-sig")
-        m = re.search(r"<path\b.*?/>", src, re.DOTALL)
-        assert m, f"no <path> found in {art.girls[girl].name}"
+        m = re.search(r"<path\b.*?/>|<image\b.*?/>", src, re.DOTALL)
+        assert m, f"no <path> or <image> found in {art.girls[girl].name}"
         path = re.sub(r'\s+(inkscape|sodipodi):[a-zA-Z-]+="[^"]*"', "", m.group(0))
         art.paths[girl] = path
     return art.paths[girl]
@@ -462,6 +467,10 @@ def portrait_layer(art: IconArt, girl: str, bg: str, join_bottom: float) -> ET.E
     (the border's inner edge) so hair meets the ring instead of floating."""
     box = GIRL_BOXES[bg]
     portrait = ET.fromstring(girl_layer(art, girl, box, align="xMidYMax"))
+    # Raster art cannot have its bottom nodes dragged the way the original
+    # vector mark could; it already fills the canvas edge-to-edge.
+    if portrait[0].tag.endswith("image"):
+        return portrait
     _, y, portrait_width, portrait_height = box
     _, by, bw, bh = girl_bbox(art, girl)
     scale = min(portrait_width / bw, portrait_height / bh)
