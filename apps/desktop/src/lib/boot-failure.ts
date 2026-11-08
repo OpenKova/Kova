@@ -1,5 +1,3 @@
-import collapseBold from '@nous-research/ui/fonts/Collapse-Bold.woff2?url'
-
 import { isTransparentWindow } from './transparent-windows'
 
 type BootPalette = Record<'accent' | 'accentForeground' | 'background' | 'foreground', string>
@@ -20,20 +18,6 @@ export function readBootPalette(): BootPalette | null {
     return typeof value === 'object' && value !== null && fields.every(standalone) ? (value as BootPalette) : null
   } catch {
     return null
-  }
-}
-
-async function loadWordmarkFont(): Promise<void> {
-  if (typeof FontFace === 'undefined' || !document.fonts) {
-    return
-  }
-
-  try {
-    const face = new FontFace('Collapse', `url("${collapseBold}")`, { weight: '700', display: 'swap' })
-    document.fonts.add(face)
-    await face.load()
-  } catch {
-    // The font is optional: a failed request must leave the system lettering usable.
   }
 }
 
@@ -75,20 +59,6 @@ export function showBootFailure(error: unknown, reload: () => void = () => locat
     textAlign: 'center'
   })
 
-  const wordmark = document.createElement('p')
-  wordmark.textContent = 'HERMES AGENT'
-  wordmark.setAttribute('aria-hidden', 'true')
-  Object.assign(wordmark.style, {
-    color: palette?.accent ?? 'currentColor',
-    fontFamily: 'Collapse, system-ui, sans-serif',
-    fontSize: 'clamp(2.5rem, 9vw, 6rem)',
-    fontWeight: '700',
-    letterSpacing: '0.08em',
-    lineHeight: '0.9',
-    margin: '0 0 24px',
-    textTransform: 'uppercase'
-  })
-
   // English is intentional: i18n lives in the app graph that failed to load.
   const heading = document.createElement('h1')
   heading.textContent = 'Kova couldn’t load'
@@ -115,7 +85,6 @@ export function showBootFailure(error: unknown, reload: () => void = () => locat
   const alert = document.createElement('div')
   alert.setAttribute('role', 'alert')
   alert.append(heading, message)
-  notice.append(wordmark, alert, button)
+  notice.append(alert, button)
   root.append(notice)
-  void loadWordmarkFont()
 }

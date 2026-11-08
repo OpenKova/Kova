@@ -95,36 +95,6 @@ it('shows the notice in an opaque secondary window', () => {
   expect(within(root).getByRole('button', { name: 'Reload' })).toBeTruthy()
 })
 
-it('shows a decorative wordmark above the accessible heading without app CSS', () => {
-  showBootFailure(new Error('CSS failed'), vi.fn())
-
-  const wordmark = within(root).getByText('HERMES AGENT')
-  const heading = within(root).getByRole('heading', { level: 1, name: 'Kova couldn’t load' })
-  const alert = within(root).getByRole('alert')
-  expect(wordmark.tagName).toBe('P')
-  expect(wordmark.getAttribute('aria-hidden')).toBe('true')
-  expect(wordmark.nextElementSibling).toBe(alert)
-  expect(alert.contains(heading)).toBe(true)
-  expect(within(root).getByRole('main').getAttribute('lang')).toBe('en')
-  expect(wordmark.style.fontFamily).toBe('Collapse, system-ui, sans-serif')
-  expect(wordmark.style.fontWeight).toBe('700')
-  expect(wordmark.style.letterSpacing).toBe('0.08em')
-  expect(wordmark.style.lineHeight).toBe('0.9')
-  expect(wordmark.style.textTransform).toBe('uppercase')
-  expect(wordmark.style.marginBottom).toBe('24px')
-  expect(heading.style.fontSize).toBe('1.125rem')
-  expect(heading.style.fontWeight).toBe('600')
-  const message = within(alert).getByText('Part of the app didn’t load; reloading usually fixes it.')
-  expect(message.style.fontSize).toBe('0.875rem')
-  expect(message.style.opacity).toBe('0.7')
-  const button = within(root).getByRole('button', { name: 'Reload' })
-  expect(button.style.borderRadius).toBe('2.5px')
-  expect(button.style.padding).toBe('8px 20px')
-  expect(button.style.fontWeight).toBe('500')
-  expect(button.style.fontSize).toBe('0.875rem')
-  expect(button.style.lineHeight).toBe('1.25rem')
-})
-
 const palette = {
   background: 'rgb(13, 17, 23)',
   foreground: 'rgb(230, 237, 243)',
@@ -143,7 +113,6 @@ it('paints its own background and ink from the theme snapshot, whatever the page
   expect(notice.style.color).toBe(palette.foreground)
   expect(notice.style.position).toBe('fixed')
   expect(notice.style.inset).toBe('0px')
-  expect(within(root).getByText('HERMES AGENT').style.color).toBe(palette.accent)
   const button = within(root).getByRole('button', { name: 'Reload' })
   expect(button.style.backgroundColor).toBe(palette.accent)
   expect(button.style.color).toBe(palette.accentForeground)
@@ -173,80 +142,10 @@ it.each([
   expect(notice.style.backgroundColor).toBe('')
   expect(notice.style.color).toBe('')
   expect(notice.style.position).toBe('')
-  expect(within(root).getByText('HERMES AGENT').style.color).toBe('currentcolor')
   const button = within(root).getByRole('button', { name: 'Reload' })
   expect(button.style.backgroundColor).toBe('transparent')
   expect(button.style.color).toBe('inherit')
   expect(button.style.borderTopWidth).toBe('1px')
   expect(button.style.borderTopStyle).toBe('solid')
   expect(button.style.borderTopColor).toBe('currentcolor')
-})
-
-it('registers the bundled Collapse face without waiting to show recovery', () => {
-  const face = { load: vi.fn(() => new Promise(() => {})) }
-
-  const FontFace = vi.fn(function () {
-    return face
-  })
-
-  const add = vi.fn()
-  vi.stubGlobal('FontFace', FontFace)
-  Object.defineProperty(document, 'fonts', { configurable: true, value: { add } })
-
-  showBootFailure(new Error('CSS failed'), vi.fn())
-
-  expect(FontFace).toHaveBeenCalledWith('Collapse', `url("${collapseBold}")`, { weight: '700', display: 'swap' })
-  expect(add).toHaveBeenCalledWith(face)
-  expect(face.load).toHaveBeenCalledOnce()
-  expect(within(root).getByRole('button', { name: 'Reload' })).toBeTruthy()
-})
-
-it.each(['FontFace', 'document.fonts'])('shows recovery when %s is unavailable', missing => {
-  const FontFace = vi.fn()
-  const add = vi.fn()
-  vi.stubGlobal('FontFace', missing === 'FontFace' ? undefined : FontFace)
-  Object.defineProperty(document, 'fonts', {
-    configurable: true,
-    value: missing === 'document.fonts' ? undefined : { add }
-  })
-
-  expect(() => showBootFailure(new Error('CSS failed'), vi.fn())).not.toThrow()
-  expect(FontFace).not.toHaveBeenCalled()
-  expect(add).not.toHaveBeenCalled()
-  expect(within(root).getByText('HERMES AGENT').style.fontFamily).toContain('system-ui')
-})
-
-it.each(['constructor', 'load', 'rejection'])('keeps recovery usable after a font %s failure', async failure => {
-  const error = new Error('Font unavailable')
-
-  const face = {
-    load: vi.fn(() => {
-      if (failure === 'load') {
-        throw error
-      }
-
-      return Promise.reject(error)
-    })
-  }
-
-  vi.stubGlobal(
-    'FontFace',
-    vi.fn(function () {
-      if (failure === 'constructor') {
-        throw error
-      }
-
-      return face
-    })
-  )
-  Object.defineProperty(document, 'fonts', { configurable: true, value: { add: vi.fn() } })
-  const reload = vi.fn()
-
-  showBootFailure(new Error('CSS failed'), reload)
-  // Let a rejected font request settle; Vitest also fails on unhandled rejections.
-  await new Promise(resolve => setTimeout(resolve, 0))
-
-  expect(reload).not.toHaveBeenCalled()
-  within(root).getByRole('button', { name: 'Reload' }).click()
-  expect(reload).toHaveBeenCalledOnce()
 })
