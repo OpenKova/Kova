@@ -998,7 +998,10 @@ function Get-StableTarget([string]$Origin) {
     }
     $release = Get-LatestStableRelease $Origin
     if ($release) { return $release }
-    return '-'
+    # No stable release has been published yet (the repo has no vX.Y.Z tags):
+    # follow the main line instead of failing a fresh install.
+    Write-Warn "no stable release published yet; installing the main line instead"
+    return ''
 }
 
 # Fetch tag $Release into checkout $Dir (releases can be cut off main, on release/* branches).

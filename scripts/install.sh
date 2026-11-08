@@ -688,7 +688,8 @@ stable_target() {
     esac
     local release
     release="$(latest_stable_release "$1")"
-    printf '%s' "${release:--}"
+    # No stable release published yet: follow the branch (main) instead of failing.
+    if [ -z "$release" ]; then printf '%s' "" ; else printf '%s' "$release"; fi
 }
 
 # Fetch tag $release into checkout $1 (releases can be cut off main, on release/* branches).
