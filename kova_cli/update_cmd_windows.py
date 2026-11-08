@@ -242,7 +242,7 @@ def _holder_value_flags() -> frozenset:
     return _holder_value_flags_cache
 
 
-def _hermes_holder_subcommand(cmdline: str) -> str | None:
+def _kova_holder_subcommand(cmdline: str) -> str | None:
     """The actual Kova SUBCOMMAND a venv-holder argv runs, or None (callers must NOT guess a label).
 
     Token-based, never substring (``kanban --preserve-cache`` contains "serve"): find the ``kova_cli.main`` /
@@ -322,7 +322,7 @@ def _venv_holder_kind(cmdline: str) -> str:
     from kova_cli._scan_venv_blockers import _is_pausable_gateway
     if _is_pausable_gateway(cmdline):
         return "gateway"
-    subcommand = _hermes_holder_subcommand(cmdline)
+    subcommand = _kova_holder_subcommand(cmdline)
     if subcommand in _BACKEND_PURPOSES:
         return "backend"
     if subcommand:
@@ -521,7 +521,7 @@ def _orphaned_desktop_backend_pids(matches: list[tuple[int, str, str]]) -> list[
         try:
             proc = psutil.Process(int(pid))
             # Fingerprint from the SAME psutil handle, centisecond-quantized like
-            # gateway.status.get_process_start_time so pid_is_hermes round-trips at kill time.
+            # gateway.status.get_process_start_time so pid_is_kova round-trips at kill time.
             process_start_time = round(proc.create_time() * 100)
         except psutil.NoSuchProcess:
             continue  # exited during classification — nothing to reap
@@ -606,14 +606,14 @@ def _stop_process_trees(pids: list[int] | list[tuple[int, int]]) -> None:
     See #70026.
     """
     from gateway.status import get_process_start_time
-    from kova_cli._subprocess_compat import pid_is_hermes, windows_hide_flags
+    from kova_cli._subprocess_compat import pid_is_kova, windows_hide_flags
     for entry in pids:
         pid, expected_start_time = entry if isinstance(entry, tuple) else (int(entry), get_process_start_time(int(entry)))
         try:
             if expected_start_time is None:
                 logger.debug("Skipping taskkill of PID %s: process identity unavailable", pid)
                 continue
-            if not pid_is_hermes(pid, expected_start_time=expected_start_time):
+            if not pid_is_kova(pid, expected_start_time=expected_start_time):
                 logger.debug("Skipping taskkill of non-Kova or changed PID %s", pid)
                 continue
             subprocess.run(
@@ -636,7 +636,7 @@ def _looks_like_desktop_control_plane(cmdline: str) -> bool:
     A cmdline whose subcommand cannot be determined is NOT a control plane — callers must not guess
     ownership. See #90778, #91869.
     """
-    return "kova_cli.main" in (cmdline or "").lower() and _hermes_holder_subcommand(cmdline) in _BACKEND_PURPOSES
+    return "kova_cli.main" in (cmdline or "").lower() and _kova_holder_subcommand(cmdline) in _BACKEND_PURPOSES
 
 
 def _desktop_owns_gateway_lifecycle() -> bool:

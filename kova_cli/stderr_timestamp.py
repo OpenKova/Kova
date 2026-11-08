@@ -93,7 +93,7 @@ def _install_signal_forwarders(proc: subprocess.Popen[bytes]) -> dict[int, objec
     return previous
 
 
-def _is_hermes_gateway_run_argv(command: Sequence[str]) -> bool:
+def _is_kova_gateway_run_argv(command: Sequence[str]) -> bool:
     """True for Kova ``gateway run`` argv this wrapper is allowed to upgrade.
 
     The wrapper is generic. Only historical/current Kova gateway shapes get ``--external-
@@ -135,7 +135,7 @@ def _prepare_child_command(command: Sequence[str], environ: Mapping[str, str] | 
     argv = [str(part) for part in command]
     env = os.environ if environ is None else environ
     xpc_service = str(env.get("XPC_SERVICE_NAME", "")).strip()
-    if EXTERNAL_SUPERVISOR_FLAG not in argv and xpc_service and xpc_service != "0" and _is_hermes_gateway_run_argv(argv):
+    if EXTERNAL_SUPERVISOR_FLAG not in argv and xpc_service and xpc_service != "0" and _is_kova_gateway_run_argv(argv):
         argv.append(EXTERNAL_SUPERVISOR_FLAG)
     return argv
 
@@ -149,7 +149,7 @@ def _child_returncode_for_supervisor(command: Sequence[str], returncode: int) ->
     """
     if returncode < 0:
         return 128 + abs(returncode)
-    if returncode == _GATEWAY_FATAL_CONFIG_EXIT_CODE and _is_hermes_gateway_run_argv(command):
+    if returncode == _GATEWAY_FATAL_CONFIG_EXIT_CODE and _is_kova_gateway_run_argv(command):
         return 0
     return returncode
 

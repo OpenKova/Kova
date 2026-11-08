@@ -42,7 +42,7 @@ from kova_cli.update_abort_recovery import (
 from kova_cli.update_cmd_windows import (
     _HOLDER_VALUE_FLAGS_FALLBACK,
     _cold_start_windows_gateway_after_update, _desktop_owns_gateway_lifecycle,
-    _detect_venv_python_processes, _hermes_holder_subcommand, _holder_value_flags,
+    _detect_venv_python_processes, _kova_holder_subcommand, _holder_value_flags,
     _holder_value_flags_cache, _looks_like_desktop_control_plane,
     _pause_windows_gateways_for_update,
     _refresh_bootstrap_cache_scripts, _refresh_windows_gateway_launchers,

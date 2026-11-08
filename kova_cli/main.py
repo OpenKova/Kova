@@ -762,7 +762,7 @@ from kova_cli.old_updater_main import (
     _desktop_stamp_path,
     _detect_broken_lazy_refresh_imports,
     _expected_windows_pe_machines,
-    _hermes_exe_shims,
+    _kova_exe_shims,
     _insert_python_pin,
     _interpreter_scripts_dir,
     _load_installable_optional_extras,

@@ -83,10 +83,10 @@ def _scan_dashboard_processes(*, exclude_pids: set[int] | None = None) -> list[t
     # Canonical token matcher, never argv substrings: ``kova serve`` is a prefix of ``hermes
     # server`` and this list decides a SIGTERM — ``herdr --session kova server`` (a terminal
     # multiplexer) was killed and its unit restarted by ``kova update`` (#121156).
-    from kova_cli.update_cmd_windows import _hermes_holder_subcommand
+    from kova_cli.update_cmd_windows import _kova_holder_subcommand
     try:
         found = [(pid, cmd) for pid, cmd in _iter_process_table()
-                 if pid not in skip and _hermes_holder_subcommand(cmd) in ("dashboard", "serve")]
+                 if pid not in skip and _kova_holder_subcommand(cmd) in ("dashboard", "serve")]
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
         return []
     # Spawn-ledger augmentation: an argv scan misses a truncated or unreadable cmdline; the ledger
@@ -446,7 +446,7 @@ def _is_caller_wrapper_shell(pid: int, ancestors: set[int]) -> bool:
 def _kill_pids_windows(pids: list[int], killed: list[int], failed: list[tuple[int, str]]) -> None:
     """``taskkill /F`` each PID after re-verifying its identity."""
     from gateway.status import get_process_start_time
-    from kova_cli._subprocess_compat import pid_is_hermes, windows_hide_flags
+    from kova_cli._subprocess_compat import pid_is_kova, windows_hide_flags
     # Identity captured right after discovery: a PID reused before the kill fails the check.
     pid_start_times = {pid: get_process_start_time(pid) for pid in pids}
     for pid in pids:
@@ -454,7 +454,7 @@ def _kill_pids_windows(pids: list[int], killed: list[int], failed: list[tuple[in
             expected_start_time = pid_start_times.get(pid)
             if expected_start_time is None:
                 failed.append((pid, "could not verify process identity"))
-            elif not pid_is_hermes(pid, expected_start_time=expected_start_time):
+            elif not pid_is_kova(pid, expected_start_time=expected_start_time):
                 failed.append((pid, "not hermes-owned or process identity changed"))
             else:
                 result = subprocess.run(
@@ -800,10 +800,10 @@ def _is_desktop_local_serve_cmdline(command: str) -> bool:
     Long-lived headless serves (``--host <tailscale-ip> --port 9119``) must never match —
     those are operator-managed remote backends that legitimately run with ppid 1.
     """
-    from kova_cli.update_cmd_windows import _hermes_holder_subcommand
+    from kova_cli.update_cmd_windows import _kova_holder_subcommand
     # Canonical token matcher, never argv substrings: ``kanban --preserve-cache`` contains "serve" and
     # ``vim notes about kova serve`` contains both markers — this predicate decides a kill.
-    if _hermes_holder_subcommand(command) != "serve":
+    if _kova_holder_subcommand(command) != "serve":
         return False
     tokens = command.lower().split()
     host = _flag_value(tokens, "--host")

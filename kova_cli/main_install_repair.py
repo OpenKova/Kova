@@ -102,7 +102,7 @@ def _venv_scripts_dir() -> Path | None:
     return scripts if scripts.is_dir() else None
 
 
-def _hermes_exe_shims(scripts_dir: Path) -> list[Path]:
+def _kova_exe_shims(scripts_dir: Path) -> list[Path]:
     """Entry-point shims uv may rewrite during ``pip install -e .`` — Windows .exe launchers
     only; POSIX shims are plain scripts replaced atomically."""
     if not _is_windows():
@@ -159,7 +159,7 @@ def _cleanup_pending_shim_renames(scripts_dir: Path) -> int:
             entries, value_type = winreg.QueryValueEx(key, _PENDING_RENAME_VALUE)
             if value_type != winreg.REG_MULTI_SZ or not isinstance(entries, list):
                 return 0
-            kept, removed = _filter_pending_shim_renames(entries, _hermes_exe_shims(scripts_dir))
+            kept, removed = _filter_pending_shim_renames(entries, _kova_exe_shims(scripts_dir))
             if not removed:
                 return 0
             if kept:

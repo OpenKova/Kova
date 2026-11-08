@@ -538,9 +538,9 @@ def _is_runtime_host(cmdline: list[str]) -> bool:
     """A long-lived Kova host (``gateway run`` / ``serve`` / ``dashboard``), by the canonical
     command-line matchers (profile flags, ``kova_cli/main.py`` paths, inline bootstraps)."""
     from gateway.status import looks_like_gateway_command_line
-    from kova_cli.update_cmd_windows import _hermes_holder_subcommand
+    from kova_cli.update_cmd_windows import _kova_holder_subcommand
     line = " ".join(cmdline)
-    return looks_like_gateway_command_line(line) or _hermes_holder_subcommand(line) in ("serve", "dashboard")
+    return looks_like_gateway_command_line(line) or _kova_holder_subcommand(line) in ("serve", "dashboard")
 
 
 def _runtime_host_below(holder_pid: int) -> bool:

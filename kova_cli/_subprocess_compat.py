@@ -27,7 +27,7 @@ __all__ = [
     "noninteractive_git_env",
     "noninteractive_repo_git_env",
     "pid_exists_stdlib",
-    "pid_is_hermes",
+    "pid_is_kova",
     "resolve_node_command",
     "restore_ambient_pythonpath",
     "selected_git_env",
@@ -707,7 +707,7 @@ def _process_command_is_hermes(pid: int) -> bool:
         return False
 
 
-def pid_is_hermes(pid: int, *, expected_start_time: int | None = None) -> bool:
+def pid_is_kova(pid: int, *, expected_start_time: int | None = None) -> bool:
     """Whether it is safe to use ``taskkill`` for *pid*.
 
     The PID must be valid, currently exist, and identify a Kova process. When the caller captured
@@ -812,7 +812,7 @@ def _legacy_kill_process_tree(proc: subprocess.Popen) -> None:
         pass
     if IS_WINDOWS:
         # No identity guard on purpose: *proc* is our own retained Popen handle, so the PID cannot
-        # be recycled while we hold it. The fail-closed ``pid_is_hermes`` guard is for BARE pids.
+        # be recycled while we hold it. The fail-closed ``pid_is_kova`` guard is for BARE pids.
         try:
             subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

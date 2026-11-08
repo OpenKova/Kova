@@ -41,7 +41,7 @@ def _expected_windows_pe_machines() -> NoReturn:
     stop_for_relaunch()
 
 
-def _hermes_exe_shims(scripts_dir: Path) -> NoReturn:
+def _kova_exe_shims(scripts_dir: Path) -> NoReturn:
     # Shim to stop the old updater doing work until relaunch, not select files to rename.
     stop_for_relaunch()
 

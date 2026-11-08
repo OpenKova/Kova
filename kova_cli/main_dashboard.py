@@ -49,8 +49,8 @@ def _parse_dashboard_runtime(command: str) -> tuple[str, str, int] | None:
     The mode is the canonical holder subcommand, never an argv substring: this gates the launchd
     backend inventory (a kill + kickstart path) and ``--status`` (#121156).
     """
-    from kova_cli.update_cmd_windows import _hermes_holder_subcommand
-    mode = _hermes_holder_subcommand(command)
+    from kova_cli.update_cmd_windows import _kova_holder_subcommand
+    mode = _kova_holder_subcommand(command)
     if mode not in ("dashboard", "serve"):
         return None
 
