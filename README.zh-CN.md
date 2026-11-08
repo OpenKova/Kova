@@ -5,10 +5,10 @@
 # Kova Agent ☤
 
 <p align="center">
-  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-OpenKova%2FKova-FFD700?style=for-the-badge" alt="Documentation"></a>
   <a href="https://discord.gg/OpenKova"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://github.com/OpenKova/Kova/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge" alt="Built by OpenKova"></a>
+  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-OpenKova-blueviolet?style=for-the-badge" alt="Built by OpenKova"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-lightgrey?style=for-the-badge" alt="English"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
 </p>

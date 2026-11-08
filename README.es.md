@@ -7,7 +7,7 @@
   <a href="https://github.com/OpenKova/Kova/">Kova Agent</a> | <a href="https://github.com/OpenKova/Kova/">Kova Desktop</a>
 </p>
 <p align="center">
-  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentación"></a>
+  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-OpenKova%2FKova-FFD700?style=for-the-badge" alt="Documentación"></a>
   <a href="https://discord.gg/OpenKova"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://github.com/OpenKova/Kova/blob/main/LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-green?style=for-the-badge" alt="Licencia: MIT"></a>
   <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Creado%20por-Nous%20Research-blueviolet?style=for-the-badge" alt="Creado por OpenKova"></a>
