@@ -1,6 +1,6 @@
 """Gateway lifecycle guard for cron job creation.
 
-A cron job that restarts/stops the gateway from inside the gateway (``hermes gateway restart``,
+A cron job that restarts/stops the gateway from inside the gateway (``kova gateway restart``,
 ``launchctl kickstart ai.kova.gateway``, ``systemctl restart kova-gateway``) kills the process,
 the supervisor revives it, auto-resume re-runs the turn: a SIGTERM-respawn loop.
 ``cron.jobs.create_job`` rejects such specs on every creation path. Patterns are command-shaped —
@@ -29,9 +29,9 @@ class GatewayLifecycleBlocked(ValueError):
 # concrete command identifier so it fires only on command-shaped strings, never prose.
 _GATEWAY_LIFECYCLE_PATTERN = re.compile(
     r"(?i)"
-    # Branch A: destructive `hermes gateway` ops. `start` is excluded: starting from inside a
+    # Branch A: destructive `kova gateway` ops. `start` is excluded: starting from inside a
     # gateway is benign and a job may legitimately start a sibling profile. The lookbehind keeps
-    # `hermes` from being a path component or word tail (`/docs/hermes gateway restart-notes.md`)
+    # `hermes` from being a path component or word tail (`/docs/kova gateway restart-notes.md`)
     # while every real command position (text start, whitespace, `;`/`&`/`|`, `$(`, backtick,
     # U+FFFD) still matches.
     # See #77173.
@@ -94,7 +94,7 @@ _NAME_KILLERS = frozenset({"pkill", "killall", "taskkill", "stop-process"})
 _NAME_ENUMERATORS = frozenset({"pgrep", "pidof", "get-process"})
 _KILL_VERB_RE = re.compile(r"(?i)\b(?:kill|taskkill|stop-process)\b")
 # A `-f` pattern that does not start with the interpreter reaches the gateway cmdline
-# (`python -m kova_cli.main gateway run` / `hermes gateway run`) only through its own tokens;
+# (`python -m kova_cli.main gateway run` / `kova gateway run`) only through its own tokens;
 # an unrelated script that merely contains "hermes" (`hermes-polis/run.sh`, `my_hermes_bot.py`)
 # cannot match it. Same hermes+gateway pairing as Branch D, plus the module path.
 _GATEWAY_CMDLINE_TOKEN_RE = re.compile(r"(?i)kova_cli|\bhermes\b[^\n]*\bgateway\b|\bgateway\b[^\n]*\bhermes\b")
@@ -234,12 +234,12 @@ _SHELL_LINE_CONTINUATION = re.compile(r"\\\r?\n[ \t]*")
 # See #68289.
 _ARGV_LIST_PUNCTUATION = re.compile(r"[\[\],]+")
 
-# Branch A2: `hermes -p <profile> gateway restart|stop` (also `--profile <name>` /
+# Branch A2: `kova -p <profile> gateway restart|stop` (also `--profile <name>` /
 # `--profile=<name>`). The selector breaks Branch A's adjacency. A sibling-profile restart is a
 # legitimate fleet operation, so the profile name is captured and blocked only when it equals the
 # profile running the guard. `start` stays excluded as in Branch A.
 # Unlike Branch A this form is NOT unconditionally self-targeting: issued from inside gateway `zeus`,
-# `hermes -p venus gateway restart` operates on a sibling profile's gateway and is a legitimate fleet
+# `kova -p venus gateway restart` operates on a sibling profile's gateway and is a legitimate fleet
 # operation. The pattern captures the named profile so `contains_gateway_lifecycle_command` can block only
 # the self-targeting shape (named profile == the profile running the guard). See #78028.
 _PROFILE_FLAG_LIFECYCLE_PATTERN = re.compile(
@@ -416,7 +416,7 @@ def contains_gateway_lifecycle_command(text: str) -> bool:
     # are documentation, not commands. The stripper fails open on ANY ambiguity (unquoted delimiter,
     # shell consumer, unterminated body), so executable heredocs are still scanned.
     # Heredoc bodies that are provably inert data (quoted delimiter, data-sink consumer like `cat > file
-    # <<'EOF'`) are masked before scanning (#88336): a runbook line "a human can run: hermes gateway
+    # <<'EOF'`) are masked before scanning (#88336): a runbook line "a human can run: kova gateway
     # restart" inside such a body is documentation, not a command this shell will execute.
     from tools.shell_heredoc import strip_inert_heredoc_bodies
 
@@ -425,7 +425,7 @@ def contains_gateway_lifecycle_command(text: str) -> bool:
     if _GATEWAY_LIFECYCLE_PATTERN.search(normalized):
         return True
     # Profile-flag form: blocked only when the named profile IS the one running the guard.
-    # Profile-flag form (#78028): `hermes -p <profile> gateway restart|stop` bypasses Branch A because the
+    # Profile-flag form (#78028): `kova -p <profile> gateway restart|stop` bypasses Branch A because the
     # selector sits between `hermes` and `gateway`. It is only the same foot-gun when the named profile IS
     # the profile running the guard — sibling-profile restarts are legitimate fleet operations and stay
     # allowed.
@@ -1265,7 +1265,7 @@ def check_gateway_lifecycle(prompt: Optional[str], script: Optional[str] = None)
         # false-positive generator on Python sources (pathlib "/" resolves to the filesystem root).
         # The regex still scans the full text; non-regular/oversized files fail closed above (named refusal).
         # The data-exemption masker tokenizes with shlex, so it is charged against the walk budget.
-        # The direct command regex below still scans the full text, so a literal `hermes gateway restart`
+        # The direct command regex below still scans the full text, so a literal `kova gateway restart`
         # embedded in a .py script is still blocked. See #77131, #78398.
         budget = _LifecycleScanBudget()
         if not budget.charge_text(combined):
@@ -1288,6 +1288,6 @@ def check_gateway_lifecycle(prompt: Optional[str], script: Optional[str] = None)
             "Blocked: cron job contains a gateway lifecycle command or persistent "
             "launchctl submit operation. This is blocked to prevent agent-driven "
             "SIGTERM-respawn loops under launchd/systemd supervision "
-            "(#30719). Run `hermes gateway restart` from a shell outside "
+            "(#30719). Run `kova gateway restart` from a shell outside "
             "the running gateway instead."
         )

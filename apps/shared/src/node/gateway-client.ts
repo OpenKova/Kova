@@ -1,7 +1,7 @@
 /** The renderer-free `kova-gateway-v1` client (Node): ticketed WebSocket dial, `runtime.describe`, the
  *  `session.create` contract, reconnect with bounded owner recovery, typed requests and events. Where the
  *  URL and ticket come from is the caller's `connect` (Ink: `gateway_bootstrap.py`; any other local
- *  client: `hermes gateway attach --json`). */
+ *  client: `kova gateway attach --json`). */
 import { EventEmitter } from 'node:events'
 
 import { CircularBuffer } from '../circular-buffer.js'
@@ -42,7 +42,7 @@ export const RECONNECT_BASE_MS = 1_000
 export const RECONNECT_MAX_MS = 30_000
 
 /** One attach grant: the owner's WebSocket URL and the subprotocols (with the single-use ticket) to
- *  dial it with. From `hermes gateway attach --json`: its `url`, `protocols`, and `endpoint.profile_id`
+ *  dial it with. From `kova gateway attach --json`: its `url`, `protocols`, and `endpoint.profile_id`
  *  / `endpoint.instance_id`. */
 export interface GatewayConnection { url: string; protocols: string[]; profile_id: string; instance_id: string }
 
@@ -117,7 +117,7 @@ const redactUrl = (raw: string): string => {
 
 // Reconnects after the first launch are discovery-only, except that a bounded number per window
 // re-ensure an owner that is not ready (gateway_bootstrap.py --recover): crashed, idle-exited,
-// stopped with `hermes gateway stop` while this TUI is open, or an older Kova's gateway. Main's
+// stopped with `kova gateway stop` while this TUI is open, or an older Kova's gateway. Main's
 // TUI owned its sidecar, so an open TUI comes back on its own; the budget keeps a crash-looping
 // owner from being respawned without pause.
 export const OWNER_RECOVERY_LIMIT = 3

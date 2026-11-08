@@ -2,9 +2,9 @@
 # hermes-update-rehearsal.sh — for an EXISTING Kova install.
 #
 # Two steps:
-#   pre   take a `hermes backup` of your data, clone KOVA_HOME and the desktop
+#   pre   take a `kova backup` of your data, clone KOVA_HOME and the desktop
 #         app's Electron userData into the backup dir, then point the install's
-#         update source at a fork so `hermes update` pulls that fork's main.
+#         update source at a fork so `kova update` pulls that fork's main.
 #         Prints what to do next.
 #   post  swap the clones back in, so both trees are exactly as they were.
 #
@@ -16,7 +16,7 @@
 # when the backup dir is on the same disk. KOVA_HOME/cache is left as it is.
 #
 #   ./hermes-update-rehearsal.sh pre  --source <git-url>
-#   # ... run `hermes update`, use Kova, test whatever you need ...
+#   # ... run `kova update`, use Kova, test whatever you need ...
 #   ./hermes-update-rehearsal.sh post
 #
 # Options:
@@ -25,7 +25,7 @@
 #   --backup-root DIR   where the backup lives (default ~/hermes-update-rehearsal)
 #   --yes          post: skip the confirmation
 #
-# Requires: git. `pre` and `hermes update` need network access to --source.
+# Requires: git. `pre` and `kova update` need network access to --source.
 
 set -euo pipefail
 
@@ -254,7 +254,7 @@ cmd_pre() {
     procs="$(pgrep -fl hermes 2>/dev/null | grep -v 'hermes-update-rehearsal' || true)"
     if [ -n "$procs" ]; then
       warn "Kova looks like it is running — close the desktop app and the gateway"
-      warn "before you run 'hermes update', or the dependency sync may fail:"
+      warn "before you run 'kova update', or the dependency sync may fail:"
       printf '    %s\n' "$procs"
     else
       ok "no Kova processes running"
@@ -284,10 +284,10 @@ cmd_pre() {
   out="$(KOVA_HOME="$KOVA_HOME" "$hermes_exe" backup -o "$SNAP/hermes-backup.zip" 2>&1)" || code=$?
   if [ "$code" = 1 ] && [ -f "$SNAP/hermes-backup.zip" ]; then
     printf '    %s\n' "$out"
-    warn "hermes backup finished INCOMPLETE ($((SECONDS - started))s): the files listed above are not in $SNAP/hermes-backup.zip"
+    warn "kova backup finished INCOMPLETE ($((SECONDS - started))s): the files listed above are not in $SNAP/hermes-backup.zip"
   elif [ "$code" != 0 ] || [ ! -f "$SNAP/hermes-backup.zip" ]; then
     printf '    %s\n' "$out"
-    die "hermes backup failed (exit $code) — nothing else was done"
+    die "kova backup failed (exit $code) — nothing else was done"
   else
     ok "hermes-backup.zip ($(du -h "$SNAP/hermes-backup.zip" | cut -f1), $((SECONDS - started))s)"
   fi
@@ -332,7 +332,7 @@ EOF
 
   step "pointing your install at $SOURCE"
   # insteadOf is a TRANSPORT rewrite. Your checkout's origin keeps the official
-  # URL, which matters: `hermes update` resolves its channel from the archive
+  # URL, which matters: `kova update` resolves its channel from the archive
   # and validates it against `git config --get remote.origin.url`. Repointing
   # origin at a fork would make the update fail before any git work.
   # Straight at the fork: the updater follows main, so the fork's main is what
@@ -462,7 +462,7 @@ cmd_post() {
 
   step "done"
   say "Your KOVA_HOME and the desktop app's data are back exactly as they were."
-  say "Open the desktop app once and run 'hermes doctor' to confirm."
+  say "Open the desktop app once and run 'kova doctor' to confirm."
   say "Nothing was judged or changed by this script; the backup at $SNAP"
   say "(including hermes-backup.zip) is yours to keep or delete."
 }

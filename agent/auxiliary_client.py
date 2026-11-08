@@ -180,7 +180,7 @@ def _openai_http_client_kwargs(base_url: Optional[str], *, async_mode: bool = Fa
             logger.warning(
                 "agent.process_bootstrap.build_keepalive_http_client is "
                 "unavailable — mixed/stale install detected (#64333). Falling "
-                "back to the SDK default HTTP client. Run `hermes update` (or "
+                "back to the SDK default HTTP client. Run `kova update` (or "
                 "reinstall the Desktop app) to resync the runtime.")
         client = None
     return {"http_client": client} if client is not None else {}
@@ -2839,7 +2839,7 @@ def _validate_base_url(base_url: str) -> None:
     except ValueError as exc:
         raise RuntimeError(
             f"Malformed custom endpoint URL: {candidate!r}. "
-            "Run `hermes setup` or `hermes model` and enter a valid http(s) base URL."
+            "Run `kova setup` or `kova model` and enter a valid http(s) base URL."
         ) from exc
 
 
@@ -4435,7 +4435,7 @@ def _try_main_fallback_chain(
 
 def _warn_stale_openai_base_url(runtime_provider: str) -> None:
     """Warn once when OPENAI_BASE_URL is set but config.yaml names a non-custom provider (a stale
-    ~/.kova/.env value after `hermes model` poisons routing)."""
+    ~/.kova/.env value after `kova model` poisons routing)."""
     global _stale_base_url_warned
     if _stale_base_url_warned:
         return
@@ -4536,7 +4536,7 @@ def _discovery_chain_allowed(main_provider: str, task: Optional[str] = None) -> 
         return True
     logger.warning(
         "Auxiliary %s: main provider %s is unavailable and no fallback_chain / fallback_providers is "
-        "configured — refusing to guess another logged-in provider. Re-authenticate (`hermes model`) "
+        "configured — refusing to guess another logged-in provider. Re-authenticate (`kova model`) "
         "or declare a fallback.", task or "call", main_provider)
     return False
 
@@ -5138,7 +5138,7 @@ def _resolve_azure_foundry_branch(req: _ResolveRequest) -> _ResolveResult:
                                                explicit_base_url=req.explicit_base_url, api_mode=req.api_mode)
     return _route_or_warn(req, client, default_model,
                           "resolve_provider_client: azure-foundry requested but "
-                          "runtime resolution failed (run: hermes doctor for diagnostics)")
+                          "runtime resolution failed (run: kova doctor for diagnostics)")
 
 
 def _api_key_profile_supplied_client(provider: str, **client_kwargs: Any) -> Any | None:

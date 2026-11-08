@@ -1,4 +1,4 @@
-"""Steps of ``hermes update --check``: debris cleanup, channel target, scoped fetch, verdict.
+"""Steps of ``kova update --check``: debris cleanup, channel target, scoped fetch, verdict.
 
 ``update_cmd._cmd_update_check`` (a frozen updater surface, see ``tests/compat``) orchestrates
 these. Facade helpers are read through ``_uc()`` at call time and origin helpers are imported
@@ -66,7 +66,7 @@ def report_pack_tidy(root: Path) -> None:
 
 
 def _refuses(git_cmd: list[str], root: Path, target: str, repository: str) -> bool:
-    """`hermes update` would refuse ``target`` (see update_downgrade_guard), so --check must not offer it."""
+    """`kova update` would refuse ``target`` (see update_downgrade_guard), so --check must not offer it."""
     from kova_cli.update_downgrade_guard import would_refuse
     from kova_cli._subprocess_compat import NO_LAZY_FETCH_ENV, noninteractive_git_env
     from kova_cli.source_check import _github_predates_runtime
@@ -113,15 +113,15 @@ def channel_compare_branch(selected_channel: str, git_cmd: list[str], root: Path
     elif _refuses(git_cmd, root, target.commit, target.repository):
         # Before the rollback branch: a release this checkout contains is held too, not moved back to.
         print(f"→ Holding at this build: {target.label} predates the gateway runtime your sessions use.")
-        print("  `hermes update` stays on this build; the next release that includes the runtime"
-              " installs normally (`hermes update --set-channel main` follows every commit).")
+        print("  `kova update` stays on this build; the next release that includes the runtime"
+              " installs normally (`kova update --set-channel main` follows every commit).")
     elif _git(git_cmd, root, ["merge-base", "--is-ancestor", target.commit, "HEAD"]).returncode == 0:
         print(f"→ This checkout is newer than the selected release: {target.label}.")
-        print("  `hermes update` moves it back to that release"
-              " (`hermes update --set-channel main` follows every commit).")
+        print("  `kova update` moves it back to that release"
+              " (`kova update --set-channel main` follows every commit).")
     else:
         print(f"→ Selected release available: {target.label}")
-        print("  Run `hermes update` to install it.")
+        print("  Run `kova update` to install it.")
     return None
 
 
@@ -323,5 +323,5 @@ def hold_channel_release_behind_runtime(git_cmd, target_ref: str, channel: str) 
     print(f"→ This build is newer than the {channel} release {target_ref[:12]}: that release predates the "
           "gateway runtime your sessions use, so there is nothing to update to yet.")
     print(f"  Kova stays on {head[:12]} until a newer {channel} release ships. "
-          "To follow every commit instead: `hermes update --set-channel main`.")
+          "To follow every commit instead: `kova update --set-channel main`.")
     return head

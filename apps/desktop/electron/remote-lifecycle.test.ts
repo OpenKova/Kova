@@ -589,7 +589,7 @@ test('metadata and process proof transport failures remain indeterminate', async
 })
 
 test('pidIsOurDashboard requires the exact serve ownership nonce', async () => {
-  const ours = `/x/hermes serve --isolated --ssh-owner-nonce ${SPAWN_NONCE}`
+  const ours = `/x/kova serve --isolated --ssh-owner-nonce ${SPAWN_NONCE}`
   assert.equal(await pidIsOurDashboard(fakeSsh([[/print\("OWNED"/, 'OWNED\n']]), 5, SPAWN_NONCE, '/x/hermes'), true)
   assert.equal(
     await pidIsOurDashboard(
@@ -630,12 +630,12 @@ test.skipIf(process.platform === 'win32')(
   'pidIsOurDashboard recognizes an installer wrapper after it execs python + entrypoint',
   async (): Promise<void> => {
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
-    const temp: string = await mkdtemp(path.join(os.tmpdir(), 'hermes wrapper ownership '))
+    const temp: string = await mkdtemp(path.join(os.tmpdir(), 'kova wrapper ownership '))
     const installDir = path.join(temp, 'install dir')
     const venvBin = path.join(installDir, 'venv', 'bin')
     const pythonLink = path.join(venvBin, 'python')
     const entrypoint = path.join(installDir, 'hermes')
-    const launcher = path.join(temp, 'hermes launcher')
+    const launcher = path.join(temp, 'kova launcher')
     const python: string = (await exec('command -v python3', { shell })).stdout.trim()
     const tokenPath: string = path.join(temp, spawnTokenPath(OWNERSHIP_ID, SPAWN_NONCE).replace(/^~\//, ''))
     const env: NodeJS.ProcessEnv = { ...process.env, HOME: temp, KOVA_HOME: temp }
@@ -802,12 +802,12 @@ test.skipIf(process.platform === 'win32')(
 test.skipIf(process.platform !== 'linux')(
   'terminateOwnedDashboardForUpdate SIGTERMs a serve pinned to a "serve"-named profile',
   async () => {
-    const temp = await mkdtemp(path.join(os.tmpdir(), 'hermes wrapper ownership '))
+    const temp = await mkdtemp(path.join(os.tmpdir(), 'kova wrapper ownership '))
     const installDir = path.join(temp, 'install dir')
     const venvBin = path.join(installDir, 'venv', 'bin')
     const pythonLink = path.join(venvBin, 'python')
     const entrypoint = path.join(installDir, 'hermes')
-    const launcher = path.join(temp, 'hermes launcher')
+    const launcher = path.join(temp, 'kova launcher')
     const python = (await exec('command -v python3')).stdout.trim()
     const tokenPath = path.join(os.homedir(), spawnTokenPath(OWNERSHIP_ID, SPAWN_NONCE).replace(/^~\//, ''))
 
@@ -1829,8 +1829,8 @@ test('cleanupStale never deletes a lock-supplied unexpected log path', async () 
 })
 
 test('pidIsOurDashboard requires an exact nonce option value', async () => {
-  const prefix = `/x/hermes serve --isolated --ssh-owner-nonce ${SPAWN_NONCE}ff`
-  const suffix = `/x/hermes serve --isolated --ssh-owner-nonce xx${SPAWN_NONCE}`
+  const prefix = `/x/kova serve --isolated --ssh-owner-nonce ${SPAWN_NONCE}ff`
+  const suffix = `/x/kova serve --isolated --ssh-owner-nonce xx${SPAWN_NONCE}`
   assert.equal(await pidIsOurDashboard(fakeSsh([[/print\("OWNED"/, 'FOREIGN\n']]), 5, SPAWN_NONCE, '/x/hermes'), false)
   assert.equal(await pidIsOurDashboard(fakeSsh([[/print\("OWNED"/, 'FOREIGN\n']]), 5, SPAWN_NONCE, '/x/hermes'), false)
 })

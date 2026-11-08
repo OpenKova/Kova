@@ -247,4 +247,4 @@ def _print_host_hint() -> None:
         return
     if pid is not None and record is not None and record.pid == pid:
         print(f"  PID {pid} is the host gateway serving this profile; stopping it would take every "
-              f"served profile offline. Stop the host instead: hermes gateway stop --all")
+              f"served profile offline. Stop the host instead: kova gateway stop --all")

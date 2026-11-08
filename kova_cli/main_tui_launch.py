@@ -142,10 +142,10 @@ def _find_bundled_tui(kova_cli_dir: Path | None = None) -> Path | None:
 
 def _restore_tui_workspace(tui_dir: Path) -> bool:
     """Best-effort ``git restore`` of a missing ``ui-tui/`` (Windows AV/NTFS filters can delete
-    tracked files after ``hermes update``); True when the directory exists afterwards.
+    tracked files after ``kova update``); True when the directory exists afterwards.
 
     On Windows an antivirus / NTFS filter driver can leave tracked ``ui-tui/`` files deleted in the working
-    tree after ``hermes update`` (HEAD stays intact; the files just vanish — see issue #49145). Those files
+    tree after ``kova update`` (HEAD stays intact; the files just vanish — see issue #49145). Those files
     are tracked, so ``git restore`` puts them back deterministically. Best-effort: returns False (rather
     than raising) when git is unavailable, this isn't a checkout, or the restore leaves the directory still
     missing — the caller then prints the manual-recovery message.
@@ -182,12 +182,12 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
     print(
         "Error: the TUI workspace is missing from this Kova checkout.\n"
         f"Expected directory: {tui_dir}\n"
-        "This usually means `hermes update` left tracked ui-tui files deleted.\n"
+        "This usually means `kova update` left tracked ui-tui files deleted.\n"
         "Recovery:\n"
         "  1. From the Kova checkout, run `git restore -- ui-tui`\n"
         "  2. Run `pnpm install --frozen-lockfile`\n"
-        "  3. Retry `hermes --tui`\n"
-        "If the checkout is still inconsistent, run `hermes update --force`.",
+        "  3. Retry `kova --tui`\n"
+        "If the checkout is still inconsistent, run `kova update --force`.",
         file=sys.stderr)
     sys.exit(1)
 
@@ -203,8 +203,8 @@ def _tui_node_bin(bin: str) -> str:
     if not path:
         print(
             f"Node.js is required for the TUI but `{bin}` was not found. Install it from "
-            "https://nodejs.org (run `hermes doctor` for the install hint for your OS), then "
-            "retry `hermes --tui`. To keep working now, run `hermes --cli`."
+            "https://nodejs.org (run `kova doctor` for the install hint for your OS), then "
+            "retry `kova --tui`. To keep working now, run `kova --cli`."
         )
         sys.exit(1)
     return path
@@ -478,7 +478,7 @@ def _launch_tui(
     env = build_subprocess_env(scrub_secrets=False, inherit_profile_home=True)
     _require_bypass_model(env, model, resume_session_id)
     # The directory this launch was invoked from is the source of truth. An inherited
-    # KOVA_CWD (exported by an outer `hermes --tui`, or by the user's own shell) merely
+    # KOVA_CWD (exported by an outer `kova --tui`, or by the user's own shell) merely
     # names *a* real directory, so the is_dir() repair in _apply_tui_python_env keeps it
     # and the gateway starts in last session's project. `--worktree` still wins below.
     env["KOVA_CWD"] = _safe_tui_cwd(env)
@@ -557,7 +557,7 @@ def _launch_tui(
     env["NODE_OPTIONS"] = " ".join(_tokens)
     # KOVA_TUI_RESUME is an internal hand-off to the Ink app. We start from a
     # full os.environ snapshot, so a stale exported value would make a plain
-    # `hermes --tui` try to resume a non-existent session; only forward the id
+    # `kova --tui` try to resume a non-existent session; only forward the id
     # argparse resolved for this invocation.
     env.pop("KOVA_TUI_RESUME", None)
     if resume_session_id:
@@ -597,7 +597,7 @@ def _launch_tui(
                                              get_kova_home() / "state.db")
             print(f"Worktree retained for this session: {wt_info['path']}", file=sys.stderr)
 
-    # Exit code 42 = TUI requested an update. Relaunch as `hermes update`;
+    # Exit code 42 = TUI requested an update. Relaunch as `kova update`;
     # preserve_inherited=False keeps --tui and other flags out of the subcommand.
     if code == 42:
         from kova_cli.relaunch import relaunch
@@ -609,11 +609,11 @@ def _launch_tui(
 
 def _pin_kanban_board_env() -> None:
     """Pin the active kanban board into ``KOVA_KANBAN_BOARD`` so in-process tools and shelled-out
-    ``hermes kanban`` calls agree even if a concurrent ``boards switch`` flips the file mid-turn.
+    ``kova kanban`` calls agree even if a concurrent ``boards switch`` flips the file mid-turn.
 
-    Without this, in-process tools (``kanban_*``) and shelled-out CLI calls (``hermes kanban …``) resolve
+    Without this, in-process tools (``kanban_*``) and shelled-out CLI calls (``kova kanban …``) resolve
     the board on different paths: the env-pin if set, otherwise the global ``<root>/kanban/current`` file. A
-    concurrent ``hermes kanban boards switch`` from another session can flip the file mid-turn, so the same
+    concurrent ``kova kanban boards switch`` from another session can flip the file mid-turn, so the same
     chat sees its tool calls hit board A while its shell calls hit board B (#20074). Pinning at chat boot
     mirrors what the dispatcher already does for spawned workers.
     """
@@ -637,7 +637,7 @@ def _resolve_use_tui(args) -> bool:
     ``KOVA_TUI=1`` → TUI; ``display.interface`` config; default classic.
 
     The TTY gate is load-bearing: ambient preferences must never hijack a piped
-    ``hermes chat -q`` (kanban workers, cron) — the Ink no-TTY bail-out exits 0 and
+    ``kova chat -q`` (kanban workers, cron) — the Ink no-TTY bail-out exits 0 and
     the worker dies with a protocol violation. Explicit ``--tui`` still bails out.
     """
     if getattr(args, "cli", False):

@@ -1,8 +1,8 @@
-// Multiplex-only, Desktop half: ONE `hermes serve` per HOST serves every
+// Multiplex-only, Desktop half: ONE `kova serve` per HOST serves every
 // profile, so a local profile never gets a backend process of its own.
 //
 // The PRIMARY attaches to the host's running gateway through
-// `hermes gateway ensure` (local-gateway.ts). This module removes the other
+// `kova gateway ensure` (local-gateway.ts). This module removes the other
 // producer of local backend children: the per-profile backend pool.
 // Every local profile now resolves onto the same host backend and carries its
 // own `profile` on the wire — the server binds a SESSION to a profile home
@@ -67,7 +67,7 @@ export class SecondLocalBackendError extends Error {
  * The single enforcement point for "never spawn a second backend".
  *
  * Routing is what normally prevents a pooled local spawn; this guard sits at
- * the one place a local `hermes serve` child is actually started, so a future
+ * the one place a local `kova serve` child is actually started, so a future
  * caller that reaches it through a path routing does not cover fails loudly
  * instead of quietly reintroducing a process per profile.
  */

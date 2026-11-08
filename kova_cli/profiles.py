@@ -82,7 +82,7 @@ _CLONE_ALL_DEFAULT_EXCLUDE_ROOT: frozenset[str] =  frozenset({
 }) | LOCAL_RUNTIME_ROOT_DIRS
 
 # Per-profile history excluded from --clone-all for ANY source: SQLite session store
-# (+wal/shm, can reach many GB), session dirs, `hermes backup` archives, quick-backup
+# (+wal/shm, can reach many GB), session dirs, `kova backup` archives, quick-backup
 # snapshots, checkpoints. Inheriting them is never useful (restoring one inside the
 # clone would resurrect the SOURCE profile's state) and can balloon the copy by tens of GB.
 # ``cron`` is scheduled work bound to the source profile and its origin channel: a clone
@@ -93,8 +93,8 @@ _CLONE_ALL_HISTORY_EXCLUDE_ROOT: frozenset[str] = frozenset({
     "cron", "webapp",  # webapp/: the source gateway's sign-in state (credential, native grants, Portal callback)
 })
 
-# Marker written by `hermes profile create --no-skills`. When present at a profile root,
-# seed_profile_skills() callers (fresh-create, `hermes update` all-profile sync, the
+# Marker written by `kova profile create --no-skills`. When present at a profile root,
+# seed_profile_skills() callers (fresh-create, `kova update` all-profile sync, the
 # dashboard) skip bundled-skill seeding. Delete the file to opt back in.
 NO_BUNDLED_SKILLS_MARKER = ".no-bundled-skills"
 
@@ -317,27 +317,27 @@ def _find_our_wrapper(alias: str) -> Optional[Path]:
 
 
 def _is_our_wrapper(path: Path) -> bool:
-    """True when *path* reads as a Kova-generated wrapper (``hermes -p`` in its head)."""
+    """True when *path* reads as a Kova-generated wrapper (``kova -p`` in its head)."""
     try:
         with open(path, encoding="utf-8-sig") as f:
-            return "hermes -p" in f.read(_WRAPPER_READ_LIMIT)
+            return "kova -p" in f.read(_WRAPPER_READ_LIMIT)
     except Exception:
         return False
 
 
 def _missing_profile_error(canon: str) -> FileNotFoundError:
-    return FileNotFoundError(f"Profile '{canon}' does not exist. Create it with: hermes profile create {canon}")
+    return FileNotFoundError(f"Profile '{canon}' does not exist. Create it with: kova profile create {canon}")
 
 
 def _unknown_profile_error(canon: str) -> FileNotFoundError:
     """For delete/rename/export of a name that matches no profile (likely a typo)."""
-    return FileNotFoundError(f"No profile named '{canon}'. See your profiles with: hermes profile list")
+    return FileNotFoundError(f"No profile named '{canon}'. See your profiles with: kova profile list")
 
 
 def _profile_exists_error(canon: str) -> FileExistsError:
     return FileExistsError(
-        f"A profile named '{canon}' already exists. Switch to it with `hermes profile use {canon}`, "
-        "see all profiles with `hermes profile list`, or choose a different name."
+        f"A profile named '{canon}' already exists. Switch to it with `kova profile use {canon}`, "
+        "see all profiles with `kova profile list`, or choose a different name."
     )
 
 
@@ -357,7 +357,7 @@ def _invalid_profile_name_error(name: str) -> ValueError:
     suggestion = _suggest_profile_name(name)
     return ValueError(
         f"{name!r} is not a valid profile name. {_PROFILE_NAME_RULE} (for example: {suggestion}). "
-        f"Then run `hermes profile create {suggestion}`."
+        f"Then run `kova profile create {suggestion}`."
     )
 
 
@@ -483,7 +483,7 @@ def _iter_named_profile_dirs(*, live_only: bool = True) -> list[Path]:
     A dir is a profile only when it carries an identity marker (``named_profile_has_identity``):
     cron/logging side-effects and pre-tombstone ghost shells leave marker-less dirs that must
     not be listed, served, ticked, or ``.env``-seeded — that seeding is what turned a ghost
-    shell into a "real" profile on the next ``hermes update`` (#95188, #94823, #99392)."""
+    shell into a "real" profile on the next ``kova update`` (#95188, #94823, #99392)."""
     profiles_root = _get_profiles_root()
     if not profiles_root.is_dir():
         return []
@@ -594,7 +594,7 @@ def find_alias_for_profile(profile_name: str) -> Optional[str]:
 
 
 # Cap on how much of a wrapper file is read when reverse-looking-up its profile. Real
-# wrappers are a few hundred bytes with the ``hermes -p X`` needle near the top; the wrapper
+# wrappers are a few hundred bytes with the ``kova -p X`` needle near the top; the wrapper
 # dir commonly also holds large binaries (ffmpeg, node, …) whose whole-file reads, N times,
 # dominated ``list_profiles`` (~4.5s).
 _WRAPPER_READ_LIMIT = 8192
@@ -611,7 +611,7 @@ def build_alias_map() -> dict[str, str]:
     if not wrapper_dir.is_dir():
         return result
     is_windows = sys.platform == "win32"
-    prefix = "hermes -p "
+    prefix = "kova -p "
     for entry in sorted(wrapper_dir.iterdir()):
         if not entry.is_file():
             continue
@@ -672,7 +672,7 @@ class ProfileInfo:
     # Bot Mode title (``profile.yaml`` ``ui_meta['kova-bots'].title``) — the name
     # the Bots roster shows. Presentation-only, like ``display_name``.
     bot_title: str = ""
-    # Canonical ids this profile was previously known by (``hermes profile rename``
+    # Canonical ids this profile was previously known by (``kova profile rename``
     # appends here). Lets Bot Mode group chats re-link persisted member
     # descriptors to the renamed live profile (#110200).
     previous_names: list[str] = field(default_factory=list)
@@ -730,7 +730,7 @@ def _seed_model_config(profile_dir: Path) -> None:
     config_path = profile_dir / "config.yaml"
     if config_exists(config_path):
         return
-    with contextlib.suppress(Exception):  # creation must not fail over this; `hermes model` sets it later
+    with contextlib.suppress(Exception):  # creation must not fail over this; `kova model` sets it later
         from kova_constants import get_kova_home
         from kova_cli.config import atomic_config_write, read_user_config_raw
         from kova_cli.profile_model_seed import launch_model_seed
@@ -815,7 +815,7 @@ def _walk_skill_count(skills_dir: Path) -> int:
 
 def _count_skills(profile_dir: Path) -> int:
     """Count installed skills in a profile (cached by skills-dir signature + TTL). Walks
-    synchronously when stale — detail surfaces (``hermes profile info``, ``profiles.describe``)
+    synchronously when stale — detail surfaces (``kova profile info``, ``profiles.describe``)
     want the fresh number; polled lists go through :func:`_cached_skill_count`."""
     skills_dir = profile_dir / "skills"
     if not skills_dir.is_dir():
@@ -866,7 +866,7 @@ def _cached_skill_count(profile_dir: Path) -> int:
 def read_profile_meta(profile_dir: Path) -> dict:
     """Read ``profile.yaml`` -> ``{description, description_auto, display_name,
     previous_names}`` (empty defaults when missing/unreadable). Never raises — a
-    corrupt file on one profile must not break ``hermes profile list``."""
+    corrupt file on one profile must not break ``kova profile list``."""
     def _read() -> dict:
         data = _load_yaml_dict(profile_dir / "profile.yaml") or {}
         ui_meta = data.get("ui_meta")
@@ -1092,7 +1092,7 @@ def profiles_to_serve(multiplex: bool, *, include_standalone: bool = False,
     and parked profiles skipped). Pure directory read: never creates a profile dir (#94590).
 
     Named profiles that authored ``gateway.standalone: true`` are skipped because they opted
-    out of the host multiplexer; a ``gateway.parked`` marker (``hermes -p X gateway stop``) skips
+    out of the host multiplexer; a ``gateway.parked`` marker (``kova -p X gateway stop``) skips
     a profile the host would otherwise serve. Callers enumerating INSTALLED profiles pass
     ``include_standalone=True, include_parked=True``; serving/ticking callers pass neither."""
     active = get_active_profile_name() or "default"
@@ -1309,8 +1309,8 @@ def _bootstrap_profile_dir(profile_dir: Path, source_dir: Optional[Path],
     AND user-installed skills), and memory/identity files from *source_dir*.
 
     ``sync_imports`` also copies the source's ``import-sync.json`` (the manifest the agent-importers
-    plugin's ``hermes import-agent`` writes) so the clone stays registered against the same external trees
-    and ``hermes -p <clone> import-agent --sync`` keeps pulling from them. The link is to the
+    plugin's ``kova import-agent`` writes) so the clone stays registered against the same external trees
+    and ``kova -p <clone> import-agent --sync`` keeps pulling from them. The link is to the
     external tree, never to the source profile: both profiles stay independent islands."""
     profile_dir.mkdir(parents=True, exist_ok=True)
     for subdir in _PROFILE_DIRS:
@@ -1346,7 +1346,7 @@ def create_profile(
     sections, pairing/session state — unless ``clone_channels`` opts in: a copied bot credential
     makes two gateways fight over one bot (``kova_cli.profile_channels``; callers list what
     was left behind with ``channel_platforms_configured(source_dir)``).
-    ``no_skills`` creates an empty profile and writes a marker so ``hermes update`` skips
+    ``no_skills`` creates an empty profile and writes a marker so ``kova update`` skips
     re-seeding its skills; it is mutually exclusive with the clone options, which copy skills.
     ``sync_imports`` (``--clone`` only; ``--clone-all`` copies the file anyway) also copies the
     ``import-agent`` sync manifest so the clone can keep pulling the same external agent trees."""
@@ -1415,7 +1415,7 @@ def create_profile(
     notify_memory_provider(profile_dir, lambda p: p.on_profile_created(canon, str(profile_dir)))
 
     # Inside a container under s6, register the gateway as a runtime s6 service so
-    # `hermes -p <profile> gateway start` supervises via `s6-svc -u` instead of a bare
+    # `kova -p <profile> gateway start` supervises via `s6-svc -u` instead of a bare
     # process. No-op on host (systemd/launchd/windows unit generation handles lifecycle).
     _maybe_register_gateway_service(canon)
     # A running multiplexer enumerates profiles/ at boot: ask it to serve this one now (it also
@@ -1549,7 +1549,7 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
     except OSError:
         resolved_dir = profile_dir
 
-    # Never terminate ourselves or a parent (`hermes -p <canon> profile delete` runs under
+    # Never terminate ourselves or a parent (`kova -p <canon> profile delete` runs under
     # the very profile it's deleting).
     skip: set[int] = {os.getpid()}
     with contextlib.suppress(Exception):
@@ -1677,7 +1677,7 @@ class ProfileIdentitySettlementPending(RuntimeError):
     settled (``kova_cli.profile_identity.purge_profile_identity`` returned False).
 
     Subclasses ``RuntimeError`` so delete-failure handling that treats the error as fatal (the
-    CLI's ``hermes profile delete``) keeps working unchanged; surfaces that can report a partial
+    CLI's ``kova profile delete``) keeps working unchanged; surfaces that can report a partial
     success (the dashboard's ``DELETE /api/profiles/{name}``) catch this type — it carries the
     profile, its now-removed path, and the retry command — instead of matching on the message.
     """
@@ -1685,7 +1685,7 @@ class ProfileIdentitySettlementPending(RuntimeError):
     def __init__(self, profile: str, path: Path):
         self.profile = profile
         self.path = path
-        self.retry_command = f"hermes profile purge-identity {profile}"
+        self.retry_command = f"kova profile purge-identity {profile}"
         super().__init__(
             f"Profile '{profile}' was deleted, but its session/routing identity settlement is "
             f"still pending — run: {self.retry_command}")

@@ -71,11 +71,11 @@ def get_project_root() -> Path:
 def code_removal_refusal() -> str | None:
     """Why the uninstaller must not remove this tree's code, or ``None``.
 
-    A git checkout (the install.sh / install.ps1 / `hermes desktop` layout)
+    A git checkout (the install.sh / install.ps1 / `kova desktop` layout)
     is ours to remove. A sealed tree (no ``.git``) belongs to a steward —
     the Nix store, the bundled desktop app, a Docker image — and only the
     steward removes it. Returns the user-facing refusal text for sealed
-    trees; the text always points at ``hermes uninstall --data`` for the
+    trees; the text always points at ``kova uninstall --data`` for the
     user-data cleanup that IS allowed everywhere.
     """
     from kova_cli.steward import sealed_steward, steward_uninstall_message
@@ -239,7 +239,7 @@ def uninstall_gateway_service():
     - Linux: user + system systemd services (with proper DBUS env setup)
     - macOS: launchd plists
     - Windows: Scheduled Task + Startup-folder fallback, via ``gateway_windows``
-    - All platforms: standalone ``hermes gateway run`` processes
+    - All platforms: standalone ``kova gateway run`` processes
     """
     import platform
     stopped_something = False
@@ -611,7 +611,7 @@ def _discover_named_profiles():
 
 def _uninstall_profile(profile) -> None:
     """Fully uninstall a named profile: stop its gateway, remove its alias, wipe its home. Shells
-    out to ``hermes -p <name> gateway stop|uninstall`` because service names / unit paths derive
+    out to ``kova -p <name> gateway stop|uninstall`` because service names / unit paths derive
     from the current KOVA_HOME and can't be switched in-process."""
     name = profile.name
     log_info(f"Uninstalling profile '{name}'...")
@@ -689,7 +689,7 @@ def run_data_uninstall(args):
 def run_gui_uninstall(args):
     """GUI-only uninstall: remove the Chat GUI, leave the agent + data intact.
 
-    Mirrors ``hermes uninstall --gui``. Removes the desktop app's built
+    Mirrors ``kova uninstall --gui``. Removes the desktop app's built
     artifacts, the packaged app bundle (best-effort), and the Electron
     userData dir — nothing under ``$KOVA_HOME`` config/sessions/.env, and
     never the Python agent or its venv.
@@ -750,7 +750,7 @@ def run_gui_uninstall(args):
     _print_box("│            ✓ Chat GUI Uninstalled!                      │", Colors.GREEN)
     print()
     print("The Kova agent is still installed. Run 'hermes' to use the CLI,")
-    print("or 'hermes uninstall' to remove the agent too.")
+    print("or 'kova uninstall' to remove the agent too.")
     print()
 
 
@@ -941,7 +941,7 @@ def _rmtree_if_exists(path: Path) -> bool:
 
 def remove_dashboard_launchd_jobs() -> list[Path]:
     """macOS: boot out and delete every launchd job whose ``ProgramArguments`` runs a
-    ``hermes dashboard`` / ``hermes serve`` backend, returning the removed plist paths.
+    ``kova dashboard`` / ``kova serve`` backend, returning the removed plist paths.
 
     The gateway uninstall only reaches the gateway label, so a dashboard/serve
     LaunchAgent survives a full uninstall and launchd keeps respawning its backend.

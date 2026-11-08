@@ -45,7 +45,7 @@ def top_level_value_flag_sets() -> tuple[frozenset[str], frozenset[str]]:
 
     Introspects ``build_top_level_parser()`` (every option with nargs != 0) so the argv scanners in
     ``main.py`` (``_first_positional_argv``, ``_apply_profile_override``) can never drift from the
-    argparse surface — the drift that made ``hermes --reasoning high chat …`` misread ``high`` as
+    argparse surface — the drift that made ``kova --reasoning high chat …`` misread ``high`` as
     the subcommand and forced eager plugin discovery.
 
     Mirrors the ``update_cmd._holder_value_flags`` precedent, including the handwritten-snapshot fallback
@@ -108,16 +108,16 @@ Examples:
     hermes auth refresh <p> [t]   Refresh a pooled OAuth credential and clear its cooldown
     hermes model                  Select default model
     hermes fallback [list]        Show fallback provider chain
-    hermes fallback add           Add a fallback provider (same picker as `hermes model`)
+    hermes fallback add           Add a fallback provider (same picker as `kova model`)
     hermes fallback remove        Remove a fallback provider from the chain
     hermes config                 View configuration
     hermes config edit            Edit config in $EDITOR
     hermes config set model gpt-4 Set a config value
-    hermes gateway                Run messaging gateway
-    hermes gateway install        Install gateway background service
-    hermes gateway start          Start the installed gateway service
-    hermes gateway stop           Stop the gateway service
-    hermes gateway status         Show gateway status
+    kova gateway                Run messaging gateway
+    kova gateway install        Install gateway background service
+    kova gateway start          Start the installed gateway service
+    kova gateway stop           Stop the gateway service
+    kova gateway status         Show gateway status
     hermes -p <profile> <cmd>     Run any command against a named profile's
                                   home (also --profile) — e.g. hermes -p coder gateway stop
     hermes -s kova-agent-dev,github-auth
@@ -131,7 +131,7 @@ Examples:
     hermes logs --since 1h        Lines from the last hour
     hermes debug share             Upload debug report for support
     hermes console                Open the safe Kova command console
-    hermes update                 Update to latest version
+    kova update                 Update to latest version
     hermes dashboard              Start web UI dashboard (port 9119)
     hermes dashboard --stop       Stop running dashboard processes
     hermes dashboard --status     List running dashboard processes
@@ -168,7 +168,7 @@ def _add_top_level_flags(parser: argparse.ArgumentParser) -> None:
     inherited(parser, "--provider", default=None, help=(
         "Provider override for this invocation (e.g. openrouter, anthropic). "
         "Applies to -z/--oneshot and --tui. The persistent provider lives in config.yaml "
-        "under model.provider — use `hermes setup` or edit the file to change it."))
+        "under model.provider — use `kova setup` or edit the file to change it."))
     inherited(parser, "--reasoning", default=None, metavar="LEVEL", help=(
         "Reasoning effort for this invocation: none, minimal, low, medium, "
         "high, xhigh, max, or ultra. Overrides agent.reasoning_effort in "
@@ -223,7 +223,7 @@ def _build_chat_parser(subparsers) -> argparse.ArgumentParser:
     """The ``chat`` subparser (also the implicit default command).
 
     Flags ALSO declared on the top-level parser use ``default=argparse.SUPPRESS``: for
-    ``hermes -m foo chat`` argparse first sets ``args.model`` from the top-level parser, then
+    ``kova -m foo chat`` argparse first sets ``args.model`` from the top-level parser, then
     dispatches to the chat subparser, which shares the namespace and ``dest`` — a plain ``None``
     default would silently clobber the top-level value. SUPPRESS keeps the subparser action a no-op
     unless the flag is actually passed after the subcommand (tests/kova_cli/
@@ -332,7 +332,7 @@ def _build_chat_parser(subparsers) -> argparse.ArgumentParser:
 
 def _plugin_command_install_hint(prog: str, value: str):
     """Install command when *value* names a catalog memory plugin that resolves nowhere: its
-    ``hermes <name>`` command exists only once the plugin is installed. Top level only; never raises."""
+    ``kova <name>`` command exists only once the plugin is installed. Top level only; never raises."""
     if prog != "hermes" or not re.fullmatch(r"[a-z0-9_-]{1,64}", value):
         return None
     try:
@@ -346,7 +346,7 @@ def _plugin_command_install_hint(prog: str, value: str):
 
 
 def _moved_command_hint(prog: str, value: str) -> str:
-    """Where a command that left core went (``hermes auth spotify``, ``hermes mcp serve``, ...)."""
+    """Where a command that left core went (``kova auth spotify``, ``kova mcp serve``, ...)."""
     from kova_cli.left_core_migration import moved_command_hint
     return moved_command_hint(prog, value)
 
@@ -362,14 +362,14 @@ class KovaArgumentParser(argparse.ArgumentParser):
 
     def _check_value(self, action, value):
         if isinstance(action, argparse._SubParsersAction) and value not in action.choices:
-            # ``self.prog`` is "hermes" at the top level and "hermes gateway" for a nested group
+            # ``self.prog`` is "hermes" at the top level and "kova gateway" for a nested group
             # (argparse hands add_parser() the parent's class), so the copy stays correct for both.
             lines = [f"{self.prog}: '{value}' is not a `{self.prog}` command."]
             close = difflib.get_close_matches(str(value), list(action.choices), n=3, cutoff=0.6)
             install = _plugin_command_install_hint(self.prog, str(value))
             moved = "" if install else _moved_command_hint(self.prog, str(value))
             if install:
-                # A provider that left core (``hermes honcho``) registers its command only once installed.
+                # A provider that left core (``kova honcho``) registers its command only once installed.
                 lines.append(f"The '{value}' memory plugin is not installed. Install it with: {install}")
             elif moved:
                 lines.append(moved)
@@ -391,7 +391,7 @@ def build_top_level_parser():
         prog="hermes", description="Kova Agent - AI assistant with tool-calling capabilities",
         formatter_class=argparse.RawDescriptionHelpFormatter, epilog=_EPILOGUE)
     _add_top_level_flags(parser)
-    # metavar keeps the usage line to ``hermes [...] <command>`` instead of the brace list of
-    # every subcommand name; ``hermes --help`` still lists each command with its help row.
+    # metavar keeps the usage line to ``kova [...] <command>`` instead of the brace list of
+    # every subcommand name; ``kova --help`` still lists each command with its help row.
     subparsers = parser.add_subparsers(dest="command", help="Command to run", metavar="<command>")
     return parser, subparsers, _build_chat_parser(subparsers)

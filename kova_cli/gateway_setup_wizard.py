@@ -1,4 +1,4 @@
-"""Gateway platform setup wizard (hermes gateway setup): platform registry/status table, per-platform setup prompts, service offer.
+"""Gateway platform setup wizard (kova gateway setup): platform registry/status table, per-platform setup prompts, service offer.
 
 Extracted from ``kova_cli/gateway.py``. Bodies read facade helpers through ``_gw()`` (late
 binding on ``kova_cli.gateway``) so the seams tests and callers patch on the facade keep
@@ -152,7 +152,7 @@ _UNAUTHORIZED_ACCESS_CHOICES = {
         "Keep unknown senders silent"),
     False: (1,
         "Enable open access (anyone can message the bot)",
-        "Use DM pairing (unknown users request access, you approve with 'hermes pairing approve')",
+        "Use DM pairing (unknown users request access, you approve with 'kova pairing approve')",
         "Politely decline unknown senders (one-time message, then silence)",
         "Skip for now (bot will deny all users until configured)"),
 }
@@ -178,7 +178,7 @@ def _prompt_unauthorized_access(platform_key: str) -> None:
     elif is_email:
         _gw().print_success("  Unknown email senders will be ignored.")
     else:
-        _gw().print_info("  Skipped — configure later with 'hermes gateway setup'")
+        _gw().print_info("  Skipped — configure later with 'kova gateway setup'")
 
 
 def _telegram_auto_setup(token_var: str) -> tuple[bool, object]:
@@ -374,7 +374,7 @@ def _setup_service_action(
             _gw()._service_call(backend, action, None if action == "restart" else system)
         elif action == "restart" and windows:
             _gw().stop_profile_gateway()
-            _gw().print_info("Start manually: hermes gateway")
+            _gw().print_info("Start manually: kova gateway")
     except _gw().UserSystemdUnavailableError as e:
         _gw().print_error(f"  {failed_label} — user systemd not reachable:")
         _gw()._print_indented(str(e))
@@ -402,16 +402,16 @@ _WIZARD_BACKEND_LABELS = {"systemd": "systemd", "launchd": "launchd", "windows":
 # Post-setup guidance when no service backend applies, keyed by the fallthrough reason.
 _WIZARD_NO_SERVICE_LINES = {
     "wsl": (
-        "  WSL detected but systemd is not running.", "  Run in foreground: hermes gateway run",
-        "  For persistence:   tmux new -s hermes 'hermes gateway run'",
+        "  WSL detected but systemd is not running.", "  Run in foreground: kova gateway run",
+        "  For persistence:   tmux new -s hermes 'kova gateway run'",
         "  To enable systemd: add systemd=true to /etc/wsl.conf, then 'wsl --shutdown'",
     ),
     "termux": (
-        "  Termux does not use systemd/launchd services.", "  Run in foreground: hermes gateway run",
-        "  Or start it manually in the background (best effort): nohup hermes gateway run >{home}/logs/gateway.log 2>&1 &",
+        "  Termux does not use systemd/launchd services.", "  Run in foreground: kova gateway run",
+        "  Or start it manually in the background (best effort): nohup kova gateway run >{home}/logs/gateway.log 2>&1 &",
     ),
     "unsupported": (
-        "  Service install not supported on this platform.", "  Run in foreground: hermes gateway run",
+        "  Service install not supported on this platform.", "  Run in foreground: kova gateway run",
     ),
 }
 
@@ -470,10 +470,10 @@ def _wizard_install_service(backend: str) -> None:
     )
     if not (start_now or start_on_login):
         _gw().print_info("  Skipped start and auto-start setup.")
-        _gw().print_info("  You can install later: hermes gateway install")
+        _gw().print_info("  You can install later: kova gateway install")
         if _gw().supports_systemd_services():
-            _gw().print_info("  Or as a boot-time service: sudo hermes gateway install --system")
-        _gw().print_info("  Or run in foreground:  hermes gateway run")
+            _gw().print_info("  Or as a boot-time service: sudo kova gateway install --system")
+        _gw().print_info("  Or run in foreground:  kova gateway run")
         return
     try:
         installed_scope, did_install = None, True
@@ -491,12 +491,12 @@ def _wizard_install_service(backend: str) -> None:
             _gw()._setup_service_action("start", failed_label="Start failed", system=installed_scope == "system")
     except subprocess.CalledProcessError as e:
         _gw().print_error(f"  Install failed: {e}")
-        _gw().print_info("  You can try manually: hermes gateway install")
+        _gw().print_info("  You can try manually: kova gateway install")
     except SystemExit:
         # The backend installers exit non-zero on a refused write (a unit pinning another home);
         # setup reports it and goes on rather than ending the wizard.
         _gw().print_warning("  Gateway service install did not complete.")
-        _gw().print_info("  You can try manually: hermes gateway install")
+        _gw().print_info("  You can try manually: kova gateway install")
 
 
 def _wizard_post_setup() -> None:
@@ -550,6 +550,6 @@ def gateway_setup():
         _gw()._wizard_post_setup()
     else:
         print()
-        _gw().print_info("No platforms configured. Run 'hermes gateway setup' when ready.")
+        _gw().print_info("No platforms configured. Run 'kova gateway setup' when ready.")
 
     print()

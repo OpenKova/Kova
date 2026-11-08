@@ -84,7 +84,7 @@ export const CANONICAL_GROUP_CAPABILITIES = declaredCapabilities({
   max_log_limit: 500
 })
 
-/** The standalone server's answer (`hermes serve`, `hermes dashboard`; tui_gateway/methods_groups.py
+/** The standalone server's answer (`kova serve`, `kova dashboard`; tui_gateway/methods_groups.py
  *  `_METHODS`): it starts its own room driver at boot, so `driver` is true too. */
 export const STANDALONE_GROUP_CAPABILITIES = declaredCapabilities({
   protocol_version: 2,

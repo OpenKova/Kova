@@ -1,4 +1,4 @@
-"""CLI subcommand: ``hermes send`` — pipe text from shell scripts to any configured messaging platform
+"""CLI subcommand: ``kova send`` — pipe text from shell scripts to any configured messaging platform
 (Telegram, Discord, Slack, Signal, SMS, etc.).
 """
 
@@ -36,7 +36,7 @@ def _read_message_body(positional: Optional[str], file_path: Optional[str]) -> O
             return Path(file_path).read_text(encoding="utf-8-sig")
         except UnicodeDecodeError:
             _fail(
-                f"hermes send: {file_path} is not a text file. --file reads the "
+                f"kova send: {file_path} is not a text file. --file reads the "
                 "message *body* (logs, reports, markdown).\n"
                 "To send an image/document/audio file as a native attachment, "
                 "reference it with MEDIA: in the message text instead:\n"
@@ -46,7 +46,7 @@ def _read_message_body(positional: Optional[str], file_path: Optional[str]) -> O
                 f'  hermes send --to telegram "[[as_document]] MEDIA:{file_path}"',
                 _USAGE_EXIT)
         except OSError as exc:
-            _fail(f"hermes send: cannot read {file_path}: {exc}", _USAGE_EXIT)
+            _fail(f"kova send: cannot read {file_path}: {exc}", _USAGE_EXIT)
 
     # Reading from a TTY would block the user in a half-broken "type your message" state.
     return (sys.stdin.read() or None) if not sys.stdin.isatty() else None
@@ -71,7 +71,7 @@ def _emit_result(result_json: str, *, json_mode: bool, quiet: bool) -> int:
         print(json.dumps(payload, indent=2))
     elif not quiet:
         if payload.get("error"):
-            print(f"hermes send: {payload['error']}", file=sys.stderr)
+            print(f"kova send: {payload['error']}", file=sys.stderr)
         elif payload.get("success"):
             print(payload.get("note") or "sent")
         else:
@@ -87,11 +87,11 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
     try:
         from gateway.channel_directory import format_directory_for_display, load_directory
     except Exception as exc:
-        return _fail(f"hermes send: failed to load channel directory: {exc}")
+        return _fail(f"kova send: failed to load channel directory: {exc}")
     try:
         raw = load_directory()
     except Exception as exc:
-        return _fail(f"hermes send: failed to read channel directory: {exc}")
+        return _fail(f"kova send: failed to read channel directory: {exc}")
     platforms = dict(raw.get("platforms") or {})
 
     # Merge in configured-but-undiscovered platforms (e.g. a fresh SimpleX setup used only for
@@ -109,7 +109,7 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
         filtered = {k: v for k, v in platforms.items() if k.lower() == key}
         if not filtered:
             return _fail(
-                f"hermes send: no targets found for platform '{platform_filter}'. "
+                f"kova send: no targets found for platform '{platform_filter}'. "
                 f"Configured: {', '.join(sorted(platforms)) or '(none)'}")
         platforms = filtered
     if json_mode:
@@ -117,7 +117,7 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
         return _SUCCESS_EXIT
     if not platforms:
         print("No messaging platforms configured or no channels discovered yet.")
-        print("Set one up with `hermes gateway setup`, or run the gateway once so")
+        print("Set one up with `kova gateway setup`, or run the gateway once so")
         from kova_constants import get_default_kova_root, get_kova_home, kova_home_key
         home, root = get_kova_home(), get_default_kova_root()
         print(f"channel discovery can populate {home / 'channel_directory.json'}.")
@@ -196,13 +196,13 @@ def cmd_send(args: argparse.Namespace) -> None:
     """Entry point wired into the top-level argparse dispatcher."""
     _load_hermes_env()  # the downstream gateway config loader reads credentials from os.environ
     if getattr(args, "list_targets", False):  # --list short-circuits everything else
-        # `hermes send --list telegram` lands "telegram" in the `message` positional.
+        # `kova send --list telegram` lands "telegram" in the `message` positional.
         exit_code = _list_targets(getattr(args, "message", None), json_mode=getattr(args, "json", False))
         sys.exit(exit_code)
     target = (getattr(args, "to", None) or "").strip()
     if not target:
         _fail(
-            "hermes send: --to PLATFORM[:channel[:thread]] is required\n"
+            "kova send: --to PLATFORM[:channel[:thread]] is required\n"
             "Examples:\n"
             "  hermes send --to telegram \"hello\"\n"
             "  hermes send --to discord:#ops --file report.md\n"
@@ -210,17 +210,17 @@ def cmd_send(args: argparse.Namespace) -> None:
             _USAGE_EXIT)
     mentions = list(getattr(args, "mentions", None) or [])
     if mentions and target.split(":", 1)[0].strip().lower() != "whatsapp":
-        _fail("hermes send: --mention is only supported for WhatsApp targets.", _USAGE_EXIT)
+        _fail("kova send: --mention is only supported for WhatsApp targets.", _USAGE_EXIT)
     invalid_mentions = _invalid_whatsapp_mentions(mentions)
     if invalid_mentions:
         _fail(
-            "hermes send: invalid --mention value(s): "
+            "kova send: invalid --mention value(s): "
             f"{', '.join(invalid_mentions)}. Use a phone number or participant JID.",
             _USAGE_EXIT)
     message = _read_message_body(getattr(args, "message", None), getattr(args, "file", None))
     if message is None or not message.strip():
         _fail(
-            "hermes send: no message provided. Pass text as a positional "
+            "kova send: no message provided. Pass text as a positional "
             "argument, use --file PATH, or pipe data via stdin.",
             _USAGE_EXIT)
 
@@ -229,7 +229,7 @@ def cmd_send(args: argparse.Namespace) -> None:
     if subject:
         message = f"{subject}\n\n{message.lstrip()}"
 
-    # Lazy import keeps `hermes send --help` fast (no tool registry / gateway config stack).
+    # Lazy import keeps `kova send --help` fast (no tool registry / gateway config stack).
     from tools.send_message_tool import send_message_tool
 
     # Routes to the platform adapter (bot-token path for built-ins, live-adapter path for plugin
@@ -257,7 +257,7 @@ _SEND_ARGUMENTS = (
         "WhatsApp only: add a native participant mention. Repeat for multiple recipients; "
         "bare phone numbers are normalized to JIDs. Include each matching @<number> near the start of the message text."))),
     (("-l", "--list"), dict(dest="list_targets", action="store_true", default=False,
-                            help="List available targets. Optional positional filter: `hermes send --list telegram`.")),
+                            help="List available targets. Optional positional filter: `kova send --list telegram`.")),
     (("-q", "--quiet"), dict(action="store_true", default=False, help="Suppress stdout on success (exit code only).")),
     (("--json",), dict(action="store_true", default=False, help="Emit raw JSON result instead of human-readable output.")),
 )

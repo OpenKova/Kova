@@ -17,7 +17,7 @@ test('desktopBackendSpawnEnv keeps the base env and stamps stay_alive last', () 
   assert.equal(env.KOVA_HOME, base.KOVA_HOME)
   assert.equal(env.KOVA_DESKTOP, base.KOVA_DESKTOP)
   assert.equal(env.PATH, base.PATH)
-  // The desktop spawns `hermes serve` with no supervising service manager, so the
+  // The desktop spawns `kova serve` with no supervising service manager, so the
   // child must stay alive on all-adapters-down instead of exiting EX_TEMPFAIL
   // (#118080). Stamped unconditionally — an inherited value cannot opt the child
   // back into the failure exit.

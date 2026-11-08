@@ -1,6 +1,6 @@
 /**
  * Harness for the Desktop install/update suite: a REAL local install (made by
- * scripts/install.sh + `hermes desktop --build-only` in the upgrade suite's
+ * scripts/install.sh + `kova desktop --build-only` in the upgrade suite's
  * sandbox, see seed.py), a local bare origin standing in for GitHub, the
  * packaged app that install built, and the core suite's scripted provider.
  *
@@ -145,7 +145,7 @@ export function releaseDir(facts: InstallFacts): string {
   return path.join(facts.checkout, 'apps', 'desktop', 'release', 'linux-unpacked')
 }
 
-/** The packaged executable `hermes desktop` built into the install (electron-builder names it after productName). */
+/** The packaged executable `kova desktop` built into the install (electron-builder names it after productName). */
 export function packagedExe(facts: InstallFacts): string {
   const dir = releaseDir(facts)
   const name = fs.readdirSync(dir).find(entry => /^hermes$/i.test(entry))
@@ -287,9 +287,9 @@ export function desktopMainProcesses(facts: InstallFacts): ProcInfo[] {
   return candidates.filter(proc => !pids.has(proc.ppid))
 }
 
-/** The `hermes serve` backend(s) of this install (children of the backend excluded). */
+/** The `kova serve` backend(s) of this install (children of the backend excluded). */
 export function backendServeProcesses(facts: InstallFacts): ProcInfo[] {
-  // The local backend is the gateway `hermes gateway ensure` attached to or started
+  // The local backend is the gateway `kova gateway ensure` attached to or started
   // (`kova_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
   const serve = installProcesses(facts).filter(
     proc =>
@@ -310,7 +310,7 @@ export function nonGatewayProcesses(facts: InstallFacts): ProcInfo[] {
   return installProcesses(facts).filter(proc => !gateways.has(proc.pid) && !gateways.has(proc.ppid))
 }
 
-/** `hermes gateway stop` with the install's own CLI: attach-mode Desktop never owns the gateway. */
+/** `kova gateway stop` with the install's own CLI: attach-mode Desktop never owns the gateway. */
 export function stopInstallGateway(facts: InstallFacts): { code: number | null; output: string } {
   const result = spawnSync(facts.kova, ['gateway', 'stop'], { env: facts.env, encoding: 'utf8', timeout: 90_000 })
 

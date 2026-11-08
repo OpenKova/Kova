@@ -111,7 +111,7 @@ describe('WebAccessSettings', () => {
   })
 
   it('shows a web app served on this computer only as local, never as your own URL', async () => {
-    // `webapp.enabled: true` on loopback (the `hermes webapp` setup): reachable from this computer only.
+    // `webapp.enabled: true` on loopback (the `kova webapp` setup): reachable from this computer only.
     renderPane({
       ...OFF,
       enabled: true,
@@ -164,7 +164,7 @@ describe('WebAccessSettings', () => {
     expect(JSON.stringify(toast)).not.toMatch(/Refusing|interrupt|Couldn't change/)
   })
 
-  // `hermes config set webapp.*` (or another window) changes the status while the pane is open.
+  // `kova config set webapp.*` (or another window) changes the status while the pane is open.
   const EDITED_ELSEWHERE: WebAccessStatus = { ...OFF, enabled: true, mode: 'public', public_url: 'https://hermes.example.org' }
 
   it('picks up a web access change saved elsewhere when the window regains focus', async () => {

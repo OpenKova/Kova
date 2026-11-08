@@ -725,7 +725,7 @@ class QQAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
     @staticmethod
     def _write_update_response(answer: str, operator: str = "") -> None:
         """Atomically (tmp + rename) write the update-prompt answer to
-        ``.update_response``, polled by the detached ``hermes update --gateway`` watcher."""
+        ``.update_response``, polled by the detached ``kova update --gateway`` watcher."""
         try:
             from kova_constants import get_kova_home
             response_path = get_kova_home() / ".update_response"

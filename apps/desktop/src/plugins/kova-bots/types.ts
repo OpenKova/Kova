@@ -130,7 +130,7 @@ export interface RosterRow {
   /** Nullable: the gateway sends `null` for a profile with no configured role,
    *  and the create form threads its own optional title through the same shape. */
   title?: null | string
-  /** Canonical ids this profile was previously known by (`hermes profile
+  /** Canonical ids this profile was previously known by (`kova profile
    *  rename` records them in profile.yaml; the gateway surfaces them on
    *  profiles.list). Lets group chats re-link persisted member descriptors
    *  after a rename (#110200). */

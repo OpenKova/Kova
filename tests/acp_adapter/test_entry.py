@@ -114,7 +114,7 @@ def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
     import subprocess
 
     local_appdata = tmp_path / "AppData" / "Local"
-    root = local_appdata / "hermes" if sys.platform == "win32" else tmp_path / ".kova"
+    root = local_appdata / "kova" if sys.platform == "win32" else tmp_path / ".kova"
     for name in ("work", "other"):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n", encoding="utf-8")

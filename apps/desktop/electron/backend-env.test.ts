@@ -45,7 +45,7 @@ test('POSIX backend PATH keeps the inherited PATH first and appends missing sane
 })
 
 test('backend runs the store toolchain even after the login-shell PATH is merged in front of it', async () => {
-  // `hermes desktop` hands Electron a PATH with the PM store first; the
+  // `kova desktop` hands Electron a PATH with the PM store first; the
   // login-shell merge then puts nvm/Homebrew ahead of it in process.env.
   const env: Record<string, string> = {
     PATH: '/Users/u/.kova/tools/node-26.7.0-darwin-arm64/bin:/Users/u/.kova/tools/uv-0.12.3-darwin-arm64:/usr/bin:/bin'
@@ -158,7 +158,7 @@ test('appendUniquePathEntries flattens, dedupes, and preserves first occurrence'
   assert.equal(appendUniquePathEntries(['/a:/b', ['/b', '/c'], '', null], { delimiter: ':' }), '/a:/b:/c')
 })
 
-// `hermes desktop` loads its launch profile's .env/.op.env into os.environ and
+// `kova desktop` loads its launch profile's .env/.op.env into os.environ and
 // hands that env to Electron; these cover what a profile backend inherits (#68367).
 function withKovaRoot(files: Record<string, string>, run: (root: string) => void) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-env-'))

@@ -1,4 +1,4 @@
-"""``hermes config`` / ``hermes config show``: the read-only configuration summary.
+"""``kova config`` / ``kova config show``: the read-only configuration summary.
 
 Split out of ``kova_cli.config``; config names are read through the module at call time
 (``_cfg.<name>``) so ``kova_cli.config.<name>`` patch seams hold.
@@ -58,7 +58,7 @@ def _show_model_section(config: dict[str, Any]) -> None:
         env_ghost = None
     if env_ghost is not None and str(env_ghost).strip() != str(cfg_max_turns).strip():
         print(color(f"                ⚠ .env has stale KOVA_MAX_ITERATIONS={env_ghost} "
-                    f"(run 'hermes doctor --fix' to remove)", Colors.YELLOW))
+                    f"(run 'kova doctor --fix' to remove)", Colors.YELLOW))
 
 
 def _show_display_section(config: dict[str, Any]) -> None:

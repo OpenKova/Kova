@@ -111,7 +111,7 @@ export const en: Translations = {
     diskElevatedBanner:
       "Your agent's disk is filling up. Consider clearing old sessions or expanding its storage.",
     multiplexStandaloneBanner:
-      "Your gateway serves only one profile. Not served: {profiles}. Why: {reason}. Fix: hermes gateway migrate --multiplex",
+      "Your gateway serves only one profile. Not served: {profiles}. Why: {reason}. Fix: kova gateway migrate --multiplex",
     dismiss: "Dismiss",
     sharedMetricsTitle: "Help improve Kova?",
     sharedMetricsBody:
@@ -135,7 +135,7 @@ export const en: Translations = {
   status: {
     actionFailed: "Action failed",
     actionFinished: "Finished",
-    actionFinishedOwed: "Updated, but still owed (re-run `hermes update` to finish)",
+    actionFinishedOwed: "Updated, but still owed (re-run `kova update` to finish)",
     actions: "Actions",
     agent: "Agent",
     activeSessions: "Active Sessions",
@@ -167,7 +167,7 @@ export const en: Translations = {
     stopped: "Stopped",
     updateKova: "Update Kova",
     updateKovaConfirmMessage:
-      "This runs hermes update and restarts the gateway when it finishes. Active sessions keep their prompt cache until then.",
+      "This runs kova update and restarts the gateway when it finishes. Active sessions keep their prompt cache until then.",
     updateKovaConfirmNow: "Update now",
     updateKovaConfirmTitle: "Update Kova?",
     updatingKova: "Updating Kova…",
@@ -428,7 +428,7 @@ export const en: Translations = {
       "Saved — restart the gateway to apply the change.",
     forceReinstall: "Force reinstall (delete existing folder first)",
     headline:
-      "Discover, install, enable, and update Kova plugins (`hermes plugins` parity).",
+      "Discover, install, enable, and update Kova plugins (`kova plugins` parity).",
     identifierLabel: "Git URL or owner/repo",
     inactive: "inactive",
     installBtn: "Install",
@@ -499,7 +499,7 @@ export const en: Translations = {
     all: "All",
     categories: "Categories",
     filters: "Filters",
-    noSkills: "No skills installed yet. Browse the skills hub or create one here; from a terminal you can also run `hermes skills search <topic>`.",
+    noSkills: "No skills installed yet. Browse the skills hub or create one here; from a terminal you can also run `kova skills search <topic>`.",
     noSkillsMatch: "No skills match your search or filter.",
     skillCount: "{count} skill{s}",
     resultCount: "{count} result{s}",

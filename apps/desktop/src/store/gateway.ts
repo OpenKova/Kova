@@ -58,7 +58,7 @@ export { useGatewayActivationEpoch } from '@/store/gateway-activation-epoch'
 const normKey = (profile: string | null | undefined): string => (profile ?? '').trim() || 'default'
 
 // Dial intent callers attach to a user-initiated open. The canonical
-// `hermes gateway ensure` path has no local slot pool, so the hint changes
+// `kova gateway ensure` path has no local slot pool, so the hint changes
 // nothing about the dial itself; it survives as the option shape the SDK,
 // Settings scopes and session creation pass so an explicit user gesture stays
 // distinguishable from ambient hydration at the call site.
@@ -912,7 +912,7 @@ async function reconnectSecondary(entry: Secondary): Promise<void> {
 
     // An ensure refusal no redial can fix (incompatible runtime, no ensure protocol, an invalid
     // endpoint, an unsafe control path): each automatic redial would spawn another
-    // `hermes gateway ensure` against the same install forever. Park at once, keeping the entry:
+    // `kova gateway ensure` against the same install forever. Park at once, keeping the entry:
     // an explicit open, focus/wake nudge or Reconnect re-arms it after the user's repair.
     if (isPermanentLocalGatewayEnsureError(error)) {
       console.warn(`[gateway] parking scope="${entry.scope}": local gateway ensure refused permanently`, error)

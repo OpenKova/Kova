@@ -17,7 +17,7 @@ import subprocess
 # Serialize renderer publication with Dashboard builds in this checkout.
 _LOCK_NAME = ".web_ui_build.lock"
 _LOCK_WAIT_SECONDS = 30 * 60
-# Written into the bundle when `hermes update` could not rebuild it, so the gateways serving it report
+# Written into the bundle when `kova update` could not rebuild it, so the gateways serving it report
 # the Webapp unavailable instead of serving it against the updated backend. Publishing a build
 # replaces the whole folder, and the receipt's output hash covers this file, so a marked bundle is
 # never reused as current.
@@ -48,7 +48,7 @@ def mark_webapp_stale(project_root: Path) -> bool:
     dist = webapp_dist_dir(project_root)
     if packaged_webapp_dist() is not None or not (dist / "index.html").is_file():
         return False
-    (dist / STALE_MARKER).write_text("hermes update could not rebuild this bundle\n", encoding="utf-8")
+    (dist / STALE_MARKER).write_text("kova update could not rebuild this bundle\n", encoding="utf-8")
     return True
 
 
@@ -99,7 +99,7 @@ def prepare_webapp_renderer(
     """Return a verified browser renderer, serializing concurrent builds.
 
     ``explicit`` (a requested build) may install dependencies even when lazy
-    installs are disabled, like ``hermes desktop --build-only``.
+    installs are disabled, like ``kova desktop --build-only``.
     """
     from kova_cli.source_build import build_source_webapp, source_build_env, source_product_current
 
@@ -114,7 +114,7 @@ def prepare_webapp_renderer(
         print(f"→ Using Kova Webapp renderer from {DIST_ENV}: {dist}")
         return dist
     if skip_build:
-        # Reuse takes no build lock, like `hermes dashboard --skip-build`: the
+        # Reuse takes no build lock, like `kova dashboard --skip-build`: the
         # lock lives in the install root, which a read-only install cannot write.
         if not (dist / "index.html").is_file():
             raise WebappBuildError(

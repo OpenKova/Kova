@@ -1,4 +1,4 @@
-"""Git plumbing for ``hermes update``: fork/upstream sync, trampoline-git detection, lockfile/EOL churn cleanup, orphan rescue refs, parked-branch assessment, fetch-failure classification.
+"""Git plumbing for ``kova update``: fork/upstream sync, trampoline-git detection, lockfile/EOL churn cleanup, orphan rescue refs, parked-branch assessment, fetch-failure classification.
 
 Split out of ``update_cmd.py``, which re-imports every name so ``kova_cli.update_cmd.<name>``
 still resolves/monkeypatches. Origin helpers are imported lazily per function (no cycle;
@@ -251,7 +251,7 @@ def _print_parked_branch_skip_warning(git_cmd: list[str], cwd: Path, current_bra
     print(
         f"\n  To resolve, inspect the branch and switch back yourself:\n"
         f"    git -C {cwd} status\n"
-        f"    git -C {cwd} checkout {target_branch} && hermes update\n"
+        f"    git -C {cwd} checkout {target_branch} && kova update\n"
         f"  (commit or stash your work on the branch first if you want to keep it)\n{_BAR}"
     )
 
@@ -603,7 +603,7 @@ def _portable_git_candidates() -> list:
     profile-scoped KOVA_HOME), then profile home as a fallback for custom layouts.
 
     The Kova-managed PortableGit tree lives under the SHARED root (``<root>/git/...``), not the
-    profile-scoped KOVA_HOME (``<root>/profiles/<name>``), so a profile-scoped ``hermes update`` must look
+    profile-scoped KOVA_HOME (``<root>/profiles/<name>``), so a profile-scoped ``kova update`` must look
     there (monerostar review, #87876).
     """
     from kova_constants import get_default_kova_root, get_kova_home
@@ -676,14 +676,14 @@ def _normalize_managed_eol(git_cmd, repo_root, *, checkout_move=None):
     """Take a managed checkout off ``core.autocrlf=true`` without leaving it dirty.
 
     Git for Windows sets ``autocrlf=true`` system-wide, turning LF files CRLF and breaking ``git checkout``
-    on update; install.ps1 pins ``false`` but older checkouts never got it and only ``hermes update`` can
+    on update; install.ps1 pins ``false`` but older checkouts never got it and only ``kova update`` can
     fix them. Pin and cleanup are one operation: under ``autocrlf=true`` a CRLF tree reads clean, so pinning
     alone would expose every file as modified (whole-tree autostash). Pin only after the tree verifies clean
     under it; a checkout we can't fully normalize is left as-is. Only ``true`` rewrites LF->CRLF
     (unset/false/input leave the tree alone). Best-effort.
 
     Checkouts created before that landed never got the pin and cannot receive it — the bootstrap installer
-    reuses its build-pinned ``install.ps1`` forever — so ``hermes update``, which ships with the checkout
+    reuses its build-pinned ``install.ps1`` forever — so ``kova update``, which ships with the checkout
     itself, is the only path left that can fix them. See #67730.
     """
     from kova_cli.update_cmd_git import _git_run

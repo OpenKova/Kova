@@ -1,4 +1,4 @@
-"""Host-platform checks for hermes doctor: interpreter, SQLite, certificates, macOS TCC, gateway supervision, command install.
+"""Host-platform checks for kova doctor: interpreter, SQLite, certificates, macOS TCC, gateway supervision, command install.
 Split out of ``kova_cli/doctor.py``, which re-exports every name so ``kova_cli.doctor.<name>`` keeps resolving (and monkeypatching)."""
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def _sqlite_upgrade_hint(install_method: str | None = None) -> str:
     method = install_method or detect_install_method(PROJECT_ROOT)
     cmd = recommended_update_command_for_method(method)
     action = cmd if is_nix_install_method(method) else {  # nix: prose guidance, not a shell command
-        "docker": f"run `{cmd}`, then recreate all Kova containers", "apt": f"run `{cmd}`"}.get(method, "run `hermes update`")
+        "docker": f"run `{cmd}`, then recreate all Kova containers", "apt": f"run `{cmd}`"}.get(method, "run `kova update`")
     return f"({action}; fixed versions: 3.51.3+ / 3.50.7 / 3.44.6 — see https://sqlite.org/wal.html#walresetbug)"
 
 
@@ -152,7 +152,7 @@ def _report_database_journal_modes(kova_home: Path | None = None, version_info: 
                        "(the setting never applied: an existing WAL database is never live-downgraded"
                        + ("; also exposed to the WAL-reset bug" if vulnerable else "")
                        + ". Stop every Kova process for this profile, then run "
-                       f"`hermes sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`)")
+                       f"`kova sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`)")
             _report_database_holders(name, path)
         elif error is not None:
             if vulnerable:
@@ -167,7 +167,7 @@ def _report_database_journal_modes(kova_home: Path | None = None, version_info: 
                 exposed.append(name)
             check_warn(f"{name} is in WAL mode on a cross-VM filesystem (virtiofs/9p, {size})",
                        "(WAL can silently corrupt across the VM boundary; stop every Kova process and run "
-                       f"`hermes sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`, then "
+                       f"`kova sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`, then "
                        "set `database.journal_mode: delete` — or move the database onto a native/named volume)")
         elif mode == "wal" and vulnerable:
             exposed.append(name)
@@ -207,10 +207,10 @@ def _report_host_gateway_slot(mgr, issues: list[str]) -> None:
     topology = host_gateway_topology()
     if topology is None:
         if not slots:
-            return check_info("No gateway registered yet — run `hermes gateway install`")
+            return check_info("No gateway registered yet — run `kova gateway install`")
         up = [p for p in slots if mgr.is_running(f"gateway-{p}")]
         issues.append("No host gateway owns the gateway role — start the ONE host multiplexer: "
-                      "hermes --profile default gateway start")
+                      "kova --profile default gateway start")
         return check_warn(f"No host gateway owns the gateway role ({len(up)}/{len(slots)} supervision "
                           f"slots up: {', '.join(slots)})", "(nothing is serving these profiles)")
     check_ok(f"Host gateway: {topology.describe()}")
@@ -219,7 +219,7 @@ def _report_host_gateway_slot(mgr, issues: list[str]) -> None:
         check_warn(f"LEGACY per-profile gateway slots still supervised: {', '.join(legacy_up)}",
                    "(multiplex-only: the host gateway already serves every profile from one process)")
         issues.append("Fold the legacy per-profile gateways into the host gateway: "
-                      "hermes --profile default gateway migrate --multiplex")
+                      "kova --profile default gateway migrate --multiplex")
 
 
 def check_certificates(should_fix: bool = False, issues: list | None = None) -> None:
@@ -283,11 +283,11 @@ def _check_gateway_service_linger(issues: list[str]) -> None:
 
 _TCC_CDHASH_DETAIL = (
     "the desktop bundle's designated requirement is cdhash-pinned (pre-#73681 build) — rebuilds invalidate "
-    "all permission grants. Run `hermes update` to get the stable identifier-pinned signing identity, "
+    "all permission grants. Run `kova update` to get the stable identifier-pinned signing identity, "
     "then re-grant permissions once.")
 _TCC_STABLE_DETAIL = {
     True: "(certificate-anchored DR; grants survive rebuilds)",
-    False: "(identifier-pinned DR; grants survive rebuilds — for the strongest anchor, see `hermes desktop --setup-tcc-identity`)",
+    False: "(identifier-pinned DR; grants survive rebuilds — for the strongest anchor, see `kova desktop --setup-tcc-identity`)",
 }
 
 
@@ -397,7 +397,7 @@ def _check_security_advisories(should_fix: bool, f: Finding) -> None:
         # Fail row + remediation text indented under it as one section; also into the summary action list.
         _fail_and_issue(f"{hit.advisory.title}", f"({hit.package}=={hit.installed_version})",
                         f"Resolve security advisory {hit.advisory.id}: uninstall {hit.package}=={hit.installed_version} "
-                        f"and rotate credentials, then run `hermes doctor --ack {hit.advisory.id}`.", f.manual_issues)
+                        f"and rotate credentials, then run `kova doctor --ack {hit.advisory.id}`.", f.manual_issues)
         for line in full_remediation_text(hit):
             print(f"    {color(line, Colors.YELLOW)}" if line else "")
     acked_ids = get_acked_ids()  # acked-but-still-installed stays visible
@@ -513,7 +513,7 @@ def _check_windows_gateway_autostart(should_fix: bool, f: Finding) -> None:
     if not should_fix:
         for path in redundant:
             check_warn("Redundant gateway login item", f"({path})")
-        f.issues.append("Remove duplicate Windows gateway autostart entries: hermes doctor --fix")
+        f.issues.append("Remove duplicate Windows gateway autostart entries: kova doctor --fix")
         return
     done, warnings = gateway_windows.reconcile_autostart_launchers()
     for message in done:
@@ -531,7 +531,7 @@ def _check_web_dashboard_import(should_fix: bool, f: Finding) -> None:
     """Import the dashboard web surface in a subprocess so an import-time crash lands in the report.
 
     When starlette is updated past the fastapi pinned beside it (the CVE starlette pin ships in
-    several extras on its own), ``hermes dashboard`` dies constructing ``FastAPI(...)`` with a
+    several extras on its own), ``kova dashboard`` dies constructing ``FastAPI(...)`` with a
     TypeError — not an ImportError — so the module's own lazy-install fallback never fires and the
     process exits before a single log line. Importing in a subprocess keeps a dead web surface
     from taking the doctor down with it; lazy installs stay off so the probe never mutates the
@@ -631,14 +631,14 @@ def _check_command_installation(should_fix: bool, f: Finding) -> None:
         if target not in owned_targets:
             return f.manual_issues.append(f"Review {display}/hermes manually; its target is user-managed and was not changed")
         if not should_fix:
-            return f.issues.append(f"Broken symlink at {display}/hermes — run 'hermes doctor --fix'")
+            return f.issues.append(f"Broken symlink at {display}/hermes — run 'kova doctor --fix'")
         verb = "Fixed"
     elif link.exists():  # regular file (wrapper script), not a symlink
         return check_ok(f"{display}/hermes exists (non-symlink)")
     else:
         check_fail(f"{display}/hermes not found", "(hermes command may not work outside the venv)")
         if not should_fix:
-            return f.issues.append(f"Missing {display}/hermes symlink — run 'hermes doctor --fix'")
+            return f.issues.append(f"Missing {display}/hermes symlink — run 'kova doctor --fix'")
         link_dir.mkdir(parents=True, exist_ok=True)
         verb = "Created"
     if pm_launcher:
@@ -646,7 +646,7 @@ def _check_command_installation(should_fix: bool, f: Finding) -> None:
 
         if stage_launcher("hermes", PROJECT_ROOT, link_dir) is None:
             check_fail("Could not publish Kova launcher")
-            return f.manual_issues.append("Repair the PM store interpreter through the installation owner, then rerun 'hermes doctor --fix'")
+            return f.manual_issues.append("Repair the PM store interpreter through the installation owner, then rerun 'kova doctor --fix'")
         check_ok(f"{verb} PM launcher: {display}/hermes")
     else:
         if link.is_symlink():

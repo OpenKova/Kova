@@ -103,7 +103,7 @@ export const ar = defineLocale({
   status: {
     actionFailed: "فشلت الإجراء",
     actionFinished: "انتهى",
-    actionFinishedOwed: "تم التحديث، لكن لا تزال هناك خطوات معلّقة (أعد تشغيل `hermes update` لإكمالها)",
+    actionFinishedOwed: "تم التحديث، لكن لا تزال هناك خطوات معلّقة (أعد تشغيل `kova update` لإكمالها)",
     actions: "إجراءات",
     agent: "العامل",
     activeSessions: "الجلسات النشطة",
@@ -282,7 +282,7 @@ export const ar = defineLocale({
       "تم الحفظ — أعد تشغيل البوابة لتطبيق التغيير.",
     forceReinstall: "إعادة تثبيت إجباري (حذف المجلد الموجود أولاً)",
     headline:
-      "اكتشف وثبِّت وفعِّل وحدِّث مكوِّنات Kova الإضافية (مطابقة `hermes plugins`).",
+      "اكتشف وثبِّت وفعِّل وحدِّث مكوِّنات Kova الإضافية (مطابقة `kova plugins`).",
     identifierLabel: "رابط Git أو owner/repo",
     inactive: "غير نشط",
     installBtn: "تثبيت من Git",

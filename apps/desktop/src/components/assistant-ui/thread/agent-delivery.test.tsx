@@ -7,7 +7,7 @@ import { deliveryTargetFromCommand, replyTextFromResult } from './agent-delivery
 // (the canonical Bot Mode command shape) and the reply extraction.
 describe('delivery command detection', () => {
   it('matches the canonical delivery command', () => {
-    const cmd = 'hermes -p turqoise chat --in ~ -c "Bot Chat" -Q -q "Message from 🤖 Kova (@hermes): hi there"'
+    const cmd = 'kova -p turqoise chat --in ~ -c "Bot Chat" -Q -q "Message from 🤖 Kova (@hermes): hi there"'
 
     expect(deliveryTargetFromCommand(cmd)).toBe('turqoise')
   })
@@ -20,8 +20,8 @@ describe('delivery command detection', () => {
 
   it('ignores ordinary terminal commands', () => {
     expect(deliveryTargetFromCommand('ls -la')).toBeNull()
-    expect(deliveryTargetFromCommand('hermes -p turqoise chat -q "plain question"')).toBeNull()
-    expect(deliveryTargetFromCommand('hermes sessions list')).toBeNull()
+    expect(deliveryTargetFromCommand('kova -p turqoise chat -q "plain question"')).toBeNull()
+    expect(deliveryTargetFromCommand('kova sessions list')).toBeNull()
   })
 })
 

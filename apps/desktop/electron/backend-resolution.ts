@@ -1,5 +1,5 @@
 /**
- * KOVA_DESKTOP_IGNORE_EXISTING=1 (`hermes desktop --ignore-existing`) keeps
+ * KOVA_DESKTOP_IGNORE_EXISTING=1 (`kova desktop --ignore-existing`) keeps
  * Desktop off installed runtimes (ACTIVE_KOVA_ROOT, or the install a
  * published user-bin launcher reports). Backend resolution
  * then falls through to bootstrap-needed, which shows the first-run choice

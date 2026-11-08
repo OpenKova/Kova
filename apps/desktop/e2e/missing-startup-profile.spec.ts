@@ -10,7 +10,7 @@ import { expect, test } from './test'
 
 // Electron userData outlives a Kova reinstall that wipes KOVA_HOME, so the
 // remembered startup profile (and an explicit default) can name a profile this
-// home no longer has. Every boot then ran `hermes --profile <gone> gateway
+// home no longer has. Every boot then ran `kova --profile <gone> gateway
 // ensure`, which refuses a missing profile, and Desktop never started.
 test('a remembered profile missing from a reinstalled Kova home boots the default profile', async () => {
   test.setTimeout(300_000)

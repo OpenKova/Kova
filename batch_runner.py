@@ -10,7 +10,7 @@ statistics aggregated across all batches. See ``main`` (fire CLI) for usage.
 try:
     import kova_bootstrap
 except ModuleNotFoundError as exc:
-    # Partial ``hermes update`` (git reset landed, ``uv pip install -e .`` did not).
+    # Partial ``kova update`` (git reset landed, ``uv pip install -e .`` did not).
     if exc.name != "kova_bootstrap" and not "kova_bootstrap".startswith(f"{exc.name}."):
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 

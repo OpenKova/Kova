@@ -1,4 +1,4 @@
-"""Windows gateway lifecycle for ``hermes update``: pause/resume/cold-start the service, sweep venv holders, reap orphaned backends.
+"""Windows gateway lifecycle for ``kova update``: pause/resume/cold-start the service, sweep venv holders, reap orphaned backends.
 
 Split out of ``update_cmd.py``; names are re-imported there so ``kova_cli.update_cmd.<name>`` still resolves/monkeypatches.
 Origin helpers are imported lazily per function (no cycle; test patches on the origin stay effective).
@@ -102,7 +102,7 @@ def _self_and_non_gateway_ancestor_pids(psutil) -> set[int]:
     gracefully; a detached child survives on Windows); interactive ancestry is never a blocker."""
     _is_gw = None
     with suppress(Exception):
-        # Never return ourselves or our own ancestry: a CLI ``hermes update`` runs from the venv python and
+        # Never return ourselves or our own ancestry: a CLI ``kova update`` runs from the venv python and
         # would otherwise nominate itself. Same #87594 carve-out as _detect_venv_python_processes: a GATEWAY
         # ancestor is not "our own ancestry" in the interactive sense — it is the process the pause
         # machinery must see (the /update-from-gateway topology makes the updater the gateway's child).
@@ -330,7 +330,7 @@ def _venv_holder_kind(cmdline: str) -> str:
     return "python"
 
 
-VENV_HOLDERS_EXIT = 3  # ``hermes update --list-venv-holders``: holders present (distinct from refusal 2)
+VENV_HOLDERS_EXIT = 3  # ``kova update --list-venv-holders``: holders present (distinct from refusal 2)
 
 
 def list_venv_holders() -> list[dict]:
@@ -373,7 +373,7 @@ def _leftover_pausable_gateway_pids(matches: list[tuple[int, str, str]]) -> list
 
 
 def _refuse_gateway_ancestor_tree_kill(pids: list[int], *, gateway_mode: bool) -> bool:
-    """Refuse a plain Windows update that would tree-kill its own ancestry (a chat agent's ``hermes update`` is
+    """Refuse a plain Windows update that would tree-kill its own ancestry (a chat agent's ``kova update`` is
     a gateway child; ``taskkill /T /F`` kills the updater first). ``--gateway`` is exempt (detached delivery).
     Refuse only when a nominated gateway is positively an ancestor; unknown ancestry keeps existing recovery.
 
@@ -393,7 +393,7 @@ def _refuse_gateway_ancestor_tree_kill(pids: list[int], *, gateway_mode: bool) -
         "✗ Refusing to stop the gateway process tree because this updater "
         f"is running inside it (gateway PID(s): {', '.join(str(pid) for pid in ancestors)}).\n"
         "  On Windows, taskkill /T would terminate the updater before the update can run.\n"
-        "  From a chat platform, use `/update` instead.\n  Otherwise, run `hermes update` from a separate terminal."
+        "  From a chat platform, use `/update` instead.\n  Otherwise, run `kova update` from a separate terminal."
     )
     return True
 
@@ -456,7 +456,7 @@ def _relaunch_stopped_serves(token: dict) -> None:
         print("  ⟲ Relaunching stopped serve/dashboard backend(s)")
         failed = _m()._respawn_dashboard_processes(commands)
     if skipped or failed:
-        print("  ⚠ Some stopped backends could not be relaunched automatically; restart them manually (hermes serve --host <ip> --port <port>).")
+        print("  ⚠ Some stopped backends could not be relaunched automatically; restart them manually (kova serve --host <ip> --port <port>).")
     _record_update_step(
         "serve_relaunch", not failed and not skipped,
         f"relaunched={len(commands) - len(failed)} failed={len(failed)} skipped={skipped}",
@@ -468,7 +468,7 @@ def _is_backend_argv(argv_low: str) -> bool:
 
     Same predicate as ``_looks_like_desktop_control_plane``: ``-m kova_cli.main`` entry shape (the
     Desktop's only spawn shape, ``apps/desktop/electron/main.ts``) AND the canonical holder classifier says
-    ``serve``/``dashboard``. A user-launched ``hermes.exe serve`` / ``hermes dashboard`` is NOT the
+    ``serve``/``dashboard``. A user-launched ``hermes.exe serve`` / ``kova dashboard`` is NOT the
     Desktop's: the guard refuses on it, never reaps it.
     """
     return _looks_like_desktop_control_plane(argv_low)
@@ -626,7 +626,7 @@ def _stop_process_trees(pids: list[int] | list[tuple[int, int]]) -> None:
 
 
 def _looks_like_desktop_control_plane(cmdline: str) -> bool:
-    """True for this-install ``hermes serve`` / ``hermes dashboard`` argv (Desktop control plane).
+    """True for this-install ``kova serve`` / ``kova dashboard`` argv (Desktop control plane).
 
     Not the messaging gateway — don't feed into ``looks_like_gateway_command_line``. Token-based via the
     parser-derived classifier, never substring (``kanban --preserve-cache``, ``-m dashboard chat``).
@@ -783,7 +783,7 @@ def _windows_cold_start_plan() -> dict | None:
     only restarts gateways it stopped itself (its hand-off script, after the update verifies; #119809).
     Keep the plan, and record the attestation
     *generation* that authorized it on the token: the marker is a mutable one-shot that any concurrent
-    ``hermes gateway status``/``start`` consumes, so execution authorizes the spawn from the token and
+    ``kova gateway status``/``start`` consumes, so execution authorizes the spawn from the token and
     consumes only that generation (#110020 review)."""
     from kova_cli.update_cmd import _desktop_owns_gateway_lifecycle
     from kova_cli import gateway_windows
@@ -1054,7 +1054,7 @@ def _stop_windows_gateways(running_pids, profile_processes, service_gateway_pids
     if unmapped_pids:
         print(f"  → Stopped {len(unmapped_pids)} gateway process(es) without profile mapping")
         if any(not u.get("argv") for u in unmapped):  # no recoverable cmdline (psutil missing, denied, gone)
-            print("    Restart manually after update: hermes gateway run")
+            print("    Restart manually after update: kova gateway run")
     return profiles
 
 
@@ -1133,7 +1133,7 @@ def _cold_start_windows_gateway_after_update(token: dict | None = None) -> bool:
     attested gateway that died without a clean exit is restored even then (#109538) — the Desktop does
     not restart the messaging gateway itself. That authority is the ``attested_generation`` the plan
     recorded on ``token``, not the marker on disk: the marker is a mutable one-shot a concurrent
-    ``hermes gateway status``/``start`` consumes, which would otherwise skip this spawn and clear the
+    ``kova gateway status``/``start`` consumes, which would otherwise skip this spawn and clear the
     token (#110020 review). Only that generation is consumed afterwards — never a newer marker.
     """
     from kova_cli.update_cmd import _desktop_owns_gateway_lifecycle, _m
@@ -1182,7 +1182,7 @@ def _refresh_windows_gateway_launchers() -> None:
     None`` death). The task's /TR points at a stable path, so rewriting in place retargets it without UAC.
 
     The Scheduled Task / Startup-folder launchers (``gateway.cmd`` + ``gateway.vbs``) are persistence
-    artifacts written once at install time — ``hermes update`` never touched them, so installs created
+    artifacts written once at install time — ``kova update`` never touched them, so installs created
     before the hidden-console rework (aa2ae36c3f) kept launching the gateway through ``pythonw.exe``
     forever: every descendant spawn flashed a conhost (#54220/#56747) and, since #70344, the console-less
     gateway died at startup with ``RuntimeError: sys.stderr is None`` (#71671).
@@ -1217,7 +1217,7 @@ def _refresh_bootstrap_cache_scripts(branch: str = "main") -> None:
     cached branch-ref script — ``install-main.ps1`` cached at install time is reused forever, executing
     months-stale code with long-fixed bugs (the 2026-08-09 incident: a June 4 cached script's venv stage
     lacked the 81327 process-tree sweep and died on ``Access denied``). The binary has no self-update path,
-    so the poisoned cache outlives every ``hermes update``.
+    so the poisoned cache outlives every ``kova update``.
     Overwriting the cached script for *branch* with the freshly pulled ``scripts/install.ps1`` /
     ``scripts/install.sh`` on every update turns the stale binary's unconditional reuse into a feature: it
     "reuses" a file this function keeps permanently current. Post-#67193 installers re-download on each run
@@ -1255,7 +1255,7 @@ def _refresh_bootstrap_cache_scripts(branch: str = "main") -> None:
 _SERVICE_READY_TIMEOUT_S = 60.0
 # A launch recovering an orphaned pause (``update_pause_record.recover``, before every command)
 # only probes briefly, and a service whose gateway stays unready is re-probed with backoff; the
-# full wait belongs to ``hermes update`` itself.
+# full wait belongs to ``kova update`` itself.
 _SERVICE_READY_PROBE_S = 5.0
 _SERVICE_RETRY_BASE_S = 60.0
 _SERVICE_RETRY_MAX_S = 3600.0
@@ -1393,7 +1393,7 @@ def _relaunch_verify_timeout_s(profiles: dict, unmapped: list, pid_exists) -> fl
 
     The base window assumes the watchers respawn immediately. When an old PID is still alive the
     watcher is still in its wait loop, so the poll must reach at least the watcher's own deadline —
-    otherwise ``hermes update`` declares "no stable gateway process appeared" for a gateway that was
+    otherwise ``kova update`` declares "no stable gateway process appeared" for a gateway that was
     never scheduled to appear inside the window (#107002).
     """
     from kova_cli.gateway import GATEWAY_RESTART_WATCHER_TIMEOUT_S
@@ -1552,7 +1552,7 @@ def _verify_relaunched_gateways_alive(token: dict, profiles: dict, unmapped: lis
         print(
             "\n  ⚠ Windows gateway restart could not be verified for: " + ", ".join(unready) + "\n"
             "    (The respawned gateway may have been killed by a parent Job Object during updater teardown, #48820.)\n"
-            "    Recover with: hermes gateway restart"
+            "    Recover with: kova gateway restart"
         )
         raise RuntimeError("Windows gateway relaunch after update was not verified alive: " + ", ".join(unready))
 
@@ -1589,7 +1589,7 @@ def _resume_unless_torn(token: dict) -> None:
             # dependencies. The durable record keeps the obligation for the next launch, which
             # runs after the interrupted-pull restore and the dependency sync.
             print(f"  ⚠ Paused gateway(s) left stopped: {why}.\n"
-                  "    The next `hermes` command (or `hermes update`) restarts them.")
+                  "    The next `hermes` command (or `kova update`) restarts them.")
             token["resume_needed"] = False
             token["resume_deferred"] = why
             pause_record.sync(token)

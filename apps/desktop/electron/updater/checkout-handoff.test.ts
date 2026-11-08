@@ -372,7 +372,7 @@ describe.skipIf(IS_WINDOWS)('protocol 2 hand-off', () => {
 
   // Review 5411223284 regression 1: a bridge the helper could not withdraw
   // stays adoptable by a late (setsid, unkillable) daemon. Reporting "did not
-  // start" and restarting the backend would run `hermes update` beside it.
+  // start" and restarting the backend would run `kova update` beside it.
   it.each(['busy', 'error'])(
     'a withdraw that stays `%s` keeps the bridge and quits instead of restarting the backend',
     async (answer: string): Promise<void> => {

@@ -67,7 +67,7 @@ def mark_storage_corrupt(db_path, reason: object) -> None:
     logger.error(
         "state.db at %s is structurally corrupt (%s); session storage is reported as corrupt "
         "until Kova restarts on a recovered or restored file. Stop Kova, then run "
-        "`hermes sessions recover --source %s --inspect-only` or restore a snapshot.",
+        "`kova sessions recover --source %s --inspect-only` or restore a snapshot.",
         db_path, reason, db_path,
     )
 

@@ -776,7 +776,7 @@ export const opsCommands: SlashCommand[] = [
     run: (arg, ctx, cmd) => {
       // No argument → open the interactive Plugins Hub overlay. Any
       // subcommand (enable/disable/list/install/…) falls through to the
-      // text slash worker so it stays at parity with `hermes plugins`.
+      // text slash worker so it stays at parity with `kova plugins`.
       if (!arg.trim()) {
         return patchOverlayState({ pluginsHub: true })
       }

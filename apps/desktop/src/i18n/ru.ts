@@ -3878,7 +3878,7 @@ export const ruOverrides = {
       success: platform => `Передаём в ${platform}. Возобновите здесь в любой момент.`,
       systemNote: platform => `↻ Передано в ${platform} — возобновите здесь в любой момент.`,
       failed: error => `Передача не удалась: ${error}`,
-      timedOut: 'Превышено время ожидания шлюза. Выполняется ли `hermes gateway`?'
+      timedOut: 'Превышено время ожидания шлюза. Выполняется ли `kova gateway`?'
     }
   },
   errors: {

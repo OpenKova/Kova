@@ -1,4 +1,4 @@
-"""``hermes logs`` subcommand parser."""
+"""``kova logs`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ Examples:
     hermes logs gateway -n 100     Show last 100 lines of gateway.log
     hermes logs gui -f             Follow gui.log in real time
     hermes logs desktop -f         Follow desktop.log (Electron app boot/backend)
-    hermes logs update             Show last 50 lines of update.log (hermes update mirror)
+    hermes logs update             Show last 50 lines of update.log (kova update mirror)
     hermes logs handoff            Show last 50 lines of desktop-update-handoff.log
     hermes logs --level WARNING    Only show WARNING and above
     hermes logs --session abc123   Filter by session ID

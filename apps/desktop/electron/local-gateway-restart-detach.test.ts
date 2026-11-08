@@ -18,7 +18,7 @@ async function fakeKova(kind: 'new' | 'old') {
 
   const bin = path.join(dir, 'hermes')
   await fs.writeFile(bin, `#!/bin/sh\necho "$*" >> "${calls}"\n${reject}echo "✓ restarted"\n`, { mode: 0o755 })
-  const run = (args: string[]) => runGatewayEnsure({ command: bin, args, env: {}, shell: false }, dir, dir, {}, { timeoutMs: 5000, label: 'hermes gateway restart' })
+  const run = (args: string[]) => runGatewayEnsure({ command: bin, args, env: {}, shell: false }, dir, dir, {}, { timeoutMs: 5000, label: 'kova gateway restart' })
 
   return { run, calls: async () => (await fs.readFile(calls, 'utf8')).trim().split('\n') }
 }

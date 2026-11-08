@@ -120,7 +120,7 @@ def activate_plugin_now(name: str, *, in_process: bool = True) -> dict[str, Any]
     subscribers here — the TUI/Desktop server — see it), connect its MCP servers and hand them plus
     its skills to the open chats of this profile (:func:`load_and_go_live`), and nudge the running
     gateway to load it too over its control socket so live adapters re-wire their handlers. A caller
-    in another process (``hermes plugins install``) passes ``in_process=False``; the running Desktop /
+    in another process (``kova plugins install``) passes ``in_process=False``; the running Desktop /
     dashboard backend is then asked to do the in-process half (:func:`notify_serve_backend`). Never raises.
 
     Returns ``{"gateway_reloaded": bool, "activation": summary | None, "restart_required": bool}``.
@@ -174,13 +174,13 @@ def gateway_reload_hint(answer: Optional[dict[str, Any]], name: str) -> str:
     wired into platform adapters outlive a reload (the plugin guide), so a restart still ends those."""
     if answer and answer.get("reloaded"):
         return (f"The running gateway reloaded its plugins and unloaded {name}; platform hooks it already "
-                "wired up stay until a gateway restart (hermes gateway restart).")
+                "wired up stay until a gateway restart (kova gateway restart).")
     if answer is not None:  # a gateway answered and refused: say so, with its reason
         return (f"The running gateway refused to reload its plugins: {answer.get('error') or 'no reason given'}.\n"
                 "Only the saved config changed; restart the gateway serving this profile to apply it:\n"
-                "  hermes gateway restart")
+                "  kova gateway restart")
     return ("No running gateway answered. If one is running, restart it for this to take effect:\n"
-            "  hermes gateway restart")
+            "  kova gateway restart")
 
 
 def load_and_go_live(name: str) -> Optional[dict[str, Any]]:
@@ -243,7 +243,7 @@ def _serve_backend_record():
 
 
 def notify_serve_backend(name: str, home: Path) -> Optional[dict[str, Any]]:
-    """Ask the running dashboard / Desktop backend (``hermes serve``, found through its host record) to
+    """Ask the running dashboard / Desktop backend (``kova serve``, found through its host record) to
     run :func:`load_and_go_live` for ``name`` in ``home``. None when no backend answers. Never raises."""
     try:
         import json
@@ -277,7 +277,7 @@ def _gateway_present() -> bool:
             or _installed_service_kind() is not None)
 
 
-_RESTART_LINES = {"gateway": "  hermes gateway restart",
+_RESTART_LINES = {"gateway": "  kova gateway restart",
                   "backend": "  quit and reopen the Kova desktop app (or restart hermes dashboard)"}
 
 
@@ -320,7 +320,7 @@ def activation_hint(result: dict[str, Any]) -> str:
         # a messaging gateway that starts later loads it at boot, so a restart applies to nothing.
         if lines or not _gateway_present():
             return "\n".join(lines)
-        return "\n".join([*lines, "Restart the gateway for the plugin to take effect:\n  hermes gateway restart"])
+        return "\n".join([*lines, "Restart the gateway for the plugin to take effect:\n  kova gateway restart"])
     now, deferred = act.get("activated_now") or {}, act.get("deferred") or {}
     parts = []
     if now:

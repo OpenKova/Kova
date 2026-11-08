@@ -1,4 +1,4 @@
-"""``hermes connectors`` subcommand parser."""
+"""``kova connectors`` subcommand parser."""
 
 from __future__ import annotations
 

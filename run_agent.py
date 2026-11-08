@@ -9,13 +9,13 @@
 # kova_bootstrap must be the very first import (UTF-8 stdio on Windows; no-op on POSIX).
 try:
     import kova_bootstrap
-except ModuleNotFoundError as exc:  # partial `hermes update` left the bootstrap unregistered
+except ModuleNotFoundError as exc:  # partial `kova update` left the bootstrap unregistered
     if exc.name != "kova_bootstrap" and not "kova_bootstrap".startswith(f"{exc.name}."):
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 
 import sys
 
-# `kova-agent` runs this module without kova_cli.main, which repairs a `hermes update` killed
+# `kova-agent` runs this module without kova_cli.main, which repairs a `kova update` killed
 # while git wrote the new tree; do it here, before importing anything else from the checkout.
 if "kova_cli.main" not in sys.modules:
     from kova_cli import _early_recovery
@@ -41,7 +41,7 @@ from kova_constants import get_kova_home
 
 
 def _launch_cwd_for_session(source: str) -> Optional[str]:
-    """cwd to stamp on a new session row (``hermes -c`` / ``--resume``), or None.
+    """cwd to stamp on a new session row (``kova -c`` / ``--resume``), or None.
 
     Only local CLI sessions record one: gateway/cron/remote backends (non-"local" ``TERMINAL_ENV``) have no
     stable host cwd for the agent's tools.
@@ -308,7 +308,7 @@ class AIAgent(
 
     def _session_row_model_config(self) -> Any:
         """``model_config`` for the lazily created session row: the init config plus a live /yolo toggled
-        before the first turn (``hermes --resume`` restores it)."""
+        before the first turn (``kova --resume`` restores it)."""
         from tools.approval_yolo import with_session_yolo
         return with_session_yolo(self._session_init_model_config, self.session_id)
 

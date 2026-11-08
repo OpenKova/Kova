@@ -26,7 +26,7 @@ from kova_cli.pty_session import PtySessionRegistry
 _log = logging.getLogger("kova_cli.web_server")
 
 
-# /api/pty spawns ``hermes --tui`` behind a pseudo-terminal and forwards bytes +
+# /api/pty spawns ``kova --tui`` behind a pseudo-terminal and forwards bytes +
 # resize escapes to xterm.js.  POSIX uses pty_bridge (fcntl/termios); native
 # Windows uses win_pty_bridge (pywinpty/ConPTY); same surface, no handler guards.
 try:
@@ -493,7 +493,7 @@ def _resolve_chat_argv(
     resume: Optional[str] = None, sidecar_url: Optional[str] = None, profile: Optional[str] = None,
     active_session_file: Optional[str] = None,
     workspace_cwd: Optional[str] = None) -> tuple[list[str], Optional[str], Optional[dict]]:
-    """Resolve the argv + cwd + env for the chat PTY (what ``hermes --tui`` runs).
+    """Resolve the argv + cwd + env for the chat PTY (what ``kova --tui`` runs).
 
     Tests monkeypatch this with a tiny fake command.  Env contract: resume goes
     through ``KOVA_TUI_RESUME`` (``ui-tui`` does not parse argv), resolved to
@@ -501,7 +501,7 @@ def _resolve_chat_argv(
     in-memory gateway but is SKIPPED for profile-scoped chats (that gateway runs
     under the dashboard's own profile, so a scoped chat attaches to its profile's gateway);
     ``profile`` scopes the ENTIRE chat by pointing ``KOVA_HOME`` at the profile
-    dir, the same propagation ``hermes -p <name>`` performs. ``workspace_cwd``
+    dir, the same propagation ``kova -p <name>`` performs. ``workspace_cwd``
     (an already-validated host directory, ``chat_workspaces.resolve_chat_cwd``)
     is the workspace the user picked for a FRESH chat: it becomes ``KOVA_CWD``
     (where a self-spawned gateway starts) and ``KOVA_TUI_CWD`` (what the TUI

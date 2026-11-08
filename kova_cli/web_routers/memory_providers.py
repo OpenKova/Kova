@@ -394,7 +394,7 @@ def _command_result(
 def _install_memory_provider_python_dependencies(name: str) -> list[dict[str, Any]]:
     from kova_cli.memory_setup import prepare_memory_provider_dependencies
 
-    command = "hermes pm install"
+    command = "kova pm install"
     try:
         _manifest, status = prepare_memory_provider_dependencies(name)
     except Exception as exc:

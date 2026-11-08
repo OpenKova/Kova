@@ -259,7 +259,7 @@ def resolve_plugin_load_order(manifests: Mapping[str, PluginManifest]) -> list[s
                 logger.warning(
                     "Plugin %s requires plugin '%s' which is not enabled/"
                     "installed; loading anyway (probe availability at runtime "
-                    "via ctx.has_plugin). Run `hermes plugins enable %s` if it is installed.",
+                    "via ctx.has_plugin). Run `kova plugins enable %s` if it is installed.",
                     k, dep_id, dep_id,
                 )
             elif resolved == k:
@@ -375,7 +375,7 @@ class PluginManifest:
     # <category>.provider; own discovery, general scanner skips) | ``platform`` (gateway adapter; bundled
     # auto-load, user-installed gated as untrusted code).
     kind: str = "standalone"
-    # Path-derived registry key used by plugins.enabled/disabled and `hermes plugins list`: ``disk-cleanup``
+    # Path-derived registry key used by plugins.enabled/disabled and `kova plugins list`: ``disk-cleanup``
     # for a flat plugin, ``image_gen/openai`` for a category plugin. Empty -> name.
     key: str = ""
     # Kova version requirement (``">=0.19"``, comma-separated clauses allowed). Unsatisfied plugins are
@@ -415,7 +415,7 @@ class PluginManifest:
     provides_locales: list[str] = field(default_factory=list)
     locale_metadata: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Dotted paths in Kova' own config sections the plugin reads (``memory.retaindb``), so
-    # ``hermes config get/set`` recognizes them while the plugin is active (kova_cli/config_runtime_keys.py).
+    # ``kova config get/set`` recognizes them while the plugin is active (kova_cli/config_runtime_keys.py).
     config_keys: list[str] = field(default_factory=list)
 
 

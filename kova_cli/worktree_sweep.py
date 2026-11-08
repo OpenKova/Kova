@@ -11,7 +11,7 @@ ref activity younger than their tier, and trees holding anything an archive cann
 an untracked file over the size cap). With
 ``archive_dirty: false`` and no size budget the classic pruner runs unchanged.
 
-``plan_sweep`` is read-only (``hermes worktree prune --dry-run`` prints it); ``execute_plan``
+``plan_sweep`` is read-only (``kova worktree prune --dry-run`` prints it); ``execute_plan``
 applies a frozen plan.
 """
 
@@ -247,7 +247,7 @@ def plan_sweep(repo_root: str, max_age_hours: int = 24, settings: Optional[dict]
                now: Optional[float] = None, older_than_days: Optional[float] = None) -> list[Decision]:
     """Read-only decision for every tree under ``<repo>/.worktrees`` (kanban/young included).
 
-    *older_than_days* (``hermes worktree prune --older-than``) only restricts: a tree idle for
+    *older_than_days* (``kova worktree prune --older-than``) only restricts: a tree idle for
     less than that is never archived or removed, whatever its tier.
     """
     import re
@@ -467,9 +467,9 @@ def run_sweep(repo_root: str, max_age_hours: int, settings: dict) -> None:
     removed = [ref for ref, gone, _why in archived if gone]
     if removed:
         logger.warning("Archived and removed %d idle worktree(s) with unmerged work; restore any with "
-                       "`hermes worktree restore <name>` (`hermes worktree list` shows archives).", len(removed))
+                       "`kova worktree restore <name>` (`kova worktree list` shows archives).", len(removed))
     if preserved:
-        logger.warning("Preserving %d stale worktree(s) (run `hermes worktree prune --dry-run` for reasons): %s",
+        logger.warning("Preserving %d stale worktree(s) (run `kova worktree prune --dry-run` for reasons): %s",
                        len(preserved), ", ".join(sorted(preserved)[:20]))
     expired = prune_expired_archives(repo_root, settings["archive_retention_days"])
     if expired:

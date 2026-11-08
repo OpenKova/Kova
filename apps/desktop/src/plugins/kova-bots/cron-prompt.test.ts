@@ -2,7 +2,7 @@
  * What a routine actually runs.
  *
  * A job scheduled for the ACTIVE bot profile runs its instruction directly. A
- * job for a different profile keeps the `hermes -p <bot> chat` delegation
+ * job for a different profile keeps the `kova -p <bot> chat` delegation
  * wrapper so the run lands in that bot's own history — and that wrapper is a
  * shell command line, which is why every operand is single-quoted rather than
  * interpolated. The pre-hardening prompts were built by interpolation, so a
@@ -20,7 +20,7 @@ import { isLegacyDelegatedRoutine, normalizedProfileName, routineInputError, rou
 /** Run the delegation command under a `hermes` stub that prints its argv, so
  *  the assertion is what the SHELL passed — not what the string looks like. */
 function argvOf(prompt: string): string[] {
-  const command = prompt.slice(prompt.indexOf('hermes '), prompt.lastIndexOf('\n\nIf the command'))
+  const command = prompt.slice(prompt.indexOf('kova '), prompt.lastIndexOf('\n\nIf the command'))
   const result = spawnSync('sh', ['-c', `hermes() { printf '%s\\037' "$@"; }\n${command}`], { encoding: 'utf8' })
 
   expect(result.status, result.stderr).toBe(0)

@@ -2,7 +2,7 @@
  * Kova Cloud agents: their public host is `<label>.agents.nousresearch.com`
  * (staging `<label>.agents.staging-nousresearch.com`), the URL the portal gives
  * each agent. Cloud updates an agent by replacing its image, so nothing may run
- * `hermes update` against one.
+ * `kova update` against one.
  */
 
 const KOVA_CLOUD_HOST_SUFFIXES = ['.agents.nousresearch.com', '.agents.staging-nousresearch.com']

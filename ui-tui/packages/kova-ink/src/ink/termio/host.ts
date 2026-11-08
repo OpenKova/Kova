@@ -1,7 +1,7 @@
 /**
  * Which emulator is hosting this TUI, when the host tells us.
  *
- * `hermes dashboard` spawns the TUI behind a PTY and mirrors it into xterm.js
+ * `kova dashboard` spawns the TUI behind a PTY and mirrors it into xterm.js
  * in the browser; the bridge sets KOVA_PTY_HOST=dashboard on the child
  * (kova_cli/pty_bridge.py — keep the two constants in sync). Native
  * terminals never set it.

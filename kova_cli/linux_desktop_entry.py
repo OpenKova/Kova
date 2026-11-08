@@ -113,7 +113,7 @@ def _running_interpreter_fallback() -> str:
 
 
 def resolve_exec_command(project_root: Optional[Path] = None) -> str:
-    """Build the absolute ``Exec=`` command line for ``hermes desktop``.
+    """Build the absolute ``Exec=`` command line for ``kova desktop``.
 
     Prefer the real ``hermes`` launcher; fall back to ``<python> -m kova_cli.main desktop``.
     """
@@ -235,7 +235,7 @@ def _resolve_hermes_bin_for_desktop_entry(
     checkout is a launch-context artifact, not a durable installed launcher — persisting it makes
     the entry depend on how the previous launch happened (a bootstrap loop). Skip such candidates
     and fall through to PATH, then to the installer's known wrapper locations. A candidate that
-    provably cannot serve ``hermes desktop`` (a code tree carrying ``kova_cli`` but no desktop
+    provably cannot serve ``kova desktop`` (a code tree carrying ``kova_cli`` but no desktop
     app beside it — a managed runtime env's console script) is skipped the same way: its entry
     would only ever die with "Desktop GUI source not found". ``resolve_fn`` is injectable for tests.
 
@@ -260,7 +260,7 @@ def _resolve_hermes_bin_for_desktop_entry(
     primary = resolve_fn()
     # A managed-environment console script is outside the checkout but is not a durable desktop
     # launcher: its workspace has no apps/desktop (#122438). The same holds for any launcher
-    # that provably cannot serve `hermes desktop` (another install's managed env, #122485).
+    # that provably cannot serve `kova desktop` (another install's managed env, #122485).
     # Fall through so the durable-wrapper probe below can still find a working one.
     if (
         primary
@@ -421,7 +421,7 @@ def _launcher_tree(path: Path) -> Path:
 
 
 def _tree_desktop_state(tree: Path) -> Optional[bool]:
-    """``True`` when *tree* can serve ``hermes desktop``, ``False`` when it provably cannot, else ``None``.
+    """``True`` when *tree* can serve ``kova desktop``, ``False`` when it provably cannot, else ``None``.
 
     ``False`` is reserved for a tree that IS a hermes code tree (carries ``kova_cli``) yet has no
     desktop app beside it — the managed runtime env layout, whose launcher runs but dies with
@@ -803,7 +803,7 @@ def install_desktop_entry(project_root: Path) -> Optional[Path]:
     into a hidden alias once the new entry exists, and only while launcher management is
     enabled — deleting it instead would silently kill existing taskbar pins (#124492).
     ``None`` on non-Linux platforms, when the write fails, or when the resolved ``Exec``
-    provably cannot serve ``hermes desktop`` — a convenience, never a reason to fail a launch.
+    provably cannot serve ``kova desktop`` — a convenience, never a reason to fail a launch.
     """
     if not is_supported():
         return None

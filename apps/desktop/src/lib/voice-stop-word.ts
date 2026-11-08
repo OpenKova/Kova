@@ -40,7 +40,7 @@ const STOP_PHRASES: readonly string[] = [
   'cancel'
 ]
 
-// Optional address prefixes so "hermes stop" / "ok stop" / "hey hermes, stop"
+// Optional address prefixes so "kova stop" / "ok stop" / "hey hermes, stop"
 // still count. Stripped before matching the core phrase.
 const ADDRESS_PREFIXES: readonly string[] = ['hey hermes', 'hey hermes,', 'hermes', 'hermes,', 'ok', 'okay', 'hey']
 

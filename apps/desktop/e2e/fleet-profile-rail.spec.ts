@@ -2,7 +2,7 @@
  * E2E: the fleet profile rail with two registered gateways.
  *
  * "This device" is the Electron-managed local backend (mock inference). The
- * second gateway, "Homelab", is a REAL second `hermes serve` this spec spawns
+ * second gateway, "Homelab", is a REAL second `kova serve` this spec spawns
  * with its own KOVA_HOME, profiles and session token, registered in the v2
  * connections.json as a remote URL connection. A click on an at-rest square
  * therefore performs the same dial → commit → re-home the statusbar switcher
@@ -56,7 +56,7 @@ function findKovaBinary(): string {
     return result.stdout.trim()
   }
 
-  throw new Error('hermes binary not found: create the repo venv (uv sync) or put hermes on PATH')
+  throw new Error('kova binary not found: create the repo venv (uv sync) or put hermes on PATH')
 }
 
 async function freePort(): Promise<number> {
@@ -81,7 +81,7 @@ function seedProfiles(home: string, names: string[]): void {
 }
 
 /**
- * Spawn a second, fully real `hermes serve` as the remote gateway. Its
+ * Spawn a second, fully real `kova serve` as the remote gateway. Its
  * session token is pinned through KOVA_DASHBOARD_SESSION_TOKEN so the
  * registry entry can carry a plaintext token envelope.
  */
@@ -122,7 +122,7 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
 
   while (Date.now() < deadline) {
     if (child.exitCode !== null) {
-      throw new Error(`remote hermes serve exited early (${child.exitCode}):\n${log}`)
+      throw new Error(`remote kova serve exited early (${child.exitCode}):\n${log}`)
     }
 
     try {
@@ -141,7 +141,7 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
   }
 
   if (Date.now() >= deadline) {
-    throw new Error(`remote hermes serve never became ready:\n${log}`)
+    throw new Error(`remote kova serve never became ready:\n${log}`)
   }
 
   return {

@@ -521,7 +521,7 @@ export const deOverrides = {
       'Ihr Paket wurde privat hochgeladen. Teilen Sie den Link unten in Ihrem Support-Thread, damit das Team Ihre Logs sehen kann.',
     failedTitle: 'Hochladen fehlgeschlagen',
     failedHint:
-      'Sie können auch `hermes debug share --nous` im Terminal ausführen oder `hermes debug share --local`, um den Bericht ohne Hochladen auszugeben.',
+      'Sie können auch `kova debug share --nous` im Terminal ausführen oder `kova debug share --local`, um den Bericht ohne Hochladen auszugeben.',
     handoffLead: 'Diskussion hier fortsetzen:',
     links: {
       github: 'GitHub Issues',
@@ -3824,7 +3824,7 @@ export const deOverrides = {
       '/resume': 'Gespeicherte Session fortsetzen',
       '/details': 'Transkript-Detailgrad steuern',
       '/copy': 'Auswahl oder letzte Assistenten-Nachricht kopieren',
-      '/quit': 'hermes beenden',
+      '/quit': 'kova beenden',
       '/start': 'Start-Pings der Plattform ohne Antwort bestätigen',
       '/new': 'Neuen Desktop-Chat starten',
       '/topic': 'Telegram-DM-Themen-Sessions aktivieren oder prüfen',
@@ -5521,7 +5521,7 @@ export const deOverrides = {
       success: platform => `Übergeben an ${platform}. Jederzeit hier fortsetzen.`,
       systemNote: platform => `↻ Übergeben an ${platform} — jederzeit hier fortsetzen.`,
       failed: error => `Übergabe fehlgeschlagen: ${error}`,
-      timedOut: 'Zeitüberschreitung beim Warten auf das Gateway. Läuft `hermes gateway`?',
+      timedOut: 'Zeitüberschreitung beim Warten auf das Gateway. Läuft `kova gateway`?',
       startMessaging: 'Messaging starten'
     }
   },

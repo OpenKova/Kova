@@ -181,7 +181,7 @@ def _evaluate_in_runtime(marker: str, environment: dict[str, str]) -> bool:
 
 def install_hint(extra: str) -> str:
     """The one command users are told to run for a missing extra."""
-    return f"hermes pm install --extra {extra}"
+    return f"kova pm install --extra {extra}"
 
 
 def ensure_import(extra: str) -> None:
@@ -287,7 +287,7 @@ def declined_extras_path(project_root: Path | None = None) -> Path:
 
 
 def declined_extras(project_root: Path | None = None) -> frozenset[str]:
-    """Extras the user dropped with ``hermes pm install --without NAME``.
+    """Extras the user dropped with ``kova pm install --without NAME``.
 
     Recorded beside the dependency facts, so a carried selection (legacy
     migration, recorded extras, configured-feature auto-installs) never

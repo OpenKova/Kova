@@ -21,7 +21,7 @@ export interface UpdateStopExplanation {
 }
 
 /**
- * Receipts live under the ROOT home: `hermes -p <name> update` files its receipt
+ * Receipts live under the ROOT home: `kova -p <name> update` files its receipt
  * in `<root>/logs/update_receipts/`, and the hand-off script resolves the same
  * root before it reads the receipt back (scripts/desktop-update/posix.sh,
  * `update_committed_after_exit`). A profile home passed here therefore still
@@ -92,7 +92,7 @@ const STOP_EXPLANATIONS: Record<string, UpdateStopExplanation> = {
       'The updater refused to move this install back to the release it offered, because that release predates the ' +
       'gateway runtime your session stores already use. Downgrading is unsupported, and nothing was changed: you are ' +
       'still on the version you had.\n\n' +
-      'To follow this checkout instead of the release channel, run `hermes update --set-channel main`, or pick a ' +
+      'To follow this checkout instead of the release channel, run `kova update --set-channel main`, or pick a ' +
       `channel in About ▸ Updates.\n\n${UPDATES_GUIDE}`
   }
 }

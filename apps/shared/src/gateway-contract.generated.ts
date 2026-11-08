@@ -752,7 +752,7 @@ export interface SharedMetricsStartupLatencyParams {
 export interface SharedMetricsStartupLatencyResult {
   ok: boolean
 }
-/** One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout hand-offs run ``hermes update`` and are counted from its receipt, never here. Raw words; the backend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage`` download|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall time, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known. */
+/** One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout hand-offs run ``kova update`` and are counted from its receipt, never here. Raw words; the backend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage`` download|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall time, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known. */
 export interface SharedMetricsUpdateRunParams {
   profile?: string | null
   outcome: string
@@ -4795,7 +4795,7 @@ export interface SessionMutateResult {
   revision?: number | null
   [key: string]: unknown
 }
-/** Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as ``hermes sessions prune`` builds them) or ``never_active_days`` (``--never-active``). */
+/** Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as ``kova sessions prune`` builds them) or ``never_active_days`` (``--never-active``). */
 export interface SessionPruneParams {
   filters?: Record<string, unknown> | null
   never_active_days?: number | null
@@ -6303,7 +6303,7 @@ export interface RpcMethods {
   'browser.manage': { params: BrowserManageParams; result: BrowserManageResult }
   /** Lock one answer of a batch clarify request (editable until every question is locked). */
   'clarify.lock': { params: ClarifyLockParams; result: ClarifyLockResult }
-  /** Run ``hermes <argv>`` non-interactively and capture its output; ``blocked`` explains a refusal. */
+  /** Run ``kova <argv>`` non-interactively and capture its output; ``blocked`` explains a refusal. */
   'cli.exec': { params: CliExecParams; result: CliExecResult }
   /** What the calling client handles, sent once per connection (after gateway.ready); returns the server→client request methods this backend may send. */
   'client.capabilities': { params: ClientCapabilitiesParams; result: ClientCapabilitiesResult }
@@ -7134,7 +7134,7 @@ export interface CanonicalRpcMethods {
   'session.list': { params: CanonicalListParams; result: CanonicalListResult }
   /** Revision-fenced, retry-idempotent session edit (rename, archive, sidebar, branch, delete, rewind, reset, model, reasoning, workspace, edit_policy, compress, import). */
   'session.mutate': { params: SessionMutateParams; result: SessionMutateResult }
-  /** Local operator only: the owner deletes the ended sessions `hermes sessions prune` selected, skipping busy sessions and retained reset owners. */
+  /** Local operator only: the owner deletes the ended sessions `kova sessions prune` selected, skipping busy sessions and retained reset owners. */
   'session.prune': { params: SessionPruneParams; result: SessionPruneResult }
   'session.redirect': { params: CanonicalCorrectionParams; result: CanonicalCorrectionResult }
   'session.resume': { params: CanonicalResumeParams; result: CanonicalSnapshot }
@@ -7301,7 +7301,7 @@ export interface BackendGatewayEventMap {
   'display.install.log': DisplayInstallLogPayload
   /** The takeover lease changed hands; every client repaints. */
   'display.lease': DisplayLeasePayload
-  /** This profile's screen started or stopped (also for transitions made outside hermes serve). */
+  /** This profile's screen started or stopped (also for transitions made outside kova serve). */
   'display.status': DisplayStatusPayload
   /** A session-level failure outside a turn (agent init, model switch, compression, resume). */
   error: ErrorPayload

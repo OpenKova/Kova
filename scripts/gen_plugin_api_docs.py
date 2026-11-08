@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
 """Regenerate website/docs/developer-guide/plugins/public-api.md from kova_cli/data/plugin_api.json.
 
-The same file is the public list ``hermes plugins validate`` checks plugin imports against, so the
+The same file is the public list ``kova plugins validate`` checks plugin imports against, so the
 page and the warning cannot drift. ``--check`` writes nothing and exits 1 when the page is stale.
 """
 
@@ -26,7 +26,7 @@ description: "The Kova modules and names a plugin may import; hermes plugins val
 
 # Public plugin API
 
-These are the Kova modules and names a plugin may import. `hermes plugins validate` reads the same
+These are the Kova modules and names a plugin may import. `kova plugins validate` reads the same
 list (`kova_cli/data/plugin_api.json`) and warns, without failing, on any other import of a Kova
 module (catalog rule 9: public surfaces only). Imports of the standard library, third-party packages,
 the plugin's own modules, and imports under `if TYPE_CHECKING:` are never flagged.

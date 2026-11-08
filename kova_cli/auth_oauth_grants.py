@@ -211,7 +211,7 @@ def _is_pkce_row(row: dict[str, Any]) -> bool:
 def strip_cloned_single_use_oauth_grants(profile_dir: Path) -> dict[str, Any]:
     """Remove forked single-use OAuth grants from a freshly cloned profile.
 
-    Called after any path that copies credential files between profiles (``hermes profile create
+    Called after any path that copies credential files between profiles (``kova profile create
     --clone-all``, the dashboard/TUI ``mirror_credentials`` flow). API-key pool rows are kept — a
     static key is safe to duplicate. Returns ``{"pool": [...provider ids], "providers": [...],
     "files": [...]}`` of what was stripped. Never raises: a clone must not fail because hygiene
@@ -385,7 +385,7 @@ def _mark_oauth_heal_clean(provider_id: str, fingerprint: tuple) -> None:
 def consume_oauth_heal_notices() -> list[str]:
     """Return (and clear) human-readable notes about heals run in this process.
 
-    ``hermes auth list`` / ``hermes auth status`` print them so the user sees the consolidation.
+    ``kova auth list`` / ``kova auth status`` print them so the user sees the consolidation.
     """
     from kova_cli.auth import _oauth_heal_notices
     notes = list(_oauth_heal_notices)
@@ -498,7 +498,7 @@ def heal_forked_single_use_oauth_grants(provider_id: str) -> Optional[dict[str, 
     LINEAGE with a root row (same pool id or shared token material), keeps the
     freshest rotation, writes it into ROOT when root's is older, and strips the profile's copy so
     the profile borrows root from then on. Idempotent; never touches API-key rows; never deletes a
-    row with no root counterpart (an independent ``hermes -p <p> auth add`` grant, or the only
+    row with no root counterpart (an independent ``kova -p <p> auth add`` grant, or the only
     surviving copy); reads only the two auth.json files the root fallback already reads. Returns
     ``{"adopted", "stripped_ids", "files", "providers_block"}`` when something healed, else None.
     Never raises.
@@ -631,7 +631,7 @@ class _HealPass:
                 self.lineage_proven = True
                 self._adopt_root_row(match_idx, row)
             # No root pool counterpart. Root's grant may live only in its .anthropic_oauth.json
-            # (the ``hermes auth`` PKCE shape); a profile ``hermes_pkce`` row is its copy. Not
+            # (the ``kova auth`` PKCE shape); a profile ``hermes_pkce`` row is its copy. Not
             # ``manual:hermes_pkce``: that is an ``auth add`` login the pool owns, never a copy.
             elif row.get("source") == "hermes_pkce" and self.root_singleton_row is not None and not self.r_oauth:
                 self._adopt_root_singleton(row)

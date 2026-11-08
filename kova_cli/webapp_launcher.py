@@ -1,4 +1,4 @@
-"""``hermes webapp``: open the browser-hosted Desktop that the gateway serves.
+"""``kova webapp``: open the browser-hosted Desktop that the gateway serves.
 
 The gateway serves the Webapp on its own listener when its home's config sets ``webapp.enabled``
 (``gateway.webapp_listener``). This command builds the bundle when it is stale, starts the gateway that
@@ -24,7 +24,7 @@ import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
-RESTART_COMMAND = "hermes gateway restart"
+RESTART_COMMAND = "kova gateway restart"
 # The gateway reads the Webapp's settings and sign-in providers only when it starts.
 RETRY_AFTER_FIX = f"The gateway reads these settings when it starts: after fixing them, run {RESTART_COMMAND}."
 STARTED_BEFORE_ON = f"The gateway started before the Webapp was turned on. Restart it to serve the Webapp: {RESTART_COMMAND}"
@@ -154,7 +154,7 @@ def _profile_choice(home: Path, target: Path) -> dict:
 
 
 def _rerun_command(*flags: str) -> str:
-    """``hermes webapp *flags*`` for the profile this run used: ``-p`` re-homed only this process, so a
+    """``kova webapp *flags*`` for the profile this run used: ``-p`` re-homed only this process, so a
     bare rerun gets the sticky profile, and the command keeps ``-p <name>`` when that names another one."""
     import shlex
     from kova_cli.main import explicit_cli_profile
@@ -227,7 +227,7 @@ def _status(target: Path) -> int:
         if webapp_settings(target).enabled:
             print("The gateway is not running. Run hermes webapp to start it.")
         else:
-            print(_off_message(target, "run hermes webapp"))
+            print(_off_message(target, "run kova webapp"))
         return 1
     if not response.get("ok"):
         print(_refusal(response))
@@ -365,7 +365,7 @@ def cmd_webapp(args) -> int:
     if args.sign_out:
         return _sign_out(target)
     if not args.build_only and not webapp_settings(target).enabled:
-        print(_still_served(target) or _off_message(target, "run hermes webapp again"))
+        print(_still_served(target) or _off_message(target, "run kova webapp again"))
         return 1
     try:
         _build(args)

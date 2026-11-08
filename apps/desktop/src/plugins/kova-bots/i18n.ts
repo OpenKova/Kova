@@ -202,7 +202,7 @@ const en: BotsMessages = {
     attentionFallback: 'Needs attention',
     attentionProviderAuth: 'Sign in again for this profile',
     attentionQuota: 'Quota or balance exhausted',
-    attentionMissingConfig: 'Provider not configured — run hermes model',
+    attentionMissingConfig: 'Provider not configured — run kova model',
     attentionBlocked: 'Bot is blocked — see its last message',
     duplicate: 'Duplicate',
     duplicateFailed: 'Duplicate failed',

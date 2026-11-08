@@ -5,7 +5,7 @@
  *
  *  1. `mockBackend` — starts a mock inference server, writes a config.yaml
  *     that points at it, and launches the desktop app so the full chain
- *     (electron → hermes serve → provider → inference → renderer) is
+ *     (electron → kova serve → provider → inference → renderer) is
  *     exercised with a real backend but a fake LLM.
  *
  *  2. `noProvider` — launches the app with an empty config (no provider
@@ -14,7 +14,7 @@
  *
  * Both modes launch the *dev* Electron app (`electron .` against the built
  * `dist/`), not the packaged binary. This avoids the multi-minute
- * `electron-builder --dir` step and matches `hermes desktop --source`. The
+ * `electron-builder --dir` step and matches `kova desktop --source`. The
  * packaged-binary path is already covered by `launch.spec.ts`.
  *
  * Prerequisite: `pnpm run build` must have been run so that `dist/` exists.
@@ -209,7 +209,7 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
     KOVA_HOME: sandbox.kovaHome,
     KOVA_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
     KOVA_DESKTOP_IGNORE_EXISTING: '1',
-    // One `hermes serve` per host, and profile roots are HOME-anchored
+    // One `kova serve` per host, and profile roots are HOME-anchored
     // (`~/.kova/profiles`, the default profile's own home): without both of
     // these a local e2e run attaches to the developer's running backend or
     // lists and writes their real profiles, and chats through their real
@@ -427,7 +427,7 @@ export interface DeadBackendOptions {
 
 /**
  * Launch the app with a provider pointing at a dead endpoint (port 1, which
- * nothing listens on). By default the backend still boots (`hermes serve`
+ * nothing listens on). By default the backend still boots (`kova serve`
  * starts fine — the dead endpoint only matters at chat time). Pass
  * `{ fakeError: true }` to inject a fake boot failure, triggering the
  * BootFailureOverlay.

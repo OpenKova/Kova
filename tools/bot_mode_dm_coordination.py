@@ -127,7 +127,7 @@ def _start_combined(collected: list[dict], sender: Any) -> dict:
 
 def _runner_output(command: str) -> str:
     """How a sub-runner reports: the live lane (``--run-delivery query-file``) prints one JSON
-    payload; the relay waiter and the ``hermes peer dm`` transport print the reply as text."""
+    payload; the relay waiter and the ``kova peer dm`` transport print the reply as text."""
     from tools.bot_mode_dm import _runner_argv
 
     argv = shlex.split(command)

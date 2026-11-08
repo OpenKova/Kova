@@ -184,7 +184,7 @@ def served_profile_name(home) -> str:
     """Canonical profile id of a served home: ``default`` for the root, the directory name for
     ``profiles/<name>`` (via ``kova_constants.profile_name_for_home``, the resolver main uses).
     Any other custom KOVA_HOME is the process's own single profile and keeps the ``default``
-    label the CLI reports for it (``hermes -p`` never targets such a home by name)."""
+    label the CLI reports for it (``kova -p`` never targets such a home by name)."""
     from kova_constants import profile_name_for_home
     return profile_name_for_home(home) or 'default'
 

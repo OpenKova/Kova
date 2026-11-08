@@ -14,7 +14,7 @@ if __name__ == "__main__":
     try:
         import kova_bootstrap
     except ModuleNotFoundError:
-        pass  # a partial ``hermes update`` can leave the bootstrap unregistered
+        pass  # a partial ``kova update`` can leave the bootstrap unregistered
 
 import inspect
 import json

@@ -5,7 +5,7 @@ Pre-reexec updaters (Kova ≤ v2026.9.14) purged only package prefixes
 root modules like ``utils`` cached in the updater process. The post-pull
 gateway-restart phase then imports new ``kova_cli.gateway`` /
 ``kova_cli.config`` into that process; those need symbols the stale
-``utils`` lacks (``file_signature``), and ``hermes update`` exits 1 with
+``utils`` lacks (``file_signature``), and ``kova update`` exits 1 with
 ``gateway auto-restart failed: cannot import name 'file_signature' from
 'utils'``.
 

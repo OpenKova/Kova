@@ -27,7 +27,7 @@ return normally.
 That boot covers dependencies only. ``kova_bootstrap`` also finishes a pending source update
 and may relaunch the process into a fresh one (``kova_cli/venv_sync.py::relaunch_command``, an
 ``-I`` interpreter that ignores the pinned ``PYTHONPATH``), and re-executes it after restoring a
-tree a killed ``hermes update`` half-wrote. ``finish_worker_boot()`` runs it from
+tree a killed ``kova update`` half-wrote. ``finish_worker_boot()`` runs it from
 the worker's ``__main__`` before the payload is read, so a relaunch replays the whole worker: the
 payload is still on disk and the marker still set, and the new process boots its dependencies
 again. ``kova_bootstrap`` re-runs the (idempotent) dependency boot; the package-init call above

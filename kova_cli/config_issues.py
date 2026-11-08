@@ -1,4 +1,4 @@
-"""The issue record config validation emits (``hermes config check``, doctor, startup warnings).
+"""The issue record config validation emits (``kova config check``, doctor, startup warnings).
 
 Its own module so the facade (``kova_cli.config``) and its check siblings share it without
 a facade import from the siblings."""

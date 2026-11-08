@@ -1,4 +1,4 @@
-"""Credential sections of `hermes status`, run through ``status._SECTIONS`` with its shared context.
+"""Credential sections of `kova status`, run through ``status._SECTIONS`` with its shared context.
 Origin helpers (``_row``, ``_first_env_value``, ...) are resolved through the ``kova_cli.status``
 module object so tests that monkeypatch that module keep working."""
 
@@ -64,16 +64,16 @@ _FILE_REFRESH_ROWS = (
 
 _OAUTH_BLOCKS = (
     # (row name, auth getter, login hint, detail rows)
-    ("OpenAI Codex", "get_codex_auth_status", "hermes model", _FILE_REFRESH_ROWS),
+    ("OpenAI Codex", "get_codex_auth_status", "kova model", _FILE_REFRESH_ROWS),
     ("Qwen OAuth", "get_qwen_auth_status", "qwen auth qwen-oauth", (
         ("Auth file:", "auth_file", None, None),
         ("Access exp:", "expires_at_ms", _qwen_expiry, None),
         ("Error:", "error", None, False))),
-    ("MiniMax OAuth", "get_minimax_oauth_auth_status", "hermes auth add minimax-oauth", (
+    ("MiniMax OAuth", "get_minimax_oauth_auth_status", "kova auth add minimax-oauth", (
         ("Region:", "region", None, True),
         ("Access exp:", "expires_at", None, None),
         ("Error:", "error", None, False))),
-    ("xAI OAuth", "get_xai_oauth_auth_status", "hermes auth add xai-oauth", _FILE_REFRESH_ROWS))
+    ("xAI OAuth", "get_xai_oauth_auth_status", "kova auth add xai-oauth", _FILE_REFRESH_ROWS))
 
 _APIKEY_PROVIDERS = {
     "Z.AI / GLM": ("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), "Kimi / Moonshot": ("KIMI_API_KEY",),
@@ -101,7 +101,7 @@ def _render_auth_providers(ctx):
     _status._section("Auth Providers")
     from kova_cli import auth
     try:
-        # Read-only display: the refresh-free snapshot, so `hermes status` never performs an OAuth
+        # Read-only display: the refresh-free snapshot, so `kova status` never performs an OAuth
         # refresh or burns a single-use refresh token.
         nous_status = auth.get_nous_auth_status_local()
         statuses = {getter: getattr(auth, getter)() for _, getter, _, _ in _OAUTH_BLOCKS[:3]}

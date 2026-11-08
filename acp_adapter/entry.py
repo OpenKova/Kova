@@ -5,7 +5,7 @@ JSON-RPC), and starts the ACP agent server.
 
 Usage::
 
-    python -m acp_adapter.entry   # or: hermes acp / hermes-acp
+    python -m acp_adapter.entry   # or: kova acp / hermes-acp
 """
 
 # IMPORTANT: kova_bootstrap must be the very first import — UTF-8 stdio
@@ -13,15 +13,15 @@ Usage::
 try:
     import kova_bootstrap
 except ModuleNotFoundError as exc:
-    # Partial ``hermes update`` (git-reset landed, ``uv pip install -e .`` did not).
+    # Partial ``kova update`` (git-reset landed, ``uv pip install -e .`` did not).
     if exc.name != "kova_bootstrap" and not "kova_bootstrap".startswith(f"{exc.name}."):
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 else:
     # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch cwd from shadowing Kova modules.
     kova_bootstrap.harden_import_path()
 
-# `hermes-acp` runs without kova_cli.main: repair a `hermes update` killed mid-pull here, before
-# importing anything else from the checkout (a no-op under `hermes acp`, which already did).
+# `hermes-acp` runs without kova_cli.main: repair a `kova update` killed mid-pull here, before
+# importing anything else from the checkout (a no-op under `kova acp`, which already did).
 from kova_cli import _early_recovery
 
 if _early_recovery.restore_interrupted_pull():

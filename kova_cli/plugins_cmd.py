@@ -1,4 +1,4 @@
-"""``hermes plugins`` CLI subcommand — install, update, remove, and list plugins.
+"""``kova plugins`` CLI subcommand — install, update, remove, and list plugins.
 
 Facade: shared primitives (errors, console/config helpers, manifest reading, discovery, enable/disable
 selection) and the dispatch table live here; each verb family lives in a ``plugins_cmd_<topic>.py``
@@ -448,7 +448,7 @@ def _clone_failure_message(git_url: str, git_error: str) -> str:
     not parsed as markup."""
     from rich.markup import escape
     return (f"Could not download the plugin from {git_url}. Check the address (browse the catalog "
-            "with `hermes plugins search`), check your internet connection, or, if the repository "
+            "with `kova plugins search`), check your internet connection, or, if the repository "
             "is private, sign in first with `gh auth login` (or set GITHUB_TOKEN in your .env).\n"
             f"Details: {escape(git_error.strip())}")
 
@@ -473,9 +473,9 @@ def _unknown_plugin_message(name: str, *, downloaded_only: bool = False) -> str:
     from kova_cli.left_core_migration import moved_plugin_hint
     if moved := moved_plugin_hint(name):
         return f"[red]No plugin named '{name}'.[/red] {moved}"
-    return (f"[red]No plugin named '{name}'.[/red] Run `hermes plugins list` to see the exact names "
+    return (f"[red]No plugin named '{name}'.[/red] Run `kova plugins list` to see the exact names "
             f"(nested plugins use their full key, e.g. web/firecrawl).{scope} "
-            "To add one: `hermes plugins install <owner/repo>`.")
+            "To add one: `kova plugins install <owner/repo>`.")
 
 
 # ``plugins.disabled`` is an explicit deny-list that wins over the ``plugins.enabled`` allow-list.
@@ -516,7 +516,7 @@ def _admit_and_save_plugin_sets(
             plugin=plugin, settled=settled,
         )
     except DependencyConflict as exc:
-        # `hermes pm install` cannot fix a conflict, so the retry hint below would mislead here.
+        # `kova pm install` cannot fix a conflict, so the retry hint below would mislead here.
         if console is not None:
             console.print(f"[red]✗[/red] {escape(str(exc))}")
             console.print("[dim]config.yaml and the active environment are unchanged.[/dim]")
@@ -526,7 +526,7 @@ def _admit_and_save_plugin_sets(
             console.print(f"[red]✗[/red] {action} refused: {exc}")
             console.print(
                 "[dim]config.yaml and the active environment are unchanged. "
-                "Run `hermes pm install` to resolve dependencies, then retry.[/dim]"
+                "Run `kova pm install` to resolve dependencies, then retry.[/dim]"
             )
         raise
 
@@ -538,7 +538,7 @@ _BASIC_AUTH_PLUGIN_KEYS = frozenset({"basic", "dashboard_auth/basic"})
 def ensure_basic_auth_plugin_enabled_in_config(cfg: dict) -> bool:
     """Drop the bundled basic dashboard-auth plugin from ``plugins.disabled`` in *cfg*.
 
-    ``hermes setup`` / ``hermes plugins disable basic`` can park it there while
+    ``kova setup`` / ``kova plugins disable basic`` can park it there while
     ``dashboard.basic_auth`` is configured, and password auth then silently fails.
     Returns True when modified.
     """
@@ -639,7 +639,7 @@ def _selection_lock() -> threading.Lock:
 
 def _set_plugin_enabled(name: str, *, enable: bool, aliases=(), console=None) -> None:
     """Submit the command's delta with the version of the selection it read. Enabling a non-bundled plugin
-    on the kill list raises :class:`PluginOperationError`; the `hermes plugins` picker checks it itself."""
+    on the kill list raises :class:`PluginOperationError`; the `kova plugins` picker checks it itself."""
     from pm.plugins_state import read_home_selection
 
     if enable:
@@ -1009,7 +1009,7 @@ def _toggle_plugin_toolset(name: str, *, enable: bool, toolset_key: Optional[str
     platform_toolsets = _child_dict(config, "platform_toolsets")
     changed = False
     for platform, raw in list(platform_toolsets.items()):
-        # A list-literal string (older `hermes config set`) is the user's real selection; toggling
+        # A list-literal string (older `kova config set`) is the user's real selection; toggling
         # it re-saves the entry as a proper list so the string never persists.
         ts_list = parse_platform_toolsets_value(raw)
         if ts_list is not None and enable != (toolset_key in ts_list):
@@ -1096,11 +1096,11 @@ def _catalog():
 def _action_update(args):
     if args.name:
         if getattr(args, "yes", False):
-            _fail(_console(), "[red]Error:[/red] --yes only applies to `hermes plugins update` with no name.")
+            _fail(_console(), "[red]Error:[/red] --yes only applies to `kova plugins update` with no name.")
         cmd_update(args.name, force=getattr(args, "force", False))
         return
     if getattr(args, "force", False):
-        _fail(_console(), "[red]Error:[/red] --force applies to one named plugin: `hermes plugins update <name> --force`.")
+        _fail(_console(), "[red]Error:[/red] --force applies to one named plugin: `kova plugins update <name> --force`.")
     from kova_cli.plugins_cmd_update_all import cmd_update_all
     cmd_update_all(yes=getattr(args, "yes", False))
 

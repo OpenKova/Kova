@@ -60,14 +60,14 @@ def detect_service_manager() -> ServiceManagerKind:
     This function does NOT replace ``supports_systemd_services()`` —
     host call sites continue to use that. It exists for new backend-
     agnostic code (profile create/delete hooks, the s6 dispatch path
-    in ``hermes gateway start/stop/restart``).
+    in ``kova gateway start/stop/restart``).
     """
     # Deferred so importing this module (Protocol type, validate_profile_name) doesn't drag in
     # the whole gateway dependency graph.
     from kova_cli.gateway import is_macos, is_windows, supports_systemd_services
     # Gate on _s6_running() alone, NOT is_container(): the latter only detects Docker/Podman/lxc
     # and is False on Fly's Firecracker microVMs even though s6-overlay is PID 1 there — that
-    # made the s6 dispatch inert on Fly, so `hermes gateway start` spawned a foreground gateway
+    # made the s6 dispatch inert on Fly, so `kova gateway start` spawned a foreground gateway
     # competing with the supervised one.
     if _s6_running():
         return "s6"
@@ -104,7 +104,7 @@ def _s6_running() -> bool:
 # ---------------------------------------------------------------------------
 # Host backends: thin facades over ``kova_cli.gateway`` (systemd/launchd) and
 # ``kova_cli.gateway_windows``. The protocol's ``name`` parameter is unused here — host backends
-# operate on the currently active profile (``hermes -p <profile>``); the shape exists for s6 where
+# operate on the currently active profile (``kova -p <profile>``); the shape exists for s6 where
 # each profile maps to a distinct service directory.
 # ---------------------------------------------------------------------------
 
@@ -220,7 +220,7 @@ def get_service_manager() -> ServiceManager:
 
 # ---------------------------------------------------------------------------
 # S6ServiceManager (container-only). Per-profile gateways are registered dynamically by
-# `hermes profile create` inside the container. Static services (main-kova, dashboard) live in
+# `kova profile create` inside the container. Static services (main-kova, dashboard) live in
 # /etc/s6-overlay/s6-rc.d/ as part of the image and are NOT managed here.
 # ---------------------------------------------------------------------------
 
@@ -280,7 +280,7 @@ def _write_gateway_desired_state(name: str, desired_state: str) -> None:
 def register_unregistered_profile_gateway(mgr: ServiceManager, profile: str) -> bool:
     """Register a ``down`` s6 slot for a profile whose directory exists but was never registered.
 
-    `hermes profile create` can only register a slot when it runs inside the container; created
+    `kova profile create` can only register a slot when it runs inside the container; created
     from the host against a bind-mounted home, the directory lands where the container reads it
     but no ``/run/hermes-service/gateway-<name>`` exists, and the boot reconciler only notices on the
     next container restart. Returns False without touching anything unless the directory carries
@@ -442,7 +442,7 @@ class GatewayNotRegisteredError(S6Error):
         self.profile = profile
         super().__init__(
             f"no such gateway {profile!r}: register it with "
-            f"`hermes profile create {profile}` first, or pass "
+            f"`kova profile create {profile}` first, or pass "
             "an existing profile name via `-p <name>`",
             service=f"gateway-{profile}",
         )
@@ -526,7 +526,7 @@ class S6ServiceManager:
         # kova_cli.main._apply_profile_override; kept alongside the s6 one for back-compat.
         lines.append("export KOVA_SUPERVISED_CHILD=1")
         # ``--replace`` makes the supervised gateway authoritative for its KOVA_HOME. Without it
-        # a gateway started OUTSIDE s6 (stray ``hermes gateway run``, an agent action, the Open
+        # a gateway started OUTSIDE s6 (stray ``kova gateway run``, an agent action, the Open
         # WebUI helper) grabs the PID lock first; the slot then hits "Another gateway instance is
         # already running", exits non-zero, and s6 restarts it forever — a log-flooding loop that
         # never binds. ``--replace`` reaps the stale holder (marker + SIGTERM→SIGKILL-with-
@@ -534,9 +534,9 @@ class S6ServiceManager:
         # above prevents the run→start→run recursion. s6 guarantees one supervised instance per
         # slot, so there is no legitimate sibling for ``--replace`` to clobber.
         if profile == "default":
-            gateway_cmd = "hermes gateway run --replace"
+            gateway_cmd = "kova gateway run --replace"
         else:
-            gateway_cmd = f"hermes -p {shlex.quote(profile)} gateway run --replace"
+            gateway_cmd = f"kova -p {shlex.quote(profile)} gateway run --replace"
         # Skip the drop when already non-root (setgroups() lacks CAP_SETGID → s6 boot-loop).
         lines.append(f'[ "$(id -u)" = 0 ] || exec {gateway_cmd}')
         lines.append(f"exec s6-setuidgid hermes {gateway_cmd}")

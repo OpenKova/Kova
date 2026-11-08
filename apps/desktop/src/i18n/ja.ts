@@ -211,7 +211,7 @@ export const jaOverrides = {
       'バンドルは非公開でアップロードされました。サポートスレッドで以下のリンクを共有すると、チームがログを確認できます。',
     failedTitle: 'アップロードに失敗しました',
     failedHint:
-      'ターミナルから `hermes debug share --nous` を実行するか、`hermes debug share --local` でアップロードせずにレポートを表示することもできます。',
+      'ターミナルから `kova debug share --nous` を実行するか、`kova debug share --local` でアップロードせずにレポートを表示することもできます。',
     handoffLead: '続きは次の場所で:',
     links: {
       github: 'GitHub Issues',
@@ -1393,7 +1393,7 @@ export const jaOverrides = {
     unlockedHint: 'ロックすると、エージェントはこのスキルを変更できなくなります。自分では引き続き編集できます。',
     archive: 'アーカイブ',
     skillArchivedTitle: 'スキルをアーカイブしました',
-    skillArchivedMessage: 'hermes curator restore で復元できます。',
+    skillArchivedMessage: 'kova curator restore で復元できます。',
     officialCatalog: 'インストール可能',
     officialPill: '公式'
   },
@@ -2352,7 +2352,7 @@ export const jaOverrides = {
       '/resume': '以前のセッションを再開',
       '/details': 'トランスクリプトの詳細レベルを制御',
       '/copy': '選択または最後のアシスタントメッセージをコピー',
-      '/quit': 'hermes を終了',
+      '/quit': 'kova を終了',
       '/start': '返信せずにプラットフォームの開始要求を確認',
       '/new': '新しいデスクトップチャットを開始',
       '/topic': 'Telegram の個人チャットのトピックを有効化または確認',
@@ -3740,7 +3740,7 @@ export const jaOverrides = {
       success: platform => `${platform} に引き継ぎました。いつでもここで再開できます。`,
       systemNote: platform => `↻ ${platform} に引き継ぎました — いつでもここで再開できます。`,
       failed: error => `引き継ぎに失敗しました: ${error}`,
-      timedOut: 'ゲートウェイの待機がタイムアウトしました。`hermes gateway` は起動していますか？'
+      timedOut: 'ゲートウェイの待機がタイムアウトしました。`kova gateway` は起動していますか？'
     }
   },
 

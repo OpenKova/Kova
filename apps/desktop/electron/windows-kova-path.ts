@@ -58,7 +58,7 @@ export function buildPathExtCandidates(pathext: string | undefined, isWindows: b
 /**
  * Choose the Windows bootstrap-recovery invocation. The gentle in-place
  * updater can only start when both pieces of its runtime contract exist: the
- * venv Python interpreter and the Kova launcher that drives `hermes update`.
+ * venv Python interpreter and the Kova launcher that drives `kova update`.
  * A bootstrap-complete marker proves install provenance, not current runtime
  * usability, and may remain after the venv is removed or quarantined.
  *

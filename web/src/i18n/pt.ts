@@ -103,7 +103,7 @@ export const pt: Translations = {
   status: {
     actionFailed: "Ação falhou",
     actionFinished: "Concluído",
-    actionFinishedOwed: "Atualizado, mas ainda pendente (execute `hermes update` novamente para concluir)",
+    actionFinishedOwed: "Atualizado, mas ainda pendente (execute `kova update` novamente para concluir)",
     actions: "Ações",
     agent: "Agente",
     activeSessions: "Sessões ativas",
@@ -343,7 +343,7 @@ export const pt: Translations = {
       "Salvo — reinicie o gateway para aplicar a alteração.",
     forceReinstall: "Forçar reinstalação (eliminar pasta existente primeiro)",
     headline:
-      "Descobrir, instalar, ativar e atualizar plugins Kova (paridade com `hermes plugins`).",
+      "Descobrir, instalar, ativar e atualizar plugins Kova (paridade com `kova plugins`).",
     identifierLabel: "URL Git ou owner/repo",
     inactive: "inativo",
     installBtn: "Instalar",

@@ -1,4 +1,4 @@
-"""Notes `hermes gateway status` prints beside the running/not-running verdict."""
+"""Notes `kova gateway status` prints beside the running/not-running verdict."""
 from __future__ import annotations
 
 from kova_cli.config import get_kova_home
@@ -27,7 +27,7 @@ def report_incompatible_owner(pids) -> bool:
     print(f"✗ {running} but cannot serve this Kova ({stale})")
     print("  It was started by another Kova version; TUI, Desktop and chat cannot attach to it.")
     print("  Replace it with this version:")
-    print("    hermes gateway restart")
+    print("    kova gateway restart")
     return True
 
 

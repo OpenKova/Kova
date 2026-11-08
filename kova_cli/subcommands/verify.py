@@ -1,4 +1,4 @@
-"""``hermes verify`` subcommand parser.
+"""``kova verify`` subcommand parser.
 
 Follows the pattern of ``kova_cli/subcommands/doctor.py``: parser built
 here, handler injected to avoid importing ``main``.

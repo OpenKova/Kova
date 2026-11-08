@@ -342,7 +342,7 @@ def validate_config(config) -> bool:
 
 
 def interactive_setup() -> None:
-    """`hermes gateway setup` flow (lazy kova_cli imports keep the plugin importable outside the CLI)."""
+    """`kova gateway setup` flow (lazy kova_cli imports keep the plugin importable outside the CLI)."""
     from kova_cli.setup import (
         prompt, prompt_yes_no, save_env_value, get_env_value, print_header, print_info, print_warning, print_success)
     from kova_cli.setup_platforms import declines_reconfigure
@@ -410,7 +410,7 @@ def interactive_setup() -> None:
             print_info("No nicks allowed — the bot will ignore all messages until you add nicks.")
     print()
     print_success("IRC configuration saved to ~/.kova/.env")
-    print_info("Restart the gateway for changes to take effect: hermes gateway restart")
+    print_info("Restart the gateway for changes to take effect: kova gateway restart")
 
 
 def is_connected(config) -> bool:

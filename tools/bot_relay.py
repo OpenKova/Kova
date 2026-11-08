@@ -554,7 +554,7 @@ def relaying_principal_author(principal: str) -> dict:
 
 
 def delivery_env(author: Optional[dict], profile_home: str | Path | None = None) -> dict[str, str]:
-    """Environment for one delivery turn's ``hermes -p <profile>`` child. The dispatcher's own
+    """Environment for one delivery turn's ``kova -p <profile>`` child. The dispatcher's own
     KOVA_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
     that sent it. Dispatcher session identity (the canonical ``gateway.session_context`` session env names) is
     dropped too: a nested recipient that ``message_agent``s onward must not stamp that grandchild

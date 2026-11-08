@@ -2,7 +2,7 @@
  * desktop-uninstall.ts
  *
  * Pure, electron-free helpers for the desktop Chat GUI uninstaller. These map
- * the three user-facing uninstall modes to the `hermes uninstall` CLI flags,
+ * the three user-facing uninstall modes to the `kova uninstall` CLI flags,
  * resolve the running app bundle/exe so a detached cleanup script can remove
  * it after the app quits, and build that cleanup script for each OS.
  *
@@ -11,11 +11,11 @@
  *
  * The three modes mirror the CLI's options exactly:
  *   - 'gui'  → remove ONLY the Chat GUI, keep the agent + all user data.
- *              `hermes uninstall --gui --yes`
+ *              `kova uninstall --gui --yes`
  *   - 'lite' → remove the GUI + agent code, KEEP user data (config / sessions
- *              / .env) for a future reinstall. `hermes uninstall --yes`
+ *              / .env) for a future reinstall. `kova uninstall --yes`
  *   - 'full' → remove everything: GUI + agent + all user data.
- *              `hermes uninstall --full --yes`
+ *              `kova uninstall --full --yes`
  *
  * Why a detached cleanup script: 'lite'/'full' delete the very venv the
  * `hermes` command runs from, and every mode may need to delete the running
@@ -136,7 +136,7 @@ const UNINSTALL_MODES: string[] = ['gui', 'lite', 'full', 'data']
 //   'bundled'  — a bundled or light artifact. The OS owns app removal.
 //   'external' — another package manager owns updates and removal.
 //   'standard' — everything else: the git-clone install the desktop
-//                installer bootstraps, or a `hermes desktop` source build.
+//                installer bootstraps, or a `kova desktop` source build.
 //                The classic script flow (venv python + rm the bundle) works.
 //
 // Only 'standard' installs may use the desktop cleanup script.

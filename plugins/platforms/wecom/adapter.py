@@ -752,10 +752,10 @@ _MANUAL_SETUP_STEPS = (
 _ACCESS_CHOICES = (
     ("Enable open access (anyone can message the bot)", (("WECOM_DM_POLICY", "open"), ("GATEWAY_ALLOW_ALL_USERS", "true")),
      (("warning", "Open access enabled — anyone can use your bot!"),)),
-    ("Use DM pairing (unknown users request access, you approve with 'hermes pairing approve')", (("WECOM_DM_POLICY", "pairing"),),
+    ("Use DM pairing (unknown users request access, you approve with 'kova pairing approve')", (("WECOM_DM_POLICY", "pairing"),),
      (("success", "DM pairing mode — users will receive a code to request access."), ("info", "Approve with: hermes pairing approve <platform> <code>"))),
     ("Disable direct messages", (("WECOM_DM_POLICY", "disabled"),), (("warning", "Direct messages disabled."),)),
-    ("Skip for now (bot will deny all users until configured)", (), (("info", "Skipped — configure later with 'hermes gateway setup'"),)),
+    ("Skip for now (bot will deny all users until configured)", (), (("info", "Skipped — configure later with 'kova gateway setup'"),)),
 )
 
 
@@ -844,7 +844,7 @@ _WECOM_PLATFORM_HINT = (
 
 
 def register(ctx) -> None:
-    common = dict(install_hint="Run `hermes setup` to install WeCom support.", emoji="💼", allow_update_command=True)
+    common = dict(install_hint="Run `kova setup` to install WeCom support.", emoji="💼", allow_update_command=True)
     from . import gateway_env  # env -> GatewayConfig bridge (gateway.config_env)
     ctx.register_platform(
         target_ref_syntax_fn=parse_nonempty,

@@ -4,7 +4,7 @@ import path from 'node:path'
 // Port of kova_constants._PROFILE_IDENTITY_MARKERS: runtime side-effects
 // (cron heartbeats, log rotation, caches) create profile dirs carrying none.
 const PROFILE_IDENTITY_MARKERS = ['config.yaml', '.env', 'SOUL.md', 'profile.yaml', 'auth.json', 'state.db']
-// kova_constants._DELETED_PROFILES_DIR: `hermes profile delete` tombstones here.
+// kova_constants._DELETED_PROFILES_DIR: `kova profile delete` tombstones here.
 const DELETED_PROFILES_DIR = '.deleted'
 
 // Each check fails on its own, like the os.path predicates behind pathlib on the

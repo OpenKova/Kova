@@ -609,7 +609,7 @@ _server_requests.bind_sinks(lambda frame: write_json(frame), lambda event, sid, 
 _live_transports: set[Transport] = set()
 _live_transports_lock = threading.Lock()
 # True only when real stdout IS the JSON-RPC client channel (``tui_gateway.entry.main``, the stdio TUI).
-# `hermes serve` / dashboard processes speak JSON-RPC over WS only: their stdout is captured into
+# `kova serve` / dashboard processes speak JSON-RPC over WS only: their stdout is captured into
 # desktop.log, so a peer-less global broadcast (the change watcher keeps ticking after the last WS client
 # leaves) must be dropped there, not printed.
 _stdio_is_rpc_channel = False
@@ -1966,10 +1966,10 @@ _WORKER_BLOCKED_COMMANDS: frozenset[str] = frozenset({"snapshot", "snap"})
 
 # argv shapes that must not run headless in the gateway process → user hint.
 _CLI_EXEC_BLOCKED = {
-    ("setup",): "`hermes setup` needs a full terminal — run it outside the TUI",
-    ("gateway",): "`hermes gateway` is long-running — run it in another terminal",
-    ("sessions", "browse"): "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal",
-    ("config", "edit"): "`hermes config edit` needs $EDITOR in a real terminal",
+    ("setup",): "`kova setup` needs a full terminal — run it outside the TUI",
+    ("gateway",): "`kova gateway` is long-running — run it in another terminal",
+    ("sessions", "browse"): "`kova sessions browse` is interactive — use /resume here, or run browse in another terminal",
+    ("config", "edit"): "`kova config edit` needs $EDITOR in a real terminal",
 }
 
 

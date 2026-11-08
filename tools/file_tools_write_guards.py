@@ -170,7 +170,7 @@ def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None
         return (
             f"Refusing to write to Kova config file: {filepath}\n"
             "Agent cannot modify security-sensitive configuration. "
-            "Edit ~/.kova/config.yaml directly or use 'hermes config' instead.")
+            "Edit ~/.kova/config.yaml directly or use 'kova config' instead.")
     from tools.skill_lock import path_refusal
     if reason := path_refusal(candidates):
         return f"Refusing to write to {filepath}: {reason}"

@@ -26,7 +26,7 @@ router = APIRouter()
 
 _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profiles")
 load_config = late("load_config", "kova_cli.config")
-# Labels per hub source id (matches `hermes skills search` provenance); keep in
+# Labels per hub source id (matches `kova skills search` provenance); keep in
 # sync with create_source_router()'s source list.
 _SKILL_HUB_SOURCE_LABELS = {
     "official": "Official (Nous)",
@@ -394,7 +394,7 @@ def _locked_index() -> tuple[set, dict]:
 
 @router.put("/api/skills/lock")
 async def lock_skill(body: SkillLock, profile: Optional[str] = None):
-    """Lock/unlock a skill against AGENT edits (same record as ``hermes curator lock``).
+    """Lock/unlock a skill against AGENT edits (same record as ``kova curator lock``).
     The user's own edits (this dashboard's editor, their editor) stay allowed."""
     from tools import skill_usage
     from tools.skill_manager_tool import _find_skill

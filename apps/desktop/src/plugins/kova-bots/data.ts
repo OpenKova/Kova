@@ -1270,7 +1270,7 @@ export function claimDefaultHandles<T extends Partial<RosterRow>>(rows: T[]): T[
 }
 
 /** Taggable @-forms derived from a bot's friendly names — the core profile
- *  display name (`hermes profile rename`) and the Bot Mode title. Free text
+ *  display name (`kova profile rename`) and the Bot Mode title. Free text
  *  reduces to the mention charset two ways: slugified ("Research Buddy" →
  *  research-buddy, the form autocomplete inserts) and collapsed
  *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Kova"

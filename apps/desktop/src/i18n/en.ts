@@ -514,7 +514,7 @@ export const en: Translations = {
       'Your bundle was uploaded privately. Share the link below in your support thread so the team can see your logs.',
     failedTitle: 'Upload failed',
     failedHint:
-      'You can also run `hermes debug share --nous` from a terminal, or `hermes debug share --local` to print the report without uploading.',
+      'You can also run `kova debug share --nous` from a terminal, or `kova debug share --local` to print the report without uploading.',
     handoffLead: 'Pick up the discussion in:',
     links: {
       github: 'GitHub Issues',
@@ -3812,7 +3812,7 @@ export const en: Translations = {
       notAvailable: 'Update not available for this backend.',
       failed: 'Backend update failed.',
       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
-      owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
+      owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`kova update\` to finish them.`
     },
     appName: 'Kova', // Update-status overlay + version-details (mechanism-aware update UI).
     version: (value: string) => `Version ${value}`,

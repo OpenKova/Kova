@@ -34,7 +34,7 @@ def prepare(request: dict) -> tuple[Path, dict[str, str]]:
 
     # The historical updater already moved the tree: owe the tail and the fleet restart before the
     # first slow step, exactly like a current updater's commit point, so a kill from here on leaves
-    # both for the next launch / `hermes update` instead of nothing.
+    # both for the next launch / `kova update` instead of nothing.
     refuse_foreign_owned_venv(root)
     arm_completion(root)
     _arm_fleet_obligation(root)

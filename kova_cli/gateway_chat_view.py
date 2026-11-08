@@ -436,7 +436,7 @@ class GatewayChatView:
         self.pending = snapshot.get('pending', [])
         self.model = str((snapshot.get('info') or {}).get('model') or self.model).split('/')[-1]
         if not self.finite:
-            # Bare `hermes -c` in this terminal continues the session it is now on, as the
+            # Bare `kova -c` in this terminal continues the session it is now on, as the
             # in-process CLI re-wrote its breadcrumb on every session switch.
             from kova_cli.terminal_breadcrumbs import write_breadcrumb
             await asyncio.to_thread(write_breadcrumb, self.session_id)
@@ -523,7 +523,7 @@ class GatewayChatView:
     def _report_no_reply(self, exit_code):
         """`-z` exit 1 (a completed turn with no reply text): the in-process one-shot's stderr line."""
         if self.unattended and exit_code == 1:
-            print("hermes -z: no final response was produced; treating the run as failed.", file=sys.stderr)
+            print("kova -z: no final response was produced; treating the run as failed.", file=sys.stderr)
 
     def _write_usage_file(self, result, outcome):
         """``-z --usage-file``: the same JSON ledger the in-process one-shot wrote."""
@@ -541,7 +541,7 @@ class GatewayChatView:
         if oneshot and self.unknown_admissions():
             # A new admission would queue behind the unknown row and never run; refuse BEFORE
             # submitting so nothing is left queued for the next interactive resume to find.
-            return self._detach(f"Your message was not sent. To continue, run `hermes sessions discard "
+            return self._detach(f"Your message was not sent. To continue, run `kova sessions discard "
                                 f"{self.session_id} --yes`, or resume this session in an interactive chat "
                                 "and /discard the paused turn there; then send it again.")
         renderer = asyncio.create_task(self.render())

@@ -10,15 +10,15 @@ Usage:
 
 # kova_bootstrap must be the very first import — it sets up UTF-8 stdio on
 # Windows (no-op on POSIX). Guarded: after a ``git pull`` / interrupted
-# ``hermes update`` the editable install's ``.pth`` may not list it yet; crashing
-# here would block ``hermes update``.
+# ``kova update`` the editable install's ``.pth`` may not list it yet; crashing
+# here would block ``kova update``.
 try:
     import kova_bootstrap
 except ModuleNotFoundError as exc:
     if exc.name != "kova_bootstrap" and not "kova_bootstrap".startswith(f"{exc.name}."):
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 
-# A `hermes update` killed while git was writing the new tree leaves a mix of old and new files that
+# A `kova update` killed while git was writing the new tree leaves a mix of old and new files that
 # fails at the next import, whichever it is — put the old tree back before importing anything else
 # from the checkout, then rerun the command (this module may itself be one of the new files).
 # ``_early_recovery`` is stdlib-only and imported unguarded on purpose: same package
@@ -246,7 +246,7 @@ _suppress_mouse_residue_early()
 
 _startup_fast.ensure_project_root_on_path()
 
-# ``hermes --version`` is answered before config/logging imports.
+# ``kova --version`` is answered before config/logging imports.
 if _startup_fast.try_fast_version():
     raise SystemExit(0)
 
@@ -327,7 +327,7 @@ def _require_tty(command_name: str) -> None:
     """Exit 1 if stdin is not a terminal: curses/input() prompts spin at 100% CPU on a pipe."""
     if not sys.stdin.isatty():
         print(
-            f"Error: 'hermes {command_name}' requires an interactive terminal.\n"
+            f"Error: 'kova {command_name}' requires an interactive terminal.\n"
             f"It cannot be run through a pipe or non-interactive subprocess.\n"
             f"Run it directly in your terminal instead.",
             file=sys.stderr,
@@ -345,12 +345,12 @@ _startup_fast.ensure_project_root_on_path()
 # to ~/.kova/active_profile for the sticky default.
 _PROFILE_NAME_RE = r"^[a-z0-9][a-z0-9_-]{0,63}$"  # mirrors kova_cli.profiles._PROFILE_ID_RE
 # Set only when -p/--profile was on argv. Sticky active_profile must not count:
-# `hermes desktop` with no flag must not overwrite Desktop's stored profile.
+# `kova desktop` with no flag must not overwrite Desktop's stored profile.
 _explicit_cli_profile: str | None = None
 
 
 def _inside_mcp_add_args(argv: list, index: int) -> bool:
-    """True once argv reaches `hermes mcp add ... --args <command argv>`.
+    """True once argv reaches `kova mcp add ... --args <command argv>`.
 
     ``mcp add --args`` is command-argv passthrough. Flags after that point
     belong to the child MCP command (for example Docker MCP Toolkit's
@@ -368,7 +368,7 @@ def _looks_like_hermes_invocation() -> bool:
     """False when ``sys.argv`` belongs to a test runner rather than a ``hermes`` run.
 
     pytest's own ``-p no:xdist`` reaches ``_scan_profile_flag`` through ``sys.argv`` at import
-    time; it must stay a silent skip, while a real ``hermes -p 'Work Bot'`` must fail loudly.
+    time; it must stay a silent skip, while a real ``kova -p 'Work Bot'`` must fail loudly.
     """
     return "pytest" not in (sys.argv[0] or "")
 
@@ -377,7 +377,7 @@ def _exit_invalid_profile_name(value: str) -> None:
     from kova_cli.profiles import _invalid_profile_name_error
 
     print(f"Error: {_invalid_profile_name_error(value)}", file=sys.stderr)
-    print("Run `hermes profile list` to see your profiles.", file=sys.stderr)
+    print("Run `kova profile list` to see your profiles.", file=sys.stderr)
     sys.exit(2)
 
 
@@ -390,7 +390,7 @@ def _looks_like_option_value(value: str) -> bool:
 def _scan_profile_flag(argv: list) -> tuple:
     """Find -p/--profile/--profile= in argv -> (name, tokens_consumed, index).
 
-    Historically the flag worked even after the subcommand (`hermes chat -p
+    Historically the flag worked even after the subcommand (`kova chat -p
     coder`), so scan broadly; stop at ``--`` and at the `mcp add --args`
     passthrough region. The value is normalised (strip + casefold, matching
     ``profiles.normalize_profile_name``) before validation so ``-p Work`` selects
@@ -398,7 +398,7 @@ def _scan_profile_flag(argv: list) -> tuple:
     resolve_profile_env never sys.exits on it; the rejection is explained (exit 2)
     only when the flag comes BEFORE the first subcommand token under a real
     ``hermes`` run — after a subcommand, ``-p`` may belong to that subcommand or a
-    plugin (`hermes kanban ... -p 8080`), and option-looking values (``no:xdist``,
+    plugin (`kova kanban ... -p 8080`), and option-looking values (``no:xdist``,
     ``--flag``) are always a silent skip.
     """
     from kova_cli._parser import top_level_value_flag_sets
@@ -455,7 +455,7 @@ def _under_gateway_supervisor(argv: list) -> bool:
     ``-p <name>`` or pin KOVA_HOME to the profile dir; a bare invocation
     means "the root KOVA_HOME profile". If a supervised default-profile
     child read active_profile, switching the active profile (dashboard,
-    ``hermes profile use``) would silently redirect the default gateway into
+    ``kova profile use``) would silently redirect the default gateway into
     that profile — adopting its credentials and double-polling a Telegram
     token already owned by that profile's own gateway (#74872).
 
@@ -517,7 +517,7 @@ def _apply_profile_override() -> None:
     # points at a specific profile dir ("profiles" as immediate parent). If it
     # points at the hermes root (systemd hardcodes KOVA_HOME=/root/.kova)
     # we must still read active_profile — the user may have run
-    # `hermes profile use` and the gateway should honour it (#22502).
+    # `kova profile use` and the gateway should honour it (#22502).
     kova_home_env = os.environ.get("KOVA_HOME", "")
     if profile_name is None and kova_home_env and Path(kova_home_env).parent.name == "profiles":
         return
@@ -557,7 +557,7 @@ def _apply_profile_override() -> None:
                     file=sys.stderr,
                 )
             else:
-                error = f"Saved profile '{profile_name}' no longer exists. Switch back with: hermes profile use default"
+                error = f"Saved profile '{profile_name}' no longer exists. Switch back with: kova profile use default"
         if not kova_home:
             print(f"Error: {error}", file=sys.stderr)
             sys.exit(1)
@@ -598,7 +598,7 @@ if sys.argv[1:2] == ["pm"]:
     raise SystemExit(_pm_main(sys.argv[2:]))
 
 # Windows launcher self-heal: the ``hermes`` command is a COPY of the venv console script staged into
-# the managed bin dir, outside the checkout because ``hermes update``'s autostash (``git stash push
+# the managed bin dir, outside the checkout because ``kova update``'s autostash (``git stash push
 # --include-untracked``) once swept ``<checkout>\bin`` copies off disk, the desktop updater's
 # ``--keep-stash`` never restored them, and ``hermes`` stopped resolving (venv\Scripts must stay off
 # PATH: it shadows the user's ``python``, #83797). Re-staging at process start reaches already-broken
@@ -897,7 +897,7 @@ def _read_git_revision_fingerprint(repo_root: Path) -> str | None:
                 return f"git:{ref}:{packed_sha}"
             # Ref name is known but unresolved — still stable across launches,
             # and the version/release fallback in the caller will invalidate
-            # after `hermes update`.
+            # after `kova update`.
             return f"git:{ref}:unresolved"
         return f"git:HEAD:{head}"
     except OSError:
@@ -1249,11 +1249,11 @@ def _resolve_last_session(source: str = "cli") -> Optional[str]:
     """Look up the most recently-used session ID for a source.
 
     Scoped to the current workspace first (git repo root, else cwd) so
-    ``hermes -c`` from repo A continues repo A's last session rather than the
+    ``kova -c`` from repo A continues repo A's last session rather than the
     global MRU. Falls back to the unscoped MRU when no session matches the
     current workspace, preserving the old behaviour for fresh directories.
     """
-    # A finite `hermes -z`/`chat -q` run is CLI history too: `hermes -z … --resume latest` chains on it.
+    # A finite `kova -z`/`chat -q` run is CLI history too: `kova -z … --resume latest` chains on it.
     if source == "cli":
         from agent.session_source import CLI_FAMILY_SOURCES
         source = sorted(CLI_FAMILY_SOURCES)
@@ -1354,7 +1354,7 @@ def _resolve_continue_arg(args, *, use_tui: bool) -> None:
             else:
                 print(f"No session found matching '{continue_val}'.", file=sys.stderr)
                 print(
-                    "Use 'hermes sessions list' to see available sessions, or "
+                    "Use 'kova sessions list' to see available sessions, or "
                     "pass --create-if-missing to start a new session with that title.",
                     file=sys.stderr,
                 )
@@ -1387,7 +1387,7 @@ def _resolve_continue_arg(args, *, use_tui: bool) -> None:
                     kind = "TUI" if use_tui else "CLI"
                     print(
                         f"No previous {kind} session to continue. Start a new one with "
-                        "`hermes`, or list sessions with `hermes sessions list`.",
+                        "`hermes`, or list sessions with `kova sessions list`.",
                         file=sys.stderr,
                     )
                     sys.exit(1)
@@ -1445,7 +1445,7 @@ def _resolve_chat_session_args(args, use_tui: bool) -> None:
         else:
             kind = "TUI" if use_tui else "CLI"
             print(f"No previous {kind} session found to resume.")
-            print("Use 'hermes sessions list' to see available sessions.")
+            print("Use 'kova sessions list' to see available sessions.")
             sys.exit(1)
 
     _resolve_continue_arg(args, use_tui=use_tui)
@@ -1496,7 +1496,7 @@ def _warn_retired_xai_models() -> None:
             for _ref in _retired_xai_refs:
                 sys.stderr.write(f"  \033[33m⚠\033[0m {format_issue(_ref)}\n")
             sys.stderr.write(f"  \033[2mMigration guide: {MIGRATION_GUIDE_URL}\033[0m\n")
-            sys.stderr.write("  \033[2mRun 'hermes doctor' for details.\033[0m\n\n")
+            sys.stderr.write("  \033[2mRun 'kova doctor' for details.\033[0m\n\n")
     except Exception:
         pass
 
@@ -1553,7 +1553,7 @@ def _start_chat_background_prefetch() -> None:
 
 
 def _first_run_setup_guard(args) -> None:
-    """No provider configured: offer `hermes setup` (TTY) or exit 1 with guidance."""
+    """No provider configured: offer `kova setup` (TTY) or exit 1 with guidance."""
     print()
     print(
         "It looks like Kova isn't configured yet -- no API keys or providers found."
@@ -1581,7 +1581,7 @@ def _first_run_setup_guard(args) -> None:
         cmd_setup(args)
         return
     print()
-    print("You can run 'hermes setup' at any time to configure.")
+    print("You can run 'kova setup' at any time to configure.")
     sys.exit(1)
 
 
@@ -1692,7 +1692,7 @@ def cmd_chat(args):
         # here — e.g. missing resolve_turn_limit / split_model_config_default
         # (#96900). The agent-setup mixin prints this hint too late: KovaCLI
         # construction already failed. Fast-chat launch also goes through
-        # cmd_chat, so this one catch covers `hermes` / `hermes chat`.
+        # cmd_chat, so this one catch covers `hermes` / `kova chat`.
         from kova_constants import emit_partial_update_hint
 
         if emit_partial_update_hint(e):
@@ -1721,7 +1721,7 @@ def cmd_proxy(args):
 
 
 def _forward_command(name: str, module: str, attr: str, *, forward_return: bool = False, doc: str = ""):
-    """A ``hermes <cmd>`` handler that hands ``args`` to ``<module>.<attr>``.
+    """A ``kova <cmd>`` handler that hands ``args`` to ``<module>.<attr>``.
 
     Imports at CALL time so fast paths never pay for it and
     ``patch("<module>.<attr>")`` keeps intercepting. ``forward_return``
@@ -1848,8 +1848,8 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
                 )
         else:
             from kova_cli.left_core_migration import provider_install_hint
-            hint = provider_install_hint(effective_provider) or ("Check 'hermes model' for available providers, or run "
-                                                                  "'hermes doctor' to diagnose config issues.")
+            hint = provider_install_hint(effective_provider) or ("Check 'kova model' for available providers, or run "
+                                                                  "'kova doctor' to diagnose config issues.")
             print(f"Warning: Unknown provider '{effective_provider}'. {hint} Falling back to auto provider detection.")
     if not active:
         try:
@@ -1857,7 +1857,7 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
         except AuthError as exc:
             if exc.code == "no_provider_configured":
                 # The picker that is about to open IS the fix; a warning that says
-                # "run `hermes model`" from inside `hermes model` is circular.
+                # "run `kova model`" from inside `kova model` is circular.
                 print("No provider is set up yet — pick one below. (Nous Portal works without an API key.)")
             elif effective_provider == "auto":
                 print(f"Warning: {format_auth_error(exc)} Falling back to auto provider detection.")
@@ -1898,7 +1898,7 @@ def _pick_provider(config, active, provider_labels, custom_provider_map):
 def select_provider_and_model(args=None):
     """Core provider selection + model picking logic.
 
-    Shared by ``cmd_model`` (``hermes model``) and the setup wizard
+    Shared by ``cmd_model`` (``kova model``) and the setup wizard
     (``setup_model_provider`` in setup.py).  Handles the full flow:
     provider picker, credential prompting, model selection, and config
     persistence.
@@ -2061,7 +2061,7 @@ def cmd_verify(args):
 
 
 def cmd_security(args):
-    """Dispatch `hermes security <subcmd>`."""
+    """Dispatch `kova security <subcmd>`."""
     sub = getattr(args, "security_command", None)
     if sub in ("audit", None):
         from kova_cli.security_audit import cmd_security_audit
@@ -2074,7 +2074,7 @@ def cmd_security(args):
 
 
 def cmd_approvals(args):
-    """Dispatch `hermes approvals <subcmd>`."""
+    """Dispatch `kova approvals <subcmd>`."""
     from kova_cli.approvals_suggest import approvals_command
 
     status = approvals_command(args)
@@ -2107,7 +2107,7 @@ def cmd_backup(args):
 
 
 def _print_version_info(*, check_updates: bool = True) -> None:
-    # Shared with the `hermes --version` pre-import fast path.
+    # Shared with the `kova --version` pre-import fast path.
     _startup_fast.print_fast_version_info(check_updates=check_updates)
 
 
@@ -2346,7 +2346,7 @@ def cmd_update(args):
 def _coalesce_session_name_args(argv: list) -> list:
     """Join unquoted multi-word session names after -c/--continue and -r/--resume.
 
-    ``hermes -c Pokemon Agent Dev`` → ``['-c', 'Pokemon Agent Dev']``; tokens
+    ``kova -c Pokemon Agent Dev`` → ``['-c', 'Pokemon Agent Dev']``; tokens
     are collected until the next flag (``-*``) or known top-level subcommand.
     """
     _SUBCOMMANDS = {
@@ -2401,7 +2401,7 @@ def _dashboard_lifecycle_flags(args, token_file) -> None:
         if not _find_stale_dashboard_pids(scope_home=own_home):
             print("No hermes dashboard processes running for this profile.")
             sys.exit(0)
-        # Reuse the same SIGTERM-grace-SIGKILL path used after `hermes update`;
+        # Reuse the same SIGTERM-grace-SIGKILL path used after `kova update`;
         # it prints outcomes itself. Exit 1 only if a pid was unkillable — judged
         # from the kill result, not a re-scan: a launchd KeepAlive job respawns
         # its backend on a fresh PID, which is not a failed stop.
@@ -2417,7 +2417,7 @@ def _dashboard_sanitize_desktop_env(headless_backend) -> None:
     Desktop Electron spawns its backend with KOVA_DESKTOP=1 plus
     KOVA_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
     KOVA_SERVE_HEADLESS=1). A shell inheriting those then running
-    `hermes dashboard` would serve the desktop renderer ("Desktop IPC bridge
+    `kova dashboard` would serve the desktop renderer ("Desktop IPC bridge
     is unavailable", #52945) or disable the SPA. Only Electron-packaged
     WEB_DIST contamination is stripped from browser dashboards — caller-managed
     overrides (dev / custom builds) must still work, while headless `serve`
@@ -2694,12 +2694,12 @@ def _resolve_deferred_platform_cli_command(command_name: str | None) -> None:
 
     Bundled platforms are *deferred* entries (no gateway SDK imports at
     startup), so a platform's ``register_cli_command`` side effect only runs
-    on import; ``discover_plugins()`` alone leaves ``hermes photon`` failing
+    on import; ``discover_plugins()`` alone leaves ``kova photon`` failing
     with ``invalid choice``. Importing just the matching platform keeps
     startup cheap.
 
     On the unknown-top-level-command slow path, ``discover_plugins()`` records the deferred loader but does
-    not import it, so the CLI registration never happens and ``hermes photon`` fails with argparse ``invalid
+    not import it, so the CLI registration never happens and ``kova photon`` fails with argparse ``invalid
     choice`` (issue #54678).
     """
     if not command_name:
@@ -2730,7 +2730,7 @@ def _is_tui_chat_launch(args) -> bool:
         return True
     # The chat path decides TUI-vs-classic via _resolve_use_tui (--cli/--tui
     # flags, TTY gate, KOVA_TUI env, display.interface config). Bare
-    # `hermes`/`hermes chat` with a TUI display config was previously missed
+    # `hermes`/`kova chat` with a TUI display config was previously missed
     # here, so the wrapper pre-warmed its own MCP discovery while the TUI
     # gateway (spawned moments later) ran a second one — an idle stdio MCP
     # server copy held dead for the whole session. Only chat commands can
@@ -2752,7 +2752,7 @@ def _should_background_mcp_startup(args) -> bool:
 
 
 def _chat_runs_at_gateway(args) -> bool:
-    """Every ``hermes`` / ``hermes chat`` turn (classic view, ``-q``, ``-z``, TUI) executes in the
+    """Every ``hermes`` / ``kova chat`` turn (classic view, ``-q``, ``-z``, TUI) executes in the
     gateway, which discovers and owns MCP servers itself. Discovery in this client only spawns a
     second copy of every server and holds the cross-process discovery lock the cold-starting gateway
     then waits on (measured 2.0 s with one stdio server) for tools nothing here ever calls."""
@@ -3084,7 +3084,7 @@ def _try_termux_fast_cli_launch() -> bool:
 def _try_termux_fast_tui_launch() -> bool:
     """Launch obvious Termux TUI invocations before building every subparser.
 
-    `hermes --tui` is the hot path on phones and the TUI immediately execs
+    `kova --tui` is the hot path on phones and the TUI immediately execs
     Node, so the full parser's command-module imports are pure waste there.
     """
     if not _is_termux_startup_environment():
@@ -3180,7 +3180,7 @@ def _register_plugin_cli_commands(subparsers) -> None:
 def _build_cli_parser():
     """Build the full ``hermes`` argparse tree -> ``(parser, subparsers)``.
 
-    Registration ORDER is the ``hermes --help`` order; keep it stable. Groups
+    Registration ORDER is the ``kova --help`` order; keep it stable. Groups
     live in ``kova_cli/subcommands/<group>.py`` with handlers injected so
     those modules never import main.
     """
@@ -3195,7 +3195,7 @@ def _build_cli_parser():
     build_worktree_parser(subparsers)
     build_browser_parser(subparsers)
     build_secrets_parser(subparsers)
-    # OUTBOUND egress firewall; ``hermes proxy`` (gateway group) is the INBOUND one.
+    # OUTBOUND egress firewall; ``kova proxy`` (gateway group) is the INBOUND one.
     build_egress_parser(subparsers)
     build_migrate_parser(subparsers)
     build_codex_runtime_parser(subparsers)
@@ -3294,7 +3294,7 @@ def _parse_cli_args(parser, subparsers, argv):
     On Python <3.11 argparse fails to route subcommand tokens when the parent
     has nargs='?' optionals (--continue): "unrecognized arguments: model". When
     argv holds a known subcommand token, set subparsers.required=True to force
-    routing; if that fails (``hermes -c model`` — 'model' is the session name)
+    routing; if that fails (``kova -c model`` — 'model' is the session name)
     fall back to the default behaviour.
     """
     import io as _io

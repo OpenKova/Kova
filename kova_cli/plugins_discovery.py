@@ -201,7 +201,7 @@ def collect_directory_manifests() -> list[PluginManifest]:
 
     # Excluded bundled top-level categories have their own discovery. ``platforms/`` is an ordinary category
     # dir: the recursion keys its adapters ``platforms/<dir>`` like every other category (``web/firecrawl``),
-    # which is the key `hermes plugins enable/disable` and the dashboard write (#27548); the manifest name
+    # which is the key `kova plugins enable/disable` and the dashboard write (#27548); the manifest name
     # (``photon-platform``) stays an accepted alias through ``gate_manifest``.
     repo_plugins = _origin.get_bundled_plugins_dir()
     logger.debug("Scanning bundled plugins: %s", repo_plugins)
@@ -224,7 +224,7 @@ def resolve_manifest_winners(manifests: list[PluginManifest]) -> dict[str, Plugi
     ``~/.kova/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
     user/project manifest that claims a bundled key from a *differently named* directory is an impostor, not
     an override (``impostor_dir/plugin.yaml`` with ``name: kanban``): it is skipped with a warning so
-    ``hermes plugins enable kanban`` never activates unrelated code under the bundled name."""
+    ``kova plugins enable kanban`` never activates unrelated code under the bundled name."""
     winners: dict[str, PluginManifest] = {}
     for manifest in manifests:
         key = manifest_key(manifest)
@@ -319,7 +319,7 @@ def gate_manifest(
             return ManifestGate("defer")
     if enabled is None or not names & enabled:
         return _placeholder(
-            f"not enabled in config (run `hermes plugins enable {lookup_key}` to activate)", logging.DEBUG,
+            f"not enabled in config (run `kova plugins enable {lookup_key}` to activate)", logging.DEBUG,
             "Skipping '%s' (not in plugins.enabled)",
         )
     if manifest.source != "bundled":
@@ -329,6 +329,6 @@ def gate_manifest(
         removed = installed_plugin_removal(manifest.name, manifest.path)
         if removed is not None:
             error = f"removed from the Kova plugin catalog: {removed.reason or 'no reason recorded'}"
-            return _placeholder(error, logging.WARNING, "Refusing to load plugin '%s' — %s; run `hermes plugins remove`",
+            return _placeholder(error, logging.WARNING, "Refusing to load plugin '%s' — %s; run `kova plugins remove`",
                                 error)
     return ManifestGate("load")

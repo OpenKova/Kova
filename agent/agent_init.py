@@ -594,7 +594,7 @@ def _init_prompt_cache_config(agent):
         logger.warning(
             "Agent configuration for prompt_caching.cache_ttl could not be loaded (%s); "
             "using default prompt caching settings. Check the active Kova Python "
-            "environment and dependencies; run 'hermes config check' after "
+            "environment and dependencies; run 'kova config check' after "
             "configuration imports work again.",
             type(exc).__name__,
         )
@@ -849,8 +849,8 @@ def _routed_client_kwargs(agent, fallback_model, _provider_timeout) -> Optional[
     from agent.auxiliary_unavailable import ProviderNotConfiguredError
     _sel = profile_cli_selector()
     raise ProviderNotConfiguredError(
-        "No LLM provider configured. Run `hermes model` to "
-        "select a provider, or run `hermes setup` for first-time "
+        "No LLM provider configured. Run `kova model` to "
+        "select a provider, or run `kova setup` for first-time "
         "configuration."
     )
 
@@ -1102,7 +1102,7 @@ def _init_session_state(agent, session_id, session_db, parent_session_id, reason
         "reasoning_config": reasoning_config,
         "max_tokens": max_tokens,
     }
-    # Process-scoped --yolo is persisted so `hermes --resume` restores the bypass
+    # Process-scoped --yolo is persisted so `kova --resume` restores the bypass
     # (SessionDB.session_yolo_enabled); session-scoped /yolo toggles persist separately.
     with suppress(Exception):
         from tools.approval import _YOLO_MODE_FROZEN
@@ -2184,7 +2184,7 @@ def init_agent(
         logger.warning(
             "Agent configuration could not be loaded (%s); using defaults for "
             "memory, skills, compression and related settings. Check the active "
-            "Kova Python environment and dependencies; run 'hermes config check' "
+            "Kova Python environment and dependencies; run 'kova config check' "
             "after configuration imports work again.",
             type(exc).__name__,
         )

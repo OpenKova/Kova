@@ -839,7 +839,7 @@ def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(
 
 
 
-def test_hermes_owns_windows_service_requires_name_or_binary_under_a_hermes_root():
+def test_kova_owns_windows_service_requires_name_or_binary_under_a_hermes_root():
     """Task Scheduler (``Schedule`` in svchost) above a task-launched gateway is never its supervisor;
     a service is Kova-owned only by a ``hermes*`` name or a binary under the install (#97208)."""
     roots = (

@@ -60,7 +60,7 @@ _has_pytest() { [ -n "$1" ] && [ -x "$1" ] && "$1" -c 'import pytest' 2>/dev/nul
 # records this checkout's pins (_store_has_pins). The check runs unlocked
 # before `pm install` takes the store's install lock, so it keeps runs that
 # START on different pins apart; it does not cover the window in between, where
-# the account's own `hermes update` (or a run on other pins) can re-point
+# the account's own `kova update` (or a run on other pins) can re-point
 # facts.json and this run's `pm install` then re-stages its pins over them.
 # Only this runner's own provisioning gets KOVA_RUNTIME_DIR: the pytest
 # children below start from `env -i` without it, so tests that exercise setup,

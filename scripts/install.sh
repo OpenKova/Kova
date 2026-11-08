@@ -3,7 +3,7 @@
 # the same completion an update runs -- command publication, product builds and
 # post-build maintenance -- so a fresh install and a finished update land in one
 # state. Heavy dependencies (tool binaries, browsers, node) are pm's job:
-# `hermes pm install`.
+# `kova pm install`.
 #
 # Stage protocol kept for Kova-Setup:
 #   --manifest            print the stage list as JSON
@@ -77,13 +77,13 @@ while [ $# -gt 0 ]; do
             echo
             echo "  --channel       stable (default): the latest published release, then release"
             echo "                  to release. main: every commit. Also KOVA_INSTALL_CHANNEL;"
-            echo "                  an explicit choice is saved like 'hermes update --set-channel'."
+            echo "                  an explicit choice is saved like 'kova update --set-channel'."
             echo "  --skip-browser  Do not install the browser (Chromium). Alias: --no-playwright."
-            echo "                  Remembered by later installs and 'hermes update';"
-            echo "                  undo with 'hermes pm install chromium'."
+            echo "                  Remembered by later installs and 'kova update';"
+            echo "                  undo with 'kova pm install chromium'."
             echo "  --skip-computer-use"
             echo "                  Do not install the computer-use driver (cua-driver). Remembered"
-            echo "                  the same way; undo with 'hermes pm install cua-driver'."
+            echo "                  the same way; undo with 'kova pm install cua-driver'."
             exit 0 ;;
         *) echo "unknown option: $1" >&2; exit 1 ;;
     esac
@@ -480,7 +480,7 @@ stage_result() {
     if [ "$ok" = false ] && [ "${INSTALL_LADDER:-false}" = true ]; then
         local class="${FAILURE_CLASS:-other}"
         # A user abort beats the stage's own class: a child that caught Ctrl-C and exited 1
-        # (pm, source_completion, `hermes setup`) still reaches the stage's `|| fail ... <class>`.
+        # (pm, source_completion, `kova setup`) still reaches the stage's `|| fail ... <class>`.
         case "$code" in 129|130|143) class=interrupted ;; esac
         [ "${STAGE_INTERRUPTED:-false}" = false ] || class=interrupted
         write_install_receipt failed "${STAGE//-/_}" "$class"
@@ -489,7 +489,7 @@ stage_result() {
 
 # The single authoritative stage list: emit_manifest prints it AND the
 # no-flag ladder runs it. `products` is the shared completion tail -- the same
-# call `hermes update` makes -- so the manifest and the run cannot disagree.
+# call `kova update` makes -- so the manifest and the run cannot disagree.
 # `desktop` stays directly dispatchable via --stage for external callers, but
 # is never listed: --include-desktop selects the desktop product inside
 # `products` instead of adding a second build stage.
@@ -651,7 +651,7 @@ is_official_repo() {
         | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/kova-agent(\.git)?/?$'
 }
 
-# The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
+# The latest published stable release (vX.Y.Z), the release `kova update` resolves for the
 # stable channel. github.com's /releases/latest redirect answers when the API quota is spent, and
 # origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when github.com's web
 # endpoints are unreachable but git is not. $1 is the origin URL. Prints nothing when none answers.
@@ -697,7 +697,7 @@ fetch_release() {
 }
 
 # Stable applies but cannot be reached. A fresh install stops (installing main instead would be
-# a channel nobody chose); a rerun keeps its checkout for `hermes update`, unless stable was
+# a channel nobody chose); a rerun keeps its checkout for `kova update`, unless stable was
 # asked for by name. $1 says what failed.
 stable_unreachable() {
     if [ -d "$INSTALL_DIR/.git" ] && [ "$CHANNEL" != stable ]; then
@@ -713,7 +713,7 @@ stage_repository() {
     # initial commit, where stash/checkout abort ("You do not have the
     # initial commit yet", #40998); a killed update or a sync tool can leave
     # one git rejects outright (empty HEAD, a gitdir: file pointing nowhere),
-    # where `hermes update` cannot fetch. Move it aside -- never delete it, it
+    # where `kova update` cannot fetch. Move it aside -- never delete it, it
     # may hold something the user wants -- and clone fresh below.
     if [ -e "$INSTALL_DIR/.git" ] && ! git -C "$INSTALL_DIR" rev-parse --verify HEAD >/dev/null 2>&1; then
         local broken
@@ -722,7 +722,7 @@ stage_repository() {
         mv "$INSTALL_DIR" "$broken" || fail "cannot move $INSTALL_DIR aside" filesystem_error
     fi
     if [ -d "$INSTALL_DIR/.git" ]; then
-        # A chosen channel (stable, a preview) owns where this checkout sits: `hermes update`
+        # A chosen channel (stable, a preview) owns where this checkout sits: `kova update`
         # moves it. Switching it to the installer's branch would leave it on main while its
         # channel still says otherwise, and the next check would offer the release as an update.
         # Only an explicit --commit pin outranks the choice.
@@ -733,7 +733,7 @@ stage_repository() {
         if [ -n "${KOVA_REPO_URL:-}" ]; then
             git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" || fail "cannot point origin at $REPO_URL" git_fetch_failed
         fi
-        # No recorded choice: an official checkout tracks stable, as `hermes update` does.
+        # No recorded choice: an official checkout tracks stable, as `kova update` does.
         if [ -z "$channel" ]; then
             # The configured URL, as kova_cli.update_channel reads it (`remote get-url`
             # applies insteadOf rewrites).
@@ -773,7 +773,7 @@ stage_repository() {
                 || log_warn "could not disable fetch.writeCommitGraph in $INSTALL_DIR"
             # A treeless (tree:0) checkout from a late-September installer downloads whole
             # directory snapshots again on every history walk (#129514). Fetch its trees once; the
-            # new filter is recorded only after that succeeds, so `hermes update` retries otherwise.
+            # new filter is recorded only after that succeeds, so `kova update` retries otherwise.
             if [ "$(git -C "$INSTALL_DIR" config --get remote.origin.partialclonefilter)" = tree:0 ]; then
                 if run_logged --may-fail "Fetching directory history once (treeless checkout)" \
                     git -C "$INSTALL_DIR" -c gc.auto=0 -c maintenance.auto=false fetch --refetch \
@@ -781,12 +781,12 @@ stage_repository() {
                     git -C "$INSTALL_DIR" config remote.origin.partialclonefilter blob:none \
                         || log_warn "could not record the blobless filter in $INSTALL_DIR"
                 else
-                    log_warn "could not fetch the directory history; the next hermes update retries it"
+                    log_warn "could not fetch the directory history; the next kova update retries it"
                 fi
             fi
         fi
         if [ -n "$channel" ]; then
-            log "Keeping its checkout: \`hermes update\` moves it (\`hermes update --set-channel main\` follows main)"
+            log "Keeping its checkout: \`kova update\` moves it (\`kova update --set-channel main\` follows main)"
             return 0
         fi
         if [ -n "$release" ] && ! fetch_release "$INSTALL_DIR"; then
@@ -796,14 +796,14 @@ stage_repository() {
         if [ -n "$release" ]; then
             # A rerun only moves a checkout forward onto the release. Any other move (a main
             # checkout diverged from a release cut on release/*, one already past it, a shallow
-            # one that cannot tell) is `hermes update`'s: it refuses a release that predates the
+            # one that cannot tell) is `kova update`'s: it refuses a release that predates the
             # session stores this checkout wrote (update_downgrade_guard).
             if git -C "$INSTALL_DIR" merge-base --is-ancestor "$release" HEAD 2>/dev/null; then
-                log "Keeping its checkout: it already has $release (\`hermes update\` moves it to the next release)"
+                log "Keeping its checkout: it already has $release (\`kova update\` moves it to the next release)"
                 return 0
             fi
             if ! git -C "$INSTALL_DIR" merge-base --is-ancestor HEAD "$release" 2>/dev/null; then
-                log "Keeping its checkout: $release does not descend from it (\`hermes update\` decides that move)"
+                log "Keeping its checkout: $release does not descend from it (\`kova update\` decides that move)"
                 return 0
             fi
         else
@@ -830,7 +830,7 @@ stage_repository() {
             log_warn "local changes stashed as hermes-install-autostash-$stamp"
         fi
         if [ -n "$release" ]; then
-            # Detached at the release commit, the way `hermes update` places a stable checkout;
+            # Detached at the release commit, the way `kova update` places a stable checkout;
             # branches (and any commits on them) stay where they are.
             run_logged "Checking out $release" git -C "$INSTALL_DIR" checkout --detach "$release" \
                 || fail "git checkout failed$(native_detail)" git_checkout_failed
@@ -850,10 +850,10 @@ stage_repository() {
             # A release cut off the main line, a force-pushed remote, or the
             # user's own commits cannot fast-forward. Every stage below reads
             # files only the new tree has (pm/), so an install left on the old
-            # tree cannot finish -- match the remote the way `hermes update`
+            # tree cannot finish -- match the remote the way `kova update`
             # does, after parking the old tip.
             # Only commits absent from origin need a rescue ref. Keep the same
-            # namespace as `hermes update` so its pruning and recovery work.
+            # namespace as `kova update` so its pruning and recovery work.
             local dropped rescue_kind rescue_ref prior
             dropped="$(git -C "$INSTALL_DIR" rev-list --count "origin/$BRANCH..HEAD")" \
                 || fail "cannot count commits before reset" git_reset_failed
@@ -961,7 +961,7 @@ stage_repository() {
         rmdir "$staged"
         # A treeless checkout must never write a commit-graph: over a graph with
         # changed-path data that lazy-fetches the trees of every unseen commit, in a
-        # loop (#127711). gc.auto stays on: `hermes update` folds lazy-fetch packs with
+        # loop (#127711). gc.auto stays on: `kova update` folds lazy-fetch packs with
         # `gc --auto`.
         git -C "$INSTALL_DIR" config maintenance.commit-graph.enabled false \
             || log_warn "could not disable maintenance.commit-graph.enabled in $INSTALL_DIR"
@@ -1022,8 +1022,8 @@ bootstrap_python() {
 bootstrap_pm() {
     local boot_py
     local pm_args=(install)
-    # PM records the opt-outs, so later installs and `hermes update` keep the
-    # tools off until `hermes pm install <name>` opts back in.
+    # PM records the opt-outs, so later installs and `kova update` keep the
+    # tools off until `kova pm install <name>` opts back in.
     # Legacy spelling on purpose: the stable PM this script installs by default
     # rejects `chromium`, and newer PMs read `agent-browser` as `chromium`.
     [ "$SKIP_BROWSER" = true ] && pm_args+=(--without agent-browser)
@@ -1153,7 +1153,7 @@ has_terminal() { (: </dev/tty) 2>/dev/null; }
 stage_setup() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "setup skipped (no terminal); run 'hermes setup' after install"
+        log "setup skipped (no terminal); run 'kova setup' after install"
         return 0
     fi
     "$INSTALL_DIR/.kova/bin/hermes" setup </dev/tty || fail "setup failed" setup_failed
@@ -1162,7 +1162,7 @@ stage_setup() {
 stage_gateway() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "gateway setup skipped (no terminal); run 'hermes gateway install' after install"
+        log "gateway setup skipped (no terminal); run 'kova gateway install' after install"
         return 0
     fi
     # Setup installs the service when it handles the gateway; ask only if it did not.

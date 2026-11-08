@@ -4,17 +4,17 @@ import crypto from 'node:crypto'
 import { profileCollectionRoute, profileRouteSuffix } from './profile-routes'
 import { hiddenWindowsChildOptions, windowsShellCommand } from './windows-child-options'
 
-// `hermes gateway ensure` answers with a protocol verdict (ready, or `starting: deadline`) within
+// `kova gateway ensure` answers with a protocol verdict (ready, or `starting: deadline`) within
 // its own startup deadline: `--timeout` defaults to 60 s (kova_cli/gateway_runtime.py
 // DEFAULT_ENSURE_TIMEOUT). The client is killed only after that deadline plus interpreter start
 // and verdict output, so a slow-but-valid cold start is never reported as "produced no result".
 const GATEWAY_ENSURE_PROTOCOL_DEADLINE_MS = 60_000
 const GATEWAY_ENSURE_CLIENT_GRACE_MS = 15_000
 
-/** Run one bounded `hermes ... gateway <verb>` client (`ensure` by default; `restart` for a stale owner). */
+/** Run one bounded `kova ... gateway <verb>` client (`ensure` by default; `restart` for a stale owner). */
 export function runGatewayEnsure(
   backend, cwd: string, home: string, parentEnv: NodeJS.ProcessEnv = process.env,
-  { timeoutMs = GATEWAY_ENSURE_PROTOCOL_DEADLINE_MS + GATEWAY_ENSURE_CLIENT_GRACE_MS, label = 'hermes gateway ensure' }: { timeoutMs?: number; label?: string } = {}
+  { timeoutMs = GATEWAY_ENSURE_PROTOCOL_DEADLINE_MS + GATEWAY_ENSURE_CLIENT_GRACE_MS, label = 'kova gateway ensure' }: { timeoutMs?: number; label?: string } = {}
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     // The gateway this starts outlives a dev session and Desktop reaches it without an Origin
@@ -81,7 +81,7 @@ export interface GatewayEndpoint {
  *  drain, and a turn parked on approval/clarify there waits for an answer only this window can give. */
 export type StaleGatewayRestart = (endpoint: GatewayEndpoint, stale: { gateway: string; client: string }) => Promise<null | { done: Promise<void> }>
 
-/** The profile whose `hermes --profile P gateway restart` replaces the process behind `endpoint`:
+/** The profile whose `kova --profile P gateway restart` replaces the process behind `endpoint`:
  *  the multiplexer root (`default`) for a served secondary, else the endpoint's own profile home. */
 export function gatewayOwnerProfile(endpoint: GatewayEndpoint): string {
   const home = endpoint.control_home || endpoint.profile_id
@@ -89,7 +89,7 @@ export function gatewayOwnerProfile(endpoint: GatewayEndpoint): string {
   return path.basename(path.dirname(home)) === 'profiles' ? path.basename(home) : 'default'
 }
 
-/** `hermes --profile P gateway restart --detach`: without a service, the CLI would otherwise run the
+/** `kova --profile P gateway restart --detach`: without a service, the CLI would otherwise run the
  *  replacement as this bounded client, a child its timeout kills. A runtime older than `--detach`
  *  names the flag argparse rejects (exit 2); it gets its old restart, which still works wherever a
  *  service owns the gateway, instead of no restart at all. */
@@ -137,7 +137,7 @@ export function createStaleGatewayRestarter(
   }
 }
 
-/** The single-line JSON `hermes gateway ensure --json` prints, or a diagnosis of why there is none.
+/** The single-line JSON `kova gateway ensure --json` prints, or a diagnosis of why there is none.
  *
  * Every protocol outcome (ready/starting/incompatible/...) is JSON on stdout. Empty or
  * non-JSON stdout means the command never reached the protocol boundary: an older `hermes`
@@ -153,11 +153,11 @@ export function parseGatewayEnsureOutput(result: { code: number; stdout: string;
 
   const reason = String(result.stderr ?? '').trim().split(/\r?\n/).filter(Boolean).pop()
 
-  throw new Error(`hermes gateway ensure produced no result (exit ${result.code})${reason ? `: ${reason}` : ''}. Update Kova or check the profile, then retry.`)
+  throw new Error(`kova gateway ensure produced no result (exit ${result.code})${reason ? `: ${reason}` : ''}. Update Kova or check the profile, then retry.`)
 }
 
 /** `{ gateway, client }` commits when a ready owner provably runs other code than the ensure
- *  client (a gateway that outlived `hermes update` answers model calls 503 "Restart required");
+ *  client (a gateway that outlived `kova update` answers model calls 503 "Restart required");
  *  null when they match or either side cannot name its code. */
 export function staleGatewayCode(payload: Record<string, any>): { gateway: string; client: string } | null {
   const gateway = payload?.endpoint?.code_sha
@@ -245,7 +245,7 @@ export async function ensureLocalGateway(
     const detail = typeof payload.detail === 'string' && payload.detail.trim() ? ` ${payload.detail.trim().split(/\r?\n/)[0]}.` : ''
     const recovery = payload.reason_code === 'update_paused' ? 'restart' : 'status'
 
-    throw new Error(`Gateway ${payload.state || 'inaccessible'} (${payload.reason_code || 'ensure_failed'}).${detail} Use hermes gateway ${recovery} for recovery.`)
+    throw new Error(`Gateway ${payload.state || 'inaccessible'} (${payload.reason_code || 'ensure_failed'}).${detail} Use kova gateway ${recovery} for recovery.`)
   }
 
   const endpoint: GatewayEndpoint = payload.endpoint
@@ -399,7 +399,7 @@ async function privateNode(file: string, kind: 'directory' | 'socket' | 'file' |
     // The socket, pointer and fallback directory are the gateway's to recreate; a home is not.
     throw new Error(kind === 'home'
       ? `Unsafe gateway control path: profile home ${quoted} is ${found}, not a directory: move it aside and recreate the profile`
-      : `Unsafe gateway control path: ${quoted} should be a ${kind} but is ${found}: remove it, then run hermes gateway restart`)
+      : `Unsafe gateway control path: ${quoted} should be a ${kind} but is ${found}: remove it, then run kova gateway restart`)
   }
 
   if (node.uid !== uid) {

@@ -95,7 +95,7 @@ describe('renamed bots stay taggable', () => {
     expect(botMentionTag(row({ name: 'writer' }))).toBe('research-buddy')
     expect(botMentionTag(row({ name: 'ops' }))).toBe('ops')
     expect(botMentionTag(row({ name: 'default' }))).toBe('hermes')
-    // display_name (`hermes profile rename`) drives the tag too.
+    // display_name (`kova profile rename`) drives the tag too.
     expect(botMentionTag(row({ display_name: 'Deal Finder', name: 'scout' }))).toBe('deal-finder')
   })
 

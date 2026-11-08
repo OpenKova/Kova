@@ -17,7 +17,7 @@ export interface MissingLocalProfileCheck {
   globalRemote: boolean
   /** The profile has its own remote, SSH or cloud route. */
   hasRemoteOverride: (profile: string) => boolean
-  /** The profile this launch named with --profile; like `hermes -p`, it still fails loudly. */
+  /** The profile this launch named with --profile; like `kova -p`, it still fails loudly. */
   launchProfile: null | string
   log: (line: string) => void
   /** The profile is live on this machine (localProfileIsLive: the CLI's named_profile_is_live). */
@@ -317,7 +317,7 @@ export function createDesktopProfilePreferences(
   }
 
   // userData outlives KOVA_HOME: a reinstall that wiped the Kova home, or a
-  // `hermes profile delete` while the app was closed, never reaches
+  // `kova profile delete` while the app was closed, never reaches
   // afterProfileRequest. A remembered local profile that is gone would launch
   // `--profile <gone>` on every boot, which the backend refuses, so apply the
   // in-app delete's outcome: last-used falls back to default and a matching

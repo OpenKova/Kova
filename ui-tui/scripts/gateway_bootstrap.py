@@ -1,9 +1,9 @@
 """Ink's gateway bootstrap: a thin wrapper over ``kova_cli.gateway_runtime_attach.attach_gateway``,
-the attach ``hermes gateway attach`` runs. The child is a client, never an agent owner.
+the attach ``kova gateway attach`` runs. The child is a client, never an agent owner.
 
 ``--start`` ensures the owner (first launch). A reconnect discovers only, except ``--recover``
 (a bounded slot, ``@kova/shared/gateway-client`` ``OWNER_RECOVERY_LIMIT`` per window) re-ensures whenever the
-owner is not ready: it crashed, ended by its idle exit, was stopped with ``hermes gateway stop``
+owner is not ready: it crashed, ended by its idle exit, was stopped with ``kova gateway stop``
 while this TUI was open, or an older Kova's gateway answers (ensure replaces that one). Main's TUI
 ran its own sidecar and never depended on an external daemon, so an open TUI comes back on its own.
 """
@@ -48,11 +48,11 @@ def bootstrap(start: bool, recover: bool = False) -> dict:
                                                    failure_message, scrub_client_launch_env)
 
     scrub_client_launch_env()
-    # The same attach `hermes gateway attach` runs; Ink keeps its own 30 s start budget.
+    # The same attach `kova gateway attach` runs; Ink keeps its own 30 s start budget.
     try:
         attached = attach_gateway(get_kova_home().resolve(), start=start, recover=recover, timeout=30)
     except TicketUnavailable as exc:
-        # Attachable, then no ticket: the verdict `hermes gateway attach` reports. Ink echoes only its
+        # Attachable, then no ticket: the verdict `kova gateway attach` reports. Ink echoes only its
         # `gateway inaccessible:` lines inline, the refusal's repair command among them.
         attached = GatewayAttach(GatewayDiscovery("inaccessible", reason_code="ticket_unavailable",
                                                   detail=exc.detail or exc.reason))

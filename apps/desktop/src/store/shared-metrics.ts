@@ -8,7 +8,7 @@ export const SHARED_METRICS_DOCS_URL = 'https://kova-agent.nousresearch.com/docs
 
 export type SharedMetricsConsent = SharedMetricsConsentResult
 
-/** The first-run answers, as the two config opt-ins `hermes setup` writes: each sets both. */
+/** The first-run answers, as the two config opt-ins `kova setup` writes: each sets both. */
 export type SharedMetricsChoice = 'off' | 'share'
 
 export const SHARED_METRICS_CHOICES: Record<SharedMetricsChoice, { enabled: boolean; send: boolean }> = {
@@ -39,7 +39,7 @@ function isConsent(value: unknown): value is SharedMetricsConsent {
 /**
  * The profile's opt-ins, straight from its config.yaml (the backend is the
  * only authority; nothing is latched in the renderer, so an answer given in
- * `hermes setup` and one given here are the same answer). `null` when the
+ * `kova setup` and one given here are the same answer). `null` when the
  * backend could not say — an older backend without the method, or a flap —
  * which every caller treats as "don't ask".
  */

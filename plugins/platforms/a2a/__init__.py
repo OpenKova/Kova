@@ -48,7 +48,7 @@ def is_connected(config) -> bool:
 
 
 def interactive_setup() -> None:
-    """`hermes gateway setup` flow for A2A."""
+    """`kova gateway setup` flow for A2A."""
     from kova_cli.setup import prompt, prompt_yes_no, save_env_value, get_env_value, print_header, print_info, print_warning
     print_header("A2A (Agent-to-Agent)")
     print_info("Expose Kova as an A2A-discoverable agent and call other A2A agents.")

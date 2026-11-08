@@ -1,4 +1,4 @@
-"""``hermes computer-use screen`` — the Bot Desktop screen a profile's ``computer_use`` drives on a
+"""``kova computer-use screen`` — the Bot Desktop screen a profile's ``computer_use`` drives on a
 headless Linux gateway host, viewable from Kova Desktop. ``status`` / ``start`` / ``stop`` /
 ``install`` mirror the Desktop pane's controls for ops shells and cloud images."""
 
@@ -20,7 +20,7 @@ def _screen_status(args) -> int:
         return 1
     if not st.installed:
         print("Bot Desktop: packages missing → " + ", ".join(st.missing))
-        print("  Install: " + (st.install_command or "hermes computer-use screen install"))
+        print("  Install: " + (st.install_command or "kova computer-use screen install"))
         return 1
     if st.running:
         holder = lease.public_view(lease.get())
@@ -95,7 +95,7 @@ def _screen_install(args) -> int:
     if missing:
         print("Bot Desktop: still missing " + ", ".join(missing))
         return 1
-    print("Bot Desktop: ready. Start with `hermes computer-use screen start` or from Kova Desktop.")
+    print("Bot Desktop: ready. Start with `kova computer-use screen start` or from Kova Desktop.")
     return 0
 
 

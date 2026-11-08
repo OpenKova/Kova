@@ -3,7 +3,7 @@
 
 * **module -> core internals**: a bundled module imports a Kova module or name that is not on the
   published plugin API (``kova_cli/data/plugin_api.json``), e.g. ``gateway.run``. The rule is the one
-  ``hermes plugins validate`` warns with (``plugin_validate_private_imports.private_import_findings``),
+  ``kova plugins validate`` warns with (``plugin_validate_private_imports.private_import_findings``),
   so the lint and the plugin-author warning cannot drift.
 * **core -> module**: core code imports a specific module (``plugins.platforms.discord.adapter``)
   instead of reaching it through discovery and the plugin contracts.

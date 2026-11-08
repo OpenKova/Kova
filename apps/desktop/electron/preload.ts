@@ -303,7 +303,7 @@ contextBridge.exposeInMainWorld('kovaDesktop', {
     setLastUsed: id => ipcRenderer.invoke('kova:connections:set-last-used', id),
     test: id => ipcRenderer.invoke('kova:connections:test', id),
     updateManaged: id => ipcRenderer.invoke('kova:connections:update-managed', id),
-    // Fan out `hermes update` to every eligible registered connection.
+    // Fan out `kova update` to every eligible registered connection.
     // Optional excludeIds skips rows the caller updates through another path.
     updateAll: options => ipcRenderer.invoke('kova:connections:update-all', options),
     // Registry lifecycle push (main → renderer): a connection was removed or

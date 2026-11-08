@@ -211,7 +211,7 @@ class MemoryProvider(ABC):
         """PARENT-side observation of a completed delegation (the subagent has no provider session)."""
 
     def get_config_schema(self) -> list[dict[str, Any]]:
-        """Setup fields for ``hermes memory setup`` ([] if none): ``key``, ``description``,
+        """Setup fields for ``kova memory setup`` ([] if none): ``key``, ``description``,
         optional ``secret`` (goes to .env), ``required``, ``default``, ``choices``, ``type``
         (text | integer | number | boolean), ``minimum``/``maximum``/``step``, ``url``,
         ``env_var`` (explicit secret env var; default auto-generated)."""
@@ -232,7 +232,7 @@ class MemoryProvider(ABC):
         """
 
     def backup_paths(self) -> list[str]:
-        """Absolute paths of provider state OUTSIDE KOVA_HOME for ``hermes backup``/``import``
+        """Absolute paths of provider state OUTSIDE KOVA_HOME for ``kova backup``/``import``
         (paths outside the home dir are skipped). MUST work without ``initialize()`` or network."""
         return []
 

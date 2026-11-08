@@ -383,7 +383,7 @@ test('Windows probe tolerates CLIXML progress-stream pollution around the probe 
 })
 
 test('Windows probe still rejects output that is not platform JSON', async () => {
-  await assert.rejects(probeWindowsRemote(sshWith(async () => 'hermes is not installed on this host')))
+  await assert.rejects(probeWindowsRemote(sshWith(async () => 'kova is not installed on this host')))
   await assert.rejects(
     probeWindowsRemote(
       sshWith(async () => JSON.stringify({ os: 'Windows' }) + '\n' + JSON.stringify({ unrelated: true }))

@@ -1,8 +1,8 @@
-"""First-time ``hermes setup``'s "Coming from another agent?" step (it replaces core's old OpenClaw
+"""First-time ``kova setup``'s "Coming from another agent?" step (it replaces core's old OpenClaw
 migration offer).
 
 Detection is a few ``is_dir`` checks and needs nothing installed. Importing lives in the
-``agent-importers`` catalog plugin (``hermes import-agent <source>``): only after the user says yes
+``agent-importers`` catalog plugin (``kova import-agent <source>``): only after the user says yes
 does this step install it through the normal catalog install and run its import in a child process,
 which owns the preview, the confirmation and what gets imported. Setup helpers are imported lazily
 from kova_cli.setup so test patches there apply.
@@ -21,7 +21,7 @@ PLUGIN = "agent-importers"
 
 
 class ImportSource(NamedTuple):
-    name: str                 # ``hermes import-agent <name>``
+    name: str                 # ``kova import-agent <name>``
     label: str
     dirs: tuple[str, ...]     # paths under ``~`` (or absolute) that show the agent is here; first found wins
     extra_args: tuple[str, ...] = ()
@@ -136,7 +136,7 @@ def _snapshot(kova_home: Path) -> tuple[Optional[bytes], ...]:
 
 def _run_import(source: ImportSource, kova_home: Path, from_setup: bool = True) -> bool:
     """The offer's import: :func:`_import_child` for *source*; True when the run changed config.yaml
-    or .env, which the setup sections after it read. Bare ``hermes migrate`` runs it as its own
+    or .env, which the setup sections after it read. Bare ``kova migrate`` runs it as its own
     command (``from_setup`` False: no setup-only flags such as OpenClaw's ``--migrate-secrets``)."""
     before = _snapshot(kova_home)
     _import_child(source, kova_home, from_setup=from_setup)
@@ -145,9 +145,9 @@ def _run_import(source: ImportSource, kova_home: Path, from_setup: bool = True) 
 
 def _import_child(source: ImportSource, kova_home: Path, extra_args: tuple[str, ...] = (),
                   from_setup: bool = True) -> int:
-    """``hermes import-agent <source>`` in a child process, so the freshly installed plugin's command
+    """``kova import-agent <source>`` in a child process, so the freshly installed plugin's command
     is wired; it previews and asks before changing anything (and exits 0 on a no too). Returns its
-    exit code. ``hermes migrate`` passes the user's flags as ``extra_args`` and runs it as a command
+    exit code. ``kova migrate`` passes the user's flags as ``extra_args`` and runs it as a command
     of its own (``from_setup`` False)."""
     from kova_cli.setup import print_header, print_warning
     from tools.environments.local import served_profile_child_env
@@ -155,10 +155,10 @@ def _import_child(source: ImportSource, kova_home: Path, extra_args: tuple[str, 
     # A home that is not <root>/profiles/<name> is the root: without a selector the child's
     # _apply_profile_override would follow the sticky active_profile into another profile.
     selector = [] if kova_home.resolve().parent.name == "profiles" else ["--profile", "default"]
-    # --from-setup: the plugin's import speaks as a step of this setup (no "run hermes setup" pointers,
+    # --from-setup: the plugin's import speaks as a step of this setup (no "run kova setup" pointers,
     # OpenClaw's skipped items folded into one line).
     # source.extra_args are setup's own choices (OpenClaw's --migrate-secrets, what core's old setup
-    # step did); `hermes migrate` passes only what the user typed.
+    # step did); `kova migrate` passes only what the user typed.
     argv = [sys.executable, "-P", "-m", "kova_cli.main", *selector, "import-agent", source.name,
             *(source.extra_args if from_setup else ()), *extra_args, *(["--from-setup"] if from_setup else [])]
     env = served_profile_child_env(target_home=kova_home)
@@ -191,7 +191,7 @@ def _update_plugin(source: ImportSource) -> bool:
 
 
 def migrate_from_agents(kova_home: Path, source_name: str = "", extra_args: tuple[str, ...] = ()) -> int:
-    """``hermes migrate [<agent>]``: the same import as setup's step, on demand. Named: install the
+    """``kova migrate [<agent>]``: the same import as setup's step, on demand. Named: install the
     plugin when missing and run that agent's import with ``extra_args``. Bare: offer the agents found
     on this computer, as setup does."""
     from kova_cli.setup import is_noninteractive, print_info
@@ -202,7 +202,7 @@ def migrate_from_agents(kova_home: Path, source_name: str = "", extra_args: tupl
             return 0
         print_info(("Found: " + ", ".join(s.label for s, _ in found) + ". " if found else
                     "No other agent setup found on this computer. ")
-                   + "Import one with: " + ", ".join(f"hermes migrate {s.name}" for s in IMPORT_SOURCES))
+                   + "Import one with: " + ", ".join(f"kova migrate {s.name}" for s in IMPORT_SOURCES))
         return 0
     source = next(s for s in IMPORT_SOURCES if s.name == source_name)
     if not _ensure_plugin(kova_home):

@@ -72,11 +72,11 @@ def ensure_windows_bin_launchers(
     (``%LOCALAPPDATA%\\hermes\\bin``, next to the managed uv) — which lives
     OUTSIDE the git checkout so no git operation can ever touch it. It is
     a per-machine dir shared by every profile: ``get_kova_home()`` would
-    point inside ``profiles\\<name>`` under ``hermes -p``, so the anchor
+    point inside ``profiles\\<name>`` under ``kova -p``, so the anchor
     here is :func:`kova_constants.get_default_kova_root`.
 
     Earlier installer versions staged them at ``<checkout>\\bin`` instead —
-    inside the git working tree — where ``hermes update``'s pre-update
+    inside the git working tree — where ``kova update``'s pre-update
     autostash (``git stash push --include-untracked``) swept them off disk;
     once the desktop updater stopped re-applying stashes (``--keep-stash``)
     nothing restored them and ``hermes`` stopped resolving in every new
@@ -111,7 +111,7 @@ def ensure_windows_bin_launchers(
     root = Path(root)
 
     # Per-machine anchor: the DEFAULT Kova root, not get_kova_home() —
-    # under ``hermes -p <name>`` that returns ``profiles\\<name>``, which
+    # under ``kova -p <name>`` that returns ``profiles\\<name>``, which
     # would fail the managed-clone gate below and silently skip the heal
     # for profile users. The launcher dir serves the whole machine.
     from kova_constants import get_default_kova_root
@@ -248,7 +248,7 @@ def migrate_windows_bin_path(
 ) -> bool:
     """One-time PATH migration to the ``KOVA_HOME\\bin`` launcher layout.
 
-    Runs from the ``hermes update`` tail (and mirrors what install.ps1's
+    Runs from the ``kova update`` tail (and mirrors what install.ps1's
     Set-PathVariable does on fresh installs/repairs, which never reach
     existing installs — updates don't run install.ps1):
 

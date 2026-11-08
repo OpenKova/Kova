@@ -64,7 +64,7 @@ def _truncate(text: str, width: int) -> str:
 def _ident_col(style: str) -> tuple:
     # overflow="fold" keeps the full slug visible (wraps instead of ellipsis-truncating):
     # browse.sh slugs end in a `-XXXXXX` hash that is part of the identifier users must
-    # copy into `hermes skills install`.
+    # copy into `kova skills install`.
     return "Identifier", {"style": style, "overflow": "fold", "no_wrap": False}
 
 
@@ -202,7 +202,7 @@ def _exact_name_hits(results, name: str):
     """Results that ARE `name`: display name as written first, then — only when that finds nothing —
     the separator-insensitive form of the display name or of the identifier's trailing slug. Catalogs
     that carry a prettified title (ClawHub rows read "Blender Bpy Enhanced") or a path-shaped
-    identifier ("@org/my-skill") match by neither, so `hermes skills install my-skill` refused with
+    identifier ("@org/my-skill") match by neither, so `kova skills install my-skill` refused with
     "No exact match" while printing that very slug on the suggestion line."""
     query = str(name or "").strip().lower()
     hits = [r for r in results if str(r.name or "").strip().lower() == query]
@@ -377,7 +377,7 @@ def do_search(query: str, source: str = "all", limit: int = 10, console: Optiona
                       _trust_cell(r.trust_level, r.source), r.identifier)
     c.print(table)
     c.print("[dim]Use: hermes skills inspect <identifier> to preview, "
-            "hermes skills install <identifier> to install "
+            "kova skills install <identifier> to install "
             "(--json for scripting)[/]\n")
 
 
@@ -445,9 +445,9 @@ def _render_browse_page(c: Console, deduped, page_items, page: int, total_pages:
     if timed_out:
         c.print(f"  [yellow]⚡ Slow sources skipped: {', '.join(timed_out)} "
                 f"— run again for cached results[/]")
-    c.print("[dim]Tip: 'hermes skills inspect <identifier>' to preview, "
-            "'hermes skills install <identifier>' to install, "
-            "'hermes skills search <query>' to search deeper[/]\n")
+    c.print("[dim]Tip: 'kova skills inspect <identifier>' to preview, "
+            "'kova skills install <identifier>' to install, "
+            "'kova skills search <query>' to search deeper[/]\n")
 
 
 def do_browse(page: int = 1, page_size: int = 20, source: str = "all",
@@ -508,7 +508,7 @@ def do_inspect(identifier: str, console: Optional[Console] = None) -> None:
     c.print(Panel("\n".join(info_lines), title=f"Skill: {meta.name}"))
     preview = _skill_md_preview(bundle)
     if preview is not None:
-        c.print(Panel(preview, title="SKILL.md Preview", subtitle="hermes skills install <id> to install"))
+        c.print(Panel(preview, title="SKILL.md Preview", subtitle="kova skills install <id> to install"))
     c.print()
 
 
@@ -541,7 +541,7 @@ def _scan_block_message(result, identifier: str) -> str:
     """User-facing sentence for a scan-blocked install (the audit row keeps the scanner's raw reason).
 
     Says what happened (not installed), why in plain words (high-risk patterns), whether ``--force``
-    can help, and the read-only next step (``hermes skills inspect``). The hard-block rule mirrors
+    can help, and the read-only next step (``kova skills inspect``). The hard-block rule mirrors
     ``tools.skills_guard.should_allow_install``: a dangerous verdict on a non-official source."""
     n = len(result.findings)
     findings = f"{n} high-risk pattern(s)" if n else "high-risk patterns"
@@ -550,7 +550,7 @@ def _scan_block_message(result, identifier: str) -> str:
               if hard_block else "Re-run with --force to install anyway.")
     return (f"the security scan found {findings} in '{identifier}' (listed above). "
             f"{policy} Review the findings or ask the author to fix them; to read the skill without "
-            f"installing, run `hermes skills inspect {identifier}`.")
+            f"installing, run `kova skills inspect {identifier}`.")
 
 
 def _invalid_path(c: Console, bundle, exc: ValueError, q_path: Optional[Path] = None) -> None:
@@ -661,7 +661,7 @@ def _print_fetch_failure(c: Console, sources, identifier: str, meta=None, source
         c.print(f"[bold red]Error:[/] '{identifier}' is listed in the {src_id} index, "
                 f"but its files no longer exist upstream.")
         c.print("[dim]Stale index entry: the skill was likely renamed or removed by "
-                "its author. Try `hermes skills search` for an alternative.[/]\n")
+                "its author. Try `kova skills search` for an alternative.[/]\n")
         return "stale_index"
     c.print(f"[bold red]Error:[/] Could not download '{identifier}'.")
     if rejected:
@@ -674,7 +674,7 @@ def _print_fetch_failure(c: Console, sources, identifier: str, meta=None, source
                 "[bold]gh auth login[/] to raise the limit to 5,000/hr.\n")
     else:
         c.print(f"Check the name with [bold]hermes skills search {identifier.rsplit('/', 1)[-1]}[/] "
-                "and check your internet connection. If it keeps failing, run [bold]hermes doctor[/].\n")
+                "and check your internet connection. If it keeps failing, run [bold]kova doctor[/].\n")
     return "rate_limited" if rate_limited else "auth_rejected" if rejected else "fetch_failed"
 
 
@@ -1048,7 +1048,7 @@ def do_update(name: Optional[str] = None, console: Optional[Console] = None,
     Skills whose on-disk content no longer matches the hash recorded at install time have been edited
     locally; updating them would silently destroy the user's work (``do_install(force=True)``
     rmtree-replaces the directory). Those are skipped by default and only overwritten when ``force=True``.
-    Mirrors the user-modified protection bundled skills already get from ``hermes update`` (ported from
+    Mirrors the user-modified protection bundled skills already get from ``kova update`` (ported from
     paperclipai/paperclip#10978's explicit-merge-mode rule: destructive replacement must be an explicit
     caller choice, never a rerun default).
     """
@@ -1160,7 +1160,7 @@ def do_reset(name: str, restore: bool = False, console: Optional[Console] = None
 
 
 def do_list_modified(console: Optional[Console] = None, as_json: bool = False) -> None:
-    """List bundled skills the user has edited (which `hermes update` keeps)."""
+    """List bundled skills the user has edited (which `kova update` keeps)."""
     from tools.skills_sync_bundled_ops import list_user_modified_bundled_skills
     c = console or _console
     modified = list_user_modified_bundled_skills()
@@ -1171,7 +1171,7 @@ def do_list_modified(console: Optional[Console] = None, as_json: bool = False) -
         c.print("[dim]No user-modified bundled skills — everything tracks upstream.[/]\n")
         return
     c.print(f"\n[bold]{len(modified)} user-modified bundled skill(s)[/] "
-            "[dim](kept as-is by `hermes update`):[/]")
+            "[dim](kept as-is by `kova update`):[/]")
     for entry in modified:
         c.print(f"  [yellow]~[/] {entry['name']}")
     c.print()
@@ -1537,7 +1537,7 @@ def _tap_cli(args) -> None:
     do_tap(tap_action, repo=getattr(args, "repo", "") or getattr(args, "name", ""))
 
 
-# `hermes skills <action>` -> handler(args). Lambdas late-bind the do_* names so
+# `kova skills <action>` -> handler(args). Lambdas late-bind the do_* names so
 # tests that patch("kova_cli.skills_hub.do_install") still intercept.
 _CLI_ACTIONS = {
     "browse": lambda a: do_browse(page=a.page, page_size=a.size, source=a.source),
@@ -1568,11 +1568,11 @@ _CLI_ACTIONS = {
 
 
 def skills_command(args) -> Optional[int]:
-    """Router for `hermes skills <subcommand>` — called from kova_cli/main.py."""
+    """Router for `kova skills <subcommand>` — called from kova_cli/main.py."""
     handler = _CLI_ACTIONS.get(getattr(args, "skills_action", None))
     if handler is None:
         _console.print("Usage: hermes skills [browse|search|install|inspect|list|list-modified|diff|check|update|audit|uninstall|reset|opt-out|opt-in|publish|snapshot|tap]\n")
-        _console.print("Run 'hermes skills <command> --help' for details.\n")
+        _console.print("Run 'kova skills <command> --help' for details.\n")
         return None
     # A handler reporting a real failure (install/update/uninstall's False) must exit non-zero: the
     # Desktop Hub reads the spawned action's exit code to decide whether to toast, so an exit-0

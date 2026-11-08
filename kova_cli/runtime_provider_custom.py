@@ -250,7 +250,7 @@ def _select_named_custom_provider(
     if isinstance(config.get("custom_providers"), dict):
         logger.warning("custom_providers in config.yaml is a dict, not a list. "
                        "Each entry must be prefixed with '-' in YAML. "
-                       "Run 'hermes doctor' for details.")
+                       "Run 'kova doctor' for details.")
         return None
     custom_providers = rp.get_compatible_custom_providers(config)
     found = _match_legacy_custom_provider(requested_norm, custom_providers) if custom_providers else None
@@ -622,7 +622,7 @@ def _resolve_llamacpp_runtime(requested_provider: str, explicit_api_key: Optiona
     # Every chat surface (messaging, TUI, Webapp) shows this sentence, so it names both places a
     # user can start the server and no Desktop-only pane; the Desktop client links its pane itself.
     raise LocalRuntimeUnavailableError("The local model server is turned off. Start it from the Kova "
-                                       "desktop app or `hermes model` → Local models, or switch to "
+                                       "desktop app or `kova model` → Local models, or switch to "
                                        "another model with /model.")
 
 
@@ -730,7 +730,7 @@ def _resolve_named_custom_runtime(*, requested_provider: str, explicit_api_key: 
     if not base_url:
         return None
     explicit_key = (explicit_api_key or "").strip()
-    # The credential pool is the profile's auth store (``hermes auth add``), not config: a frozen
+    # The credential pool is the profile's auth store (``kova auth add``), not config: a frozen
     # config snapshot still owes a pooled ``providers:`` entry its keys, or the turn ships the
     # ``no-key-required`` placeholder to a host that wants one (C11 pool rows). An explicit launch
     # key is the operator's credential for this route and wins over the pool (R2-M1). An entry

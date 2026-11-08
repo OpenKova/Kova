@@ -1,5 +1,5 @@
 /**
- * Remote-backend topology for the core suite: a real `hermes serve` the TEST
+ * Remote-backend topology for the core suite: a real `kova serve` the TEST
  * spawns (not the app) under its OWN sandbox HOME / KOVA_HOME / cwd, reached
  * by the Desktop only by URL + token (KOVA_DESKTOP_REMOTE_URL/_TOKEN). Paths
  * that exist on the client sandbox do not exist on the backend's filesystem
@@ -123,7 +123,7 @@ function hidingCommand(hide: string[], argv: string[]): null | string[] {
   ]
 }
 
-/** Spawn `hermes serve` for `sandbox` (its HOME/KOVA_HOME, cwd = its root). */
+/** Spawn `kova serve` for `sandbox` (its HOME/KOVA_HOME, cwd = its root). */
 export async function startRemoteBackend(
   sandbox: CoreSandbox,
   { hide = [] }: { hide?: string[] } = {}

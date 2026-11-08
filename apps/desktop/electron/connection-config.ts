@@ -843,7 +843,7 @@ export function unscopableMutatingRequest(opts: ProfileRouteOptions = {}): boole
  *     backend, with `?profile=` when the handler reads the query (handlers that
  *     name their target in the path or `body.profile` get no query).
  *  6. Every other LOCAL profile also shares the one host backend
- *     (multiplex-only: one `hermes serve` per HOST). The descriptor carries
+ *     (multiplex-only: one `kova serve` per HOST). The descriptor carries
  *     `sharedPrimary: true`, and the renderer honours it on BOTH request paths
  *     (`requestGatewayForProfile` and the session-owner
  *     `requestGatewayForAgent` family): the profile's calls ride the primary
@@ -875,7 +875,7 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
       return { backend: 'primary', descriptorProfile: scopedProfile, scopePath: true }
     }
 
-    // The same holds for the LOCAL host backend: with one `hermes serve` per
+    // The same holds for the LOCAL host backend: with one `kova serve` per
     // host the app attaches to whatever backend is running, and that process
     // was launched under some OTHER profile's home whenever another app (or an
     // earlier boot) registered it. A bare request the server can scope then
@@ -922,7 +922,7 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
 
   // 6. Multiplex-only: every other LOCAL profile shares the one host backend
   //    too, carrying `?profile=` / the `profile` RPC param instead of getting
-  //    a `hermes serve` child of its own — UNLESS this request mutates state
+  //    a `kova serve` child of its own — UNLESS this request mutates state
   //    the server cannot scope, in which case the pooled backend's own
   //    KOVA_HOME is the only scope left and it keeps one.
   if (sharesHostBackend({ isolated: opts.isolatedBackend, unscopableRequest: unscopableMutatingRequest(opts) })) {

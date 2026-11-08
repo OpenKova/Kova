@@ -308,7 +308,7 @@ def get_routing_process_kova_home() -> Path:
 
 # Kova-managed runtime downloads at the root of a home (GGUF models, llama.cpp runtimes,
 # managed Node): re-downloadable on demand and routinely tens to hundreds of GB. Shared by
-# ``hermes backup`` (excludes them) and ``profile create --clone-all`` (skips them from the
+# ``kova backup`` (excludes them) and ``profile create --clone-all`` (skips them from the
 # default profile) so the two lists cannot drift apart.
 LOCAL_RUNTIME_ROOT_DIRS: frozenset[str] = frozenset({"models", "runtimes", "node"})
 
@@ -433,7 +433,7 @@ def named_profile_has_servable_identity(profile_home: str | Path) -> bool:
     """Stricter than :func:`named_profile_has_identity`: is this dir a profile a host should change
     its own posture for?
 
-    An EMPTY ``.env`` is all a crashed ``hermes profile create`` leaves behind, and it is enough for
+    An EMPTY ``.env`` is all a crashed ``kova profile create`` leaves behind, and it is enough for
     ``named_profile_has_identity``. Listing such a shell is harmless; counting it as a second tenant
     is not — it flips the whole host's credential reads fail-closed at the next boot. Every other
     marker, and a non-empty or symlinked ``.env``, still counts.
@@ -681,7 +681,7 @@ def display_kova_home(home: Path | None = None) -> str:
 
 
 def profile_cli_selector() -> str:
-    """``-p <name> `` (trailing space) pinning copy-pasteable ``hermes ...`` guidance to the
+    """``-p <name> `` (trailing space) pinning copy-pasteable ``kova ...`` guidance to the
     active NAMED profile, else ``""``: a bare ``hermes`` follows the sticky ``active_profile``
     file, which can name a different database than the one that failed (#105887). A custom
     home outside the profile tree has no selector (only KOVA_HOME names it)."""
@@ -868,7 +868,7 @@ _LEGACY_MANAGED_SYSTEM = "nixos"
 # detection instead of blocking config writes.
 _IGNORED_MANAGED_VALUES = frozenset({"brew", "homebrew"})
 # Explicit opt-out (``KOVA_MANAGED=false``): without this a bool-shaped value became a package
-# manager literally named "false" and is_managed() blocked `hermes update` (#12864).
+# manager literally named "false" and is_managed() blocked `kova update` (#12864).
 _MANAGED_FALSE_VALUES = frozenset({"false", "0", "no", "off"})
 
 
@@ -1043,7 +1043,7 @@ def _prune_scratch_dir_once(scratch: Path) -> None:
 
 
 def scratch_dir_usage_bytes(scratch: Path | None = None) -> int:
-    """Total bytes under the scratch dir (for ``hermes doctor``); 0 when unreadable."""
+    """Total bytes under the scratch dir (for ``kova doctor``); 0 when unreadable."""
     root = scratch if scratch is not None else get_scratch_dir(prune=False)
     total = 0
     for dirpath, _dirnames, filenames in os.walk(root, onerror=lambda _e: None):
@@ -1395,7 +1395,7 @@ def project_venv_dir(project_root) -> Path | None:
     Installers that keep the interpreter out of the checkout (``$KOVA_HOME/venvs/<name>``, the layout the
     shipped Windows launchers assume) have neither, and the ``project_venv_dir(root) or root / "venv"``
     idiom those call sites share then handed ``uv`` a ``VIRTUAL_ENV`` that does not exist: that one invented
-    path skipped the import probe, reclassified every ``hermes tools`` dependency as missing and failed the
+    path skipped the import probe, reclassified every ``kova tools`` dependency as missing and failed the
     reinstall with interpreter errors (#116148). The interpreter running this module is the only truthful
     answer to "which venv is live", so fall back to it — but only for the checkout it was loaded from. A
     foreign root (test temp dir, another clone) still resolves to ``None``: handing it someone else's venv
@@ -1475,7 +1475,7 @@ def partial_update_hint(exc: BaseException) -> list[str]:
         "This looks like a partially-updated install: one module was refreshed "
         "and a related one was not.",
         "Re-run the update to bring the whole tree to the same version:",
-        "    hermes update",
+        "    kova update",
         "If that also fails, reinstall: https://kova-agent.nousresearch.com",
     ]
 

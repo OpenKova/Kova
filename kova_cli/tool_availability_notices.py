@@ -18,7 +18,7 @@ _MULTI_PROVIDER_NOTICES: dict[str, str] = {
             "\"Web Search & Scraping\"."),
 }
 
-_GENERIC_FOOTER = "[dim]   Run 'hermes setup tools' to configure[/]"
+_GENERIC_FOOTER = "[dim]   Run 'kova setup tools' to configure[/]"
 
 
 def filter_to_enabled_toolsets(unavailable: list[dict], enabled: Iterable[str],
@@ -58,7 +58,7 @@ def current_terminal_backend() -> str:
 def _terminal_line(backend: str, reason: Optional[str]) -> str:
     detail = f" ({reason})" if reason else ""
     return (f"[yellow]⚠ Terminal tool disabled:[/] the '{backend}' backend is not usable{detail}. "
-            "Run [bold]hermes doctor[/] for details, or [bold]hermes setup terminal[/] to pick another backend.")
+            "Run [bold]kova doctor[/] for details, or [bold]hermes setup terminal[/] to pick another backend.")
 
 
 def tool_availability_warning_lines(unavailable: list[dict], *, terminal_reason: Optional[str],

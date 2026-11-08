@@ -1,4 +1,4 @@
-"""CLI handlers for the ``hermes proxy`` subcommand."""
+"""CLI handlers for the ``kova proxy`` subcommand."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def _err(msg: str) -> None:
 def cmd_proxy_start(args: Any) -> int:
     """Run the proxy server in the foreground."""
     if not AIOHTTP_AVAILABLE:
-        _err("hermes proxy requires aiohttp. Run `hermes setup` to install it.")
+        _err("kova proxy requires aiohttp. Run `kova setup` to install it.")
         return 1
     provider = getattr(args, "provider", None) or "nous"
     try:
@@ -31,7 +31,7 @@ def cmd_proxy_start(args: Any) -> int:
         _err(f"Error: {exc}")
         return 2
     if not adapter.is_authenticated():
-        auth_hint = getattr(adapter, "auth_hint", f"hermes auth add {adapter.name}")
+        auth_hint = getattr(adapter, "auth_hint", f"kova auth add {adapter.name}")
         _err(f"Not logged into {adapter.display_name}. Run `{auth_hint}` first.")
         return 2
     from kova_cli.url_utils import format_url_host
@@ -93,12 +93,12 @@ _SUBCOMMANDS = {
 
 
 def cmd_proxy(args: Any) -> int:
-    """Dispatch ``hermes proxy <subcommand>``; no/unknown subcommand prints the short help."""
+    """Dispatch ``kova proxy <subcommand>``; no/unknown subcommand prints the short help."""
     handler = _SUBCOMMANDS.get(getattr(args, "proxy_command", None))
     if handler is not None:
         return handler(args)
     _err(
-        "hermes proxy — local OpenAI-compatible proxy that attaches your\n"
+        "kova proxy — local OpenAI-compatible proxy that attaches your\n"
         "OAuth-authenticated provider credentials to outbound requests.\n"
         "\n"
         "Subcommands:\n"

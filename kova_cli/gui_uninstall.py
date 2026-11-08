@@ -35,7 +35,7 @@ def desktop_userdata_dir() -> Path:
 
 
 def source_built_gui_artifacts(kova_home: Path) -> list[Path]:
-    """GUI build artifacts produced by ``hermes desktop`` inside the checkout (same ``kova-agent/`` layout
+    """GUI build artifacts produced by ``kova desktop`` inside the checkout (same ``kova-agent/`` layout
     install.sh uses). The workspace-root node_modules is shared with the TUI, dashboard and other
     workspaces, so only the desktop workspace's own dependencies belong to GUI removal."""
     agent_root = kova_home / "kova-agent"
@@ -45,7 +45,7 @@ def source_built_gui_artifacts(kova_home: Path) -> list[Path]:
 
 
 def desktop_install_record() -> Path:
-    """Where ``hermes update`` records the installed ``Kova.app`` copies it keeps current. The apps
+    """Where ``kova update`` records the installed ``Kova.app`` copies it keeps current. The apps
     are machine-wide, so the record sits under the default root whichever profile runs; deleting it
     is what stops an uninstalled app from being put back by the next update."""
     from kova_constants import get_default_kova_root

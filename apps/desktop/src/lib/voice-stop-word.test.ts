@@ -30,7 +30,7 @@ describe('isVoiceStopCommand', () => {
   })
 
   it('matches stop commands addressed to Kova', () => {
-    for (const phrase of ['hermes stop', 'hey hermes stop', 'hey hermes, stop', 'ok stop', 'okay stop']) {
+    for (const phrase of ['kova stop', 'hey hermes stop', 'hey hermes, stop', 'ok stop', 'okay stop']) {
       expect(isVoiceStopCommand(phrase, { mode: 'default' })).toBe(true)
     }
   })
@@ -65,7 +65,7 @@ describe('isVoiceStopCommand', () => {
 
     expect(isVoiceStopCommand('отбой', config)).toBe(true)
     expect(isVoiceStopCommand('Стоп!', config)).toBe(true)
-    expect(isVoiceStopCommand('hermes отбой', config)).toBe(true)
+    expect(isVoiceStopCommand('kova отбой', config)).toBe(true)
     expect(isVoiceStopCommand('stop the docker container', config)).toBe(false)
     // Built-in English extras are NOT active when the key is set.
     expect(isVoiceStopCommand('goodbye', config)).toBe(false)

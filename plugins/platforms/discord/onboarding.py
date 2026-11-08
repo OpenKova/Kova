@@ -85,7 +85,7 @@ def check_bot_token(token: str) -> DiscordBotCheck:
     )
 
 
-# ── CLI wizard (hermes setup / hermes gateway setup) ─────────────────────────
+# ── CLI wizard (hermes setup / kova gateway setup) ─────────────────────────
 
 
 def _clean_discord_user_ids(raw: str) -> list:

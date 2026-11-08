@@ -768,7 +768,7 @@ if (!isPrimaryInstance) {
   app.exit(0)
 }
 
-// `hermes desktop` shortens TMPDIR only so the lock above can bind its socket (#124688). The
+// `kova desktop` shortens TMPDIR only so the lock above can bind its socket (#124688). The
 // backend and every other child get the real one (the profile scratch dir) back.
 if (process.env.KOVA_DESKTOP_TMPDIR) {
   process.env.TMPDIR = process.env.KOVA_DESKTOP_TMPDIR
@@ -1008,7 +1008,7 @@ if (process.platform === 'linux') {
 // Linux: point Chromium at the session's keychain backend so safeStorage can
 // encrypt remote gateway tokens (hardening.ts refuses to persist them without
 // it). The value arrives via KOVA_DESKTOP_PASSWORD_STORE, bridged by the
-// `hermes desktop` launcher from detection or `desktop.password_store` in
+// `kova desktop` launcher from detection or `desktop.password_store` in
 // config.yaml. Must run before app `ready` — the switch only applies pre-launch.
 const PASSWORD_STORE = resolveLinuxPasswordStore()
 
@@ -1028,7 +1028,7 @@ if (PASSWORD_STORE.store) {
 // 0x80000003. After enough GPU deaths the browser process FATAL-exits before the
 // UI is usable. Must run before app `ready` so `--no-sandbox` applies to child
 // processes. The sticky marker recovers Start Menu / shortcut launches that
-// never go through `hermes desktop`; it is version-scoped so an app update
+// never go through `kova desktop`; it is version-scoped so an app update
 // re-probes the sandbox instead of degrading forever.
 //
 // `windowsSandboxFallbackActive` = this process runs without the Chromium
@@ -1262,7 +1262,7 @@ const KOVA_HOME: string = resolveDesktopKovaHome({
 
 // #77311: `desktop.electron_flags` and the renderer heap ceiling
 // (`desktop.renderer_max_old_space_mb`) used to reach Chromium only through
-// the `hermes desktop` launcher's argv, so a packaged app opened from its
+// the `kova desktop` launcher's argv, so a packaged app opened from its
 // Start-menu / .desktop entry ran with no `--js-flags` at all. Apply them here
 // from config.yaml, before `ready` — Chromium copies `js-flags` to renderer
 // processes only from the browser's pre-launch command line.
@@ -1283,7 +1283,7 @@ let desktopSshPathOverride = ''
   desktopSshPathOverride = desktopLaunchConfig.sshPath || ''
 
   // `desktop.renderer_accessibility: false` must reach packaged launches too,
-  // not only the `hermes desktop` launcher's env bridge (#118271).
+  // not only the `kova desktop` launcher's env bridge (#118271).
   if (
     desktopLaunchConfig.rendererAccessibility === false &&
     process.env.KOVA_DESKTOP_RENDERER_ACCESSIBILITY === undefined
@@ -1336,7 +1336,7 @@ const DESKTOP_WINDOW_STATE_PATH = path.join(app.getPath('userData'), 'window-sta
 const DESKTOP_BACKEND_OWNERSHIP_PATH = path.join(app.getPath('userData'), 'backend-ownership.json')
 const DESKTOP_MANAGED_SSH_RECOVERY_PATH = path.join(app.getPath('userData'), 'managed-ssh-update-recovery.json')
 // active-profile.json records which Kova profile the desktop launches its
-// local backend as. When set, startKova() passes `hermes --profile <name>
+// local backend as. When set, startKova() passes `kova --profile <name>
 // dashboard …`, which deterministically pins KOVA_HOME (see
 // _apply_profile_override in kova_cli/main.py) and bypasses the sticky
 // ~/.kova/active_profile file. Unset (null) preserves the legacy behavior:
@@ -1787,7 +1787,7 @@ if (IS_WINDOWS) {
 
 // Seed the native About panel with the best-known Kova version. This is
 // refreshed on every open via showAboutPanelFresh, so an in-place
-// `hermes update` mid-session is reflected without an app restart; the seed
+// `kova update` mid-session is reflected without an app restart; the seed
 // covers the first open and any non-menu invocation path. Never seed empty:
 // an empty applicationVersion falls back to the bundle version, which is the
 // 0.0.0 placeholder on local builds (#124581).
@@ -1901,7 +1901,7 @@ const backendDialClaims = new BackendDialClaims()
 let softRehomeInProgress = false
 // Cached connection DESCRIPTORS for every non-primary (connectionId, profile)
 // scope the app has dialed: canonical local gateways reached through
-// `hermes gateway ensure`, registry remotes, per-profile remote overrides.
+// `kova gateway ensure`, registry remotes, per-profile remote overrides.
 // Never a process — the gateway owns its own lifetime; forgetting an entry only
 // forces the next ensure*() to re-dial. A user with no named profiles never
 // populates this map.
@@ -1942,7 +1942,7 @@ const rendererReloadTimesRef: { current: number[] } = { current: [] }
 // the renderer's "Reload and retry" path or by quitting the app.
 let bootstrapFailure = null
 // Latched non-bootstrap backend spawn failure — stops getConnection() from
-// respawning hermes serve backend children in a tight loop while boot is broken.
+// respawning kova serve backend children in a tight loop while boot is broken.
 let backendStartFailure = null
 // Latched CONFIRMED remote reauth failure. Remote failures deliberately do not
 // latch via backendStartFailure (they're usually transient and must stay
@@ -3719,7 +3719,7 @@ let quitPromptOpen = false
 let quitConfirmedWithActiveWork = false
 
 // Resolve the staged updater binary the desktop may hand an update to. On
-// Windows that binary owns ALL repo mutation — running `hermes update` +
+// Windows that binary owns ALL repo mutation — running `kova update` +
 // rebuilding the desktop — so the desktop never touches its own bits while
 // running. macOS/Linux stage the same binary but deliberately do not use it;
 // see resolveStagedUpdaterBinary for the policy and for #74836. Returns null
@@ -3728,7 +3728,7 @@ function resolveUpdaterBinary() {
   return resolveStagedUpdaterBinary(KOVA_HOME, { fileExists, isWindows: IS_WINDOWS })
 }
 
-// Path to the venv shim whose lock decides whether `hermes update` can write
+// Path to the venv shim whose lock decides whether `kova update` can write
 // fresh entry points. On Windows this is the file the running backend
 // `hermes.exe` holds open; on POSIX it's never mandatory-locked.
 function venvKovaShimPath(updateRoot) {
@@ -4205,7 +4205,7 @@ function reapOrphanedBackendsOnce() {
 
 // Stop app-owned Windows backends before replacing application outputs.
 // PM generations can retain live readers. Gateway draining/restart belongs to
-// `hermes update`; neither venv scans nor a second fleet stop belong here.
+// `kova update`; neither venv scans nor a second fleet stop belong here.
 async function stopBackendsForUpdate(): Promise<void> {
   closeGatewayTicketBridges()
 
@@ -4314,8 +4314,8 @@ async function releaseBackendLock(updateRoot: string, tag: string): Promise<{ un
 //
 // The desktop is a pure consumer: it does NOT git pull / pip install / rebuild
 // itself (the old open-coded git dance lived here and drifted from
-// `hermes update`). Instead we spawn the staged Kova-Setup binary with
-// --update and quit, so it can run `hermes update` (which refuses while we
+// `kova update`). Instead we spawn the staged Kova-Setup binary with
+// --update and quit, so it can run `kova update` (which refuses while we
 // hold the venv shim) and rebuild the desktop with our exe already gone.
 //
 // Detection (checkUpdates / commit changelog / "N behind") stays in the UI;
@@ -4482,7 +4482,7 @@ function runningAppBundle() {
 
 // macOS/Linux update hand-off: spawn the repo-owned posix orchestrator
 // (scripts/desktop-update/posix.sh) detached and QUIT. The script waits us
-// out, runs `hermes update`, swaps/relaunches the app bundle, and writes
+// out, runs `kova update`, swaps/relaunches the app bundle, and writes
 // .kova-update-result.json for the relaunched Desktop to surface. It shows
 // its own tiny shim window (or nothing, headless) — this process only needs
 // to leave. Checkouts that predate the script get the manual card once.
@@ -8730,7 +8730,7 @@ function writeActiveDesktopProfile(name: string | null): string | null {
 
 // Seed active-profile.json from the best available signal when the file does
 // not yet exist.  Runs exactly once (no-op once the file exists).  Priority:
-//   1. Legacy ~/.kova/active_profile (explicit CLI choice via hermes profile use)
+//   1. Legacy ~/.kova/active_profile (explicit CLI choice via kova profile use)
 //   2. Running gateway (gateway.pid with verified liveness + hermes identity)
 //   3. state.db heuristics (hybrid recency×size score picks the primary workspace)
 // The stored JSON includes _migrated:true so the renderer can optionally surface
@@ -9809,7 +9809,7 @@ async function bootstrapSshConnectionInner(profile, sshConfig, reuseToken, sourc
 
   sshRememberLog(
     `[ssh] connection ${result.reused ? 'REUSED' : 'spawned'} dashboard: ` +
-      `${result.kovaVersion || 'hermes (version unknown)'} at ${result.kovaPath || '?'}`
+      `${result.kovaVersion || 'kova (version unknown)'} at ${result.kovaPath || '?'}`
   )
 
   const connection = await buildRemoteConnection(
@@ -10677,7 +10677,7 @@ async function ensureRegistryBackend(
   const key = backendScopeKey(id, profile)
   const existing = backendPool.get(key)
 
-  // One remote `hermes serve` per SSH host: a named profile rides the default backend when it can.
+  // One remote `kova serve` per SSH host: a named profile rides the default backend when it can.
   const shared = existing ? null : await resolveSharedSshProfileBackend(source, profile, {
     ensureDefault: (): Promise<any> => ensureRegistryBackend(id, 'default', managedUpdateCorrelation, { passive }),
     listProfiles: descriptor => getJsonForBackend(descriptor, '/api/profiles', { timeoutMs: 8_000 })
@@ -11350,7 +11350,7 @@ function assertPoolEntryStillOwned(poolKey: string, entry: any) {
 
 // Resolve the connection descriptor for a named profile that is not the
 // primary: attach to (or start) its canonical local gateway via
-// `hermes gateway ensure`, or verify and describe its remote. Mirrors the local
+// `kova gateway ensure`, or verify and describe its remote. Mirrors the local
 // portion of startKova() without the boot-progress UI, bootstrap, or
 // first-run handling (those belong to the primary only). `opts.forceLocal`
 // skips remote resolution entirely (the registry 'local' entry means THIS
@@ -11430,7 +11430,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
   return { ...connection, profile, logs: hermesLog.slice(-80), ...getWindowState() }
 }
 
-// `hermes gateway restart` drains in-flight turns before the owner exits; the CLI client is
+// `kova gateway restart` drains in-flight turns before the owner exits; the CLI client is
 // bounded so a wedged drain cannot hang Restart. The gateway's own drain is unaffected by the kill.
 const GATEWAY_RESTART_CLIENT_TIMEOUT_MS = 120_000
 
@@ -11447,7 +11447,7 @@ async function restartLocalGatewayOwner(ownerProfile: string): Promise<void> {
       resolveKovaCwd(),
       KOVA_HOME,
       profileBackendParentEnv({ kovaHome: KOVA_HOME, profile: ownerProfile }),
-      { timeoutMs: GATEWAY_RESTART_CLIENT_TIMEOUT_MS, label: 'hermes gateway restart' }
+      { timeoutMs: GATEWAY_RESTART_CLIENT_TIMEOUT_MS, label: 'kova gateway restart' }
     )
   }, ownerProfile)
 
@@ -11455,7 +11455,7 @@ async function restartLocalGatewayOwner(ownerProfile: string): Promise<void> {
   rememberLog(`[gateway] hermes --profile ${ownerProfile} gateway restart exited ${result.code}${reason ? `: ${reason}` : ''}`)
 }
 
-// A ready gateway whose boot commit differs from this Kova (it outlived `hermes update`) is
+// A ready gateway whose boot commit differs from this Kova (it outlived `kova update`) is
 // restarted once before attaching instead of being re-attached on every dial.
 const restartStaleLocalGateway = createStaleGatewayRestarter(restartLocalGatewayOwner, rememberLog)
 
@@ -11475,7 +11475,7 @@ async function restartAttachedLocalGateway(profile: string): Promise<void> {
 }
 
 // Forget a cached descriptor. Nothing is killed: the gateway behind it owns its
-// own lifetime (`hermes gateway ensure` attach semantics), so the next
+// own lifetime (`kova gateway ensure` attach semantics), so the next
 // ensure*() for this key simply re-dials. Every retire path — dispatch probe
 // failure, resume revalidation, registry removal, profile delete/rename, quit —
 // funnels through here so the verb stays in one place.
@@ -11801,7 +11801,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
 
     // Pin the desktop's chosen profile via the global --profile flag. This is
     // deterministic (it wins over the sticky ~/.kova/active_profile file) and
-    // resolves KOVA_HOME the same way `hermes -p <name>` does on the CLI. A
+    // resolves KOVA_HOME the same way `kova -p <name>` does on the CLI. A
     // launch override is persisted into active-profile.json before startKova,
     // so Kova.exe --profile <name> and hermes -p <name> desktop both land
     // here. `activeProfile` is the SAME decision that named routing above —
@@ -11857,7 +11857,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
       return setup.connection
     }
 
-    // No `attachHostBackend` is wired: `hermes gateway ensure` below IS the
+    // No `attachHostBackend` is wired: `kova gateway ensure` below IS the
     // attach-or-start step for the canonical local gateway.
     if (setup.kind === 'attached') {
       throw new Error('Unexpected attached backend outcome without a host attach step.')
@@ -13812,7 +13812,7 @@ function createWindow() {
             errorCode: details?.exitCode,
             errorDescription:
               'The desktop renderer crashed repeatedly (Windows STATUS_STACK_BUFFER_OVERRUN / 0xC0000409). GPU fallback could not recover the window.',
-            repairHint: 'hermes desktop --force-build',
+            repairHint: 'kova desktop --force-build',
             reloadUrl: DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString()
           })
 
@@ -13869,7 +13869,7 @@ function createWindow() {
           errorCode: details?.errorCode,
           url: details?.url,
           errorDescription: 'The desktop renderer failed to load repeatedly after the update.',
-          repairHint: 'hermes desktop --force-build',
+          repairHint: 'kova desktop --force-build',
           reloadUrl: DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString()
         })
       },
@@ -13930,7 +13930,7 @@ function createWindow() {
       errorCode: 'ERR_FILE_NOT_FOUND',
       errorDescription: `The desktop renderer bundle is incomplete after the last update (${tornAssets.length} missing file(s)).`,
       missingAssets: tornAssets,
-      repairHint: 'hermes desktop --force-build',
+      repairHint: 'kova desktop --force-build',
       reloadUrl: pathToFileURL(rendererIndex).toString()
     })
   } else {
@@ -14199,7 +14199,7 @@ ipcMain.on('kova:window:relay', (event, payload) => {
 })
 
 // Hand a session to the user's OWN terminal emulator, running the TUI against
-// it (`hermes --tui --resume <id>`). Not the in-app terminal pane: the point is
+// it (`kova --tui --resume <id>`). Not the in-app terminal pane: the point is
 // to continue the chat in the terminal they already live in.
 //
 // The desktop's runtime is usually a venv Python invoked as
@@ -15038,7 +15038,7 @@ async function requestManagedSshUpdate(rawId) {
 
 ipcMain.handle('kova:connections:update-managed', async (_event, rawId) => requestManagedSshUpdate(rawId))
 
-// Fan out `hermes update` to every eligible registered connection at once.
+// Fan out `kova update` to every eligible registered connection at once.
 // Cloud entries are excluded (platform-managed); each dispatch reports
 // independently so one dead LAN box can't wedge the batch. Local reuses the
 // app's own update pipeline; Desktop-managed SSH uses the transactional
@@ -16584,7 +16584,7 @@ ipcMain.on('kova:translucency:support', event => {
 
 // Feature-flag facts the renderer needs before first paint (same sendSync
 // pattern as translucency). Resolved in feature-flags.ts from the launch
-// argv and the artifact's channel: `--local` (from `hermes desktop --local`
+// argv and the artifact's channel: `--local` (from `kova desktop --local`
 // or directly on Kova.exe, a shortcut edit) gates the local-models GUI on
 // stable builds, and canary builds get the same surfaces by default. Launch
 // flags survive self-relaunches because collectRelaunchArgs only strips
@@ -17046,7 +17046,7 @@ function resolveKovaVersion(scope: { connectionId?: string; profile?: string } =
   return resolveGatewayVersion(path => handleKovaApiRequest({ ...scope, path, timeoutMs: 5000 }))
 }
 
-// Renderer-bundle skew: `hermes update` moves the SOURCE TREE, but the UI
+// Renderer-bundle skew: `kova update` moves the SOURCE TREE, but the UI
 // (including bundled plugins like Bot Mode) is compiled into this binary at
 // build time. A terminal-side update — or an in-app update whose bundle-swap
 // leg failed — leaves the new runtime running under an old renderer, so About
@@ -17068,7 +17068,7 @@ async function detectRendererSkew() {
 }
 
 // Re-resolve the focused window's live Kova version just before showing the native About
-// panel, so an in-place `hermes update` shows without a restart. macOS only (no-op elsewhere).
+// panel, so an in-place `kova update` shows without a restart. macOS only (no-op elsewhere).
 function showAboutPanelFresh(): void {
   const scope = windowConnectionRoutes.versionScopeFor(BrowserWindow.getFocusedWindow() ?? mainWindow)
   void Promise.all([detectRendererSkew(), resolveKovaVersion(scope)]).then(([skew, version]) => {
@@ -17106,7 +17106,7 @@ ipcMain.handle('kova:version', async (_event, scope?: { connectionId?: string; p
     bundleCommitsBehind: skew.desktopCommitsBehind,
     // The install id: sha16 of the canonical install-root path — the key of
     // this install's per-install channel record and its installs/<sha16>/
-    // state folder. Same value `hermes update --install-id` prints; About
+    // state folder. Same value `kova update --install-id` prints; About
     // renders it as `sha16 (path)`.
     installId: installIdForRoot(resolveUpdateRoot(), canonicalizeInstallPath),
     // The artifact kind of THIS app plus whether the runtime checkout came
@@ -17138,7 +17138,7 @@ ipcMain.handle('kova:app:relaunch', async () => {
 })
 
 /** The latest pm/venv/plugin-operation receipt — the machine-readable
- *  surface every medium reads (CLI: `hermes pm status`). Returned as one
+ *  surface every medium reads (CLI: `kova pm status`). Returned as one
  *  parsed JSON object: { kind, outcome, venv_rebuild, plugin_bisect,
  *  plugin_checks, ... } or null when no operation has run yet. The file
  *  lives at <KOVA_HOME>/logs/update_receipts/latest.json — written by
@@ -17175,7 +17175,7 @@ function canonicalizeInstallPath(p: string): string {
 /** True when the runtime checkout was created by a bootstrap installer
  *  (install.sh / install.ps1 / the desktop first-launch bootstrap): those all
  *  finish by writing `.kova-bootstrap-complete` into the checkout root, and
- *  `hermes update` preserves the file, so a manual clone never grows one. A
+ *  `kova update` preserves the file, so a manual clone never grows one. A
  *  missing checkout (sealed bundled payloads, remote backends) is not
  *  installer-created. */
 export function isInstallerCreatedCheckout(root: string | null = ACTIVE_KOVA_ROOT): boolean {
@@ -17239,7 +17239,7 @@ function resolveKovaRuntime() {
 //
 // The renderer's About → Danger Zone surfaces three options that mirror the
 // CLI exactly: GUI only, Lite (keep user data), Full. We ask the agent to do
-// the actual removal via `hermes uninstall …` so the cross-platform PATH /
+// the actual removal via `kova uninstall …` so the cross-platform PATH /
 // registry / service / node-symlink cleanup all lives in one place
 // (kova_cli/uninstall.py + kova_cli/gui_uninstall.py).
 //

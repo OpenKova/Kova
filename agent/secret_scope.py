@@ -142,8 +142,8 @@ class UnscopedSecretError(RuntimeError):
         what = f"this profile's {secret_name}" if secret_name else "this profile's API key"
         super().__init__(
             f"Kova could not read {what} (an internal profile-scoping bug on the multiplexed "
-            "gateway, not your configuration). Run `hermes gateway restart`; if it keeps happening, "
-            "report it with `hermes debug share`."
+            "gateway, not your configuration). Run `kova gateway restart`; if it keeps happening, "
+            "report it with `kova debug share`."
         )
         self.secret_name = secret_name
         self.developer_detail = developer_detail

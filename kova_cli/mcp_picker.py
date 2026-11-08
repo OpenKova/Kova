@@ -1,4 +1,4 @@
-"""MCP picker — interactive `hermes mcp picker` (also the default `hermes mcp`)."""
+"""MCP picker — interactive `kova mcp picker` (also the default `kova mcp`)."""
 
 from __future__ import annotations
 
@@ -159,7 +159,7 @@ def _handle_row(row: _Row) -> None:
 
 
 def _print_rows_text(rows: list[_Row]) -> None:
-    """Plain-text catalog dump: `hermes mcp catalog` output and the non-curses fallback."""
+    """Plain-text catalog dump: `kova mcp catalog` output and the non-curses fallback."""
     print()
     if not rows:
         _say("  No MCPs in the catalog or configured.", Colors.DIM)
@@ -179,18 +179,18 @@ def _print_rows_text(rows: list[_Row]) -> None:
     if future:
         print()
         for name, _, _msg in future:
-            _say(f"  ⚠ '{name}' requires a newer Kova — run `hermes update` to install this entry.", Colors.YELLOW)
+            _say(f"  ⚠ '{name}' requires a newer Kova — run `kova update` to install this entry.", Colors.YELLOW)
         print()
     print()
 
 
 def show_catalog() -> None:
-    """`hermes mcp catalog` — print the curated list + custom servers, no interaction."""
+    """`kova mcp catalog` — print the curated list + custom servers, no interaction."""
     _print_rows_text(_build_rows())
 
 
 def run_picker() -> None:
-    """`hermes mcp picker` (and default `hermes mcp`) — interactive selector; re-renders after each
+    """`kova mcp picker` (and default `kova mcp`) — interactive selector; re-renders after each
     action until ESC/q."""
     while True:
         rows = _build_rows()
@@ -207,13 +207,13 @@ def run_picker() -> None:
 
 
 def install_by_name(identifier: str) -> int:
-    """`hermes mcp install <name>` — non-interactive entry-point."""
+    """`kova mcp install <name>` — non-interactive entry-point."""
     from kova_cli.mcp_catalog import get_entry
 
     entry = get_entry(identifier)
     if entry is None:
         _say(
-            f"  ✗ '{identifier}' is not in the catalog. Run `hermes mcp catalog` to see available entries.",
+            f"  ✗ '{identifier}' is not in the catalog. Run `kova mcp catalog` to see available entries.",
             Colors.RED,
         )
         return 1

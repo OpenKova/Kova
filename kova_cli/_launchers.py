@@ -430,13 +430,13 @@ def _hermes_closure_repair():
             from kova_cli import _early_recovery
             restored = _early_recovery.restore_interrupted_pull(root)
     except Exception as exc:
-        said.write('hermes: the checkout cannot start after an interrupted `hermes update`, and it was not '
+        said.write('hermes: the checkout cannot start after an interrupted `kova update`, and it was not '
                    'repaired: %s\\n' % (exc,))
     if restored:
-        sys.stderr.write('hermes: the checkout could not start after an interrupted `hermes update`; '
+        sys.stderr.write('hermes: the checkout could not start after an interrupted `kova update`; '
                          'repaired it with the recovery code saved before the update.\\n' + said.getvalue())
         _early_recovery.relaunch_after_restore()
-    sys.stderr.write(said.getvalue() or 'hermes: the checkout cannot start after an interrupted `hermes update`; '
+    sys.stderr.write(said.getvalue() or 'hermes: the checkout cannot start after an interrupted `kova update`; '
                      'launch again once the update that owns it finishes.\\n')
     raise SystemExit(1)
 """
@@ -617,7 +617,7 @@ def _retire_exe(exe: Path) -> bool:
 
     Windows refuses to delete a mapped image but allows renaming it, and the
     launcher a Python repin has to retire is usually the one running
-    ``hermes update`` (or the launch retrying its owed launcher step), so a
+    ``kova update`` (or the launch retrying its owed launcher step), so a
     plain unlink left every repinned update owing launchers -- and the install
     stamp -- forever. The aside copy goes on the next publication once its
     process has exited."""

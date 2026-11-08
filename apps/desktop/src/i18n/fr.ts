@@ -521,7 +521,7 @@ export const frOverrides = {
       "Votre paquet a été téléversé de manière privée. Partagez le lien ci-dessous dans votre fil d'assistance afin que l'équipe puisse consulter vos journaux.",
     failedTitle: "Échec de l'envoi",
     failedHint:
-      'Vous pouvez également exécuter `hermes debug share --nous` dans un terminal, ou `hermes debug share --local` pour afficher le rapport sans le téléverser.',
+      'Vous pouvez également exécuter `kova debug share --nous` dans un terminal, ou `kova debug share --local` pour afficher le rapport sans le téléverser.',
     handoffLead: 'Poursuivez la discussion sur :',
     links: {
       github: 'Issues GitHub',
@@ -5530,7 +5530,7 @@ export const frOverrides = {
       success: platform => `Transféré vers ${platform}. Reprenez ici à tout moment.`,
       systemNote: platform => `↻ Transféré vers ${platform} — reprenez ici à tout moment.`,
       failed: error => `Échec du transfert : ${error}`,
-      timedOut: "Délai d'expiration en attendant la Gateway. `hermes gateway` est-il en cours d'exécution ?",
+      timedOut: "Délai d'expiration en attendant la Gateway. `kova gateway` est-il en cours d'exécution ?",
       startMessaging: 'Démarrer la messagerie'
     }
   },

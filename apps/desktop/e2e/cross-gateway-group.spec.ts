@@ -3,7 +3,7 @@
  *
  * "This device" is the Electron-managed local backend (a multiplexing gateway
  * whose groups.capabilities reports the gateway-owned room driver). "Homelab"
- * is a REAL second `hermes serve` with its own HOME + KOVA_HOME, registered
+ * is a REAL second `kova serve` with its own HOME + KOVA_HOME, registered
  * as a remote connection, both answering from one mock inference server.
  *
  * New Group Chat must offer Homelab's bot beside this device's, create the
@@ -74,7 +74,7 @@ async function startRemoteGateway(root: string, mockUrl: string) {
   const deadline = Date.now() + 90_000
 
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) {throw new Error(`remote hermes serve exited early (${child.exitCode}):\n${log}`)}
+    if (child.exitCode !== null) {throw new Error(`remote kova serve exited early (${child.exitCode}):\n${log}`)}
 
     try {
       if ((await fetch(`${url}/api/status`, { headers: { 'X-Kova-Session-Token': REMOTE_TOKEN } })).ok) {break}

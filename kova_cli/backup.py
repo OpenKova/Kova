@@ -57,13 +57,13 @@ def _foreign_db_holder_pids(db_path: Path) -> Optional[list[int]]:
 
 # --- Exclusion rules ---
 
-# Where ``hermes backup --quick`` / ``/snapshot`` / the pre-update safety net write state
+# Where ``kova backup --quick`` / ``/snapshot`` / the pre-update safety net write state
 # snapshots (see ``create_quick_snapshot``); defined here because the exclusion set needs it.
 _QUICK_SNAPSHOTS_DIR = "state-snapshots"
 
 
 def _snapshot_recovery_hint() -> str:
-    """How to restore a state snapshot. There is no `hermes snapshot` subcommand — only the /snapshot
+    """How to restore a state snapshot. There is no `kova snapshot` subcommand — only the /snapshot
     slash command inside a `hermes` session (kova_cli/commands.py)."""
     return ("To restore a newer snapshot, start `hermes` in a terminal and run `/snapshot list`, then "
             "`/snapshot restore <id>` (CLI only).")
@@ -143,7 +143,7 @@ _EXCLUDED_PREFIXES = (
     f"state.db{RETIRED_GENERATION_DIR_SUFFIX}",
 )
 
-# Files ``hermes import`` must never overwrite, matched by basename so root and named profiles are
+# Files ``kova import`` must never overwrite, matched by basename so root and named profiles are
 # both covered. They hold runtime state namespaced to the SOURCE machine: ``gateway_state.json``
 # drives the container-boot reconciler (a foreign value leaves the gateway stuck "starting" and
 # disconnected from the Nous portal); PID/lock/registry files reference source PIDs. Mirrors
@@ -332,7 +332,7 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
 
     The one owner of the walk policy (directory pruning so os.walk never descends a multi-GB
     excluded tree, the root-only ``kova-agent`` carve-out, root runtime trees, per-file rules),
-    shared by ``hermes backup`` and the pre-update path so they can never drift.
+    shared by ``kova backup`` and the pre-update path so they can never drift.
     """
     for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
         rel_dir = Path(dirpath).relative_to(hermes_root)
@@ -402,7 +402,7 @@ def is_zeroed_sqlite_file(path: Path, *, probe_bytes: int = 100, force: bool = F
 _SQLITE_HEADER = b"SQLite format 3\0"
 
 # Above this size ``PRAGMA integrity_check`` (walks every b-tree page — minutes of pegged CPU on a
-# 30 GB state.db, reading as a hung ``hermes update``) is replaced by the O(1) header+schema probe.
+# 30 GB state.db, reading as a hung ``kova update``) is replaced by the O(1) header+schema probe.
 # Default ceiling above which ``PRAGMA integrity_check`` is skipped in favour of the (O(1)) header +
 # structural probe. Sessions databases in the tens of GB are normal for heavy users, so the size-unbounded
 # check is never an acceptable default on the update path. See #70553.
@@ -599,7 +599,7 @@ def run_backup(args) -> bool:
     the caller turns False into exit status 1 so a cron/systemd timer never publishes a "successful"
     archive that is missing state.db. Hard failures keep raising ``SystemExit``.
     """
-    require_file_tooling("`hermes backup`")
+    require_file_tooling("`kova backup`")
     hermes_root = get_default_kova_root()
 
     if not hermes_root.is_dir():
@@ -736,7 +736,7 @@ def _import_member_rel(member: str, prefix: str) -> tuple[str, bool]:
 
 def run_import(args) -> Optional[int]:
     """Restore a Kova backup; return 1 on damaged archives or incomplete restores."""
-    require_file_tooling("`hermes import`")
+    require_file_tooling("`kova import`")
     zip_path = Path(args.zipfile).expanduser().resolve()
 
     if not zip_path.is_file():
@@ -890,13 +890,13 @@ def run_import(args) -> Optional[int]:
                 # kova_cli.profiles might not be available (fresh install)
                 if any(profiles_dir.iterdir()):
                     print("\n  Profiles detected but aliases could not be created.")
-                    print("  Run: hermes profile list  (after installing hermes)")
+                    print("  Run: kova profile list  (after installing hermes)")
 
         # Guidance
         print()
         if not (hermes_root / "kova-agent").is_dir():
             print("Note: The kova-agent codebase was not included in the backup.")
-            print("  If this is a fresh install, run: hermes update")
+            print("  If this is a fresh install, run: kova update")
 
         if restored_profiles:
             gw_profiles = [n for n, _ in restored_profiles]
@@ -1082,7 +1082,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
             (native_default / marker).exists() for marker in ("config.yaml", ".env", "state.db")):
         print("\nRestored into a non-default home; leaving the gateway service alone to avoid clashing "
               f"with the install at {native_default}.\n"
-              "To start a gateway for this home, run:  hermes gateway run")
+              "To start a gateway for this home, run:  kova gateway run")
         return
     try:
         from kova_cli.gateway import _is_service_running
@@ -1094,7 +1094,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
         # Import boundary: the restore already succeeded; any service failure prints the
         # manual fallback instead of failing the import.
         logger.debug("gateway revive after import failed", exc_info=True)
-        print("\nStart the gateway to activate cron jobs and messaging:\n  hermes gateway run")
+        print("\nStart the gateway to activate cron jobs and messaging:\n  kova gateway run")
 
 
 # --- Quick state snapshots (used by /snapshot slash command and hermes backup --quick) ---
@@ -1102,7 +1102,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
 # Critical state files (relative to KOVA_HOME) for quick snapshots; everything else is
 # regeneratable or managed separately (skills, repo, sessions/). Entries may be files OR
 # directories (recursive); missing entries are skipped. Pairing data lives in platform JSON blobs
-# outside state.db, so it is listed explicitly — ``hermes update`` snapshots this set (#15733).
+# outside state.db, so it is listed explicitly — ``kova update`` snapshots this set (#15733).
 _QUICK_STATE_FILES = (
     "state.db", "config.yaml", ".env", "auth.json", "cron/jobs.json", "cron/executions.db",
     "gateway_state.json", "channel_directory.json", "channel_aliases.json", "processes.json",
@@ -1213,15 +1213,15 @@ def create_pre_update_backup(
     kova_home: Optional[Path] = None, keep: int = _PRE_UPDATE_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-update-<timestamp>.zip``, auto-pruned; ``None`` if nothing
     was found, the backup failed, or it was incomplete (salvage kept as ``*.incomplete.zip``).
-    Never raises — ``hermes update`` continues anyway."""
+    Never raises — ``kova update`` continues anyway."""
     return _create_prefixed_full_backup(kova_home, _PRE_UPDATE_PREFIX, max(keep, 1), "pre-update", "backup")
 
 
 def create_pre_migration_backup(
     kova_home: Optional[Path] = None, keep: int = _PRE_MIGRATION_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-migration-<timestamp>.zip`` before a plugin's agent import
-    (``hermes import-agent openclaw``), so its name and signature are API; same dir as update backups
-    so ``hermes import`` finds it. ``None`` if nothing was found, the write failed, or it was
+    (``kova import-agent openclaw``), so its name and signature are API; same dir as update backups
+    so ``kova import`` finds it. ``None`` if nothing was found, the write failed, or it was
     incomplete (salvage kept as ``*.incomplete.zip``). Never raises."""
     return _create_prefixed_full_backup(
         kova_home, _PRE_MIGRATION_PREFIX, max(keep, 0), "pre-migration", "pre-migration backup")
@@ -1263,10 +1263,10 @@ def _create_quick_snapshot_locked(
         max_file_size: When set, individual files larger than this many bytes
             are skipped (with a printed warning) instead of copied. Used by
             the pre-update safety snapshot so a multi-GB ``state.db`` can
-            never stall ``hermes update`` or silently eat disk — the small
+            never stall ``kova update`` or silently eat disk — the small
             pairing/cron/config files the snapshot exists to protect are
             always captured. ``None`` (default) copies everything, which
-            preserves manual ``/snapshot`` and ``hermes backup --quick``
+            preserves manual ``/snapshot`` and ``kova backup --quick``
             behavior.
 
     Returns:
@@ -1680,7 +1680,7 @@ def restore_cron_jobs_if_emptied(
     snapshot_id: str,
     kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
-    """Safety net for silent cron-job loss across ``hermes update``.
+    """Safety net for silent cron-job loss across ``kova update``.
 
     Config-version migrations have been observed to leave ``cron/jobs.json``
     valid-but-empty after an update, silently dropping every scheduled job
@@ -1849,7 +1849,7 @@ def restore_config_model_settings_if_rewritten(
     snapshot_id: str,
     kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
-    """Safety net for silent config.yaml model/MoA loss across ``hermes update``.
+    """Safety net for silent config.yaml model/MoA loss across ``kova update``.
 
     Desktop update/repair cycles have been observed to rewrite user-set
     ``model.provider``/``model.default`` and drop the ``moa:`` section

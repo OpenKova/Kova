@@ -1,9 +1,9 @@
 /**
  * One remote backend per SSH connection, every profile scoped per request.
  *
- * A registry SSH source used to spawn `hermes --profile <p> serve --isolated`
+ * A registry SSH source used to spawn `kova --profile <p> serve --isolated`
  * on the remote for EACH profile opened (one tunnel + one remote process per
- * (connection, profile)). The remote `hermes serve` already multiplexes every
+ * (connection, profile)). The remote `kova serve` already multiplexes every
  * profile under its KOVA_HOME the way a URL remote or the local host backend
  * does (REST `?profile=`, a host-scoped `/api/ws`), so a named profile rides the
  * connection's default backend as a `sharedRemote` descriptor instead: the

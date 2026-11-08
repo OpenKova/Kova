@@ -1,4 +1,4 @@
-"""CLI commands for the google_meet plugin (``hermes meet <subcommand>``).
+"""CLI commands for the google_meet plugin (``kova meet <subcommand>``).
 
   setup / install — preflight and install prerequisites
   auth            — open a browser to sign into Google, save storage state
@@ -33,7 +33,7 @@ def _auth_state_path() -> Path:
     return Path(get_kova_home()) / "workspace" / "meetings" / "auth.json"
 
 
-# ``hermes meet <sub>`` in help order.
+# ``kova meet <sub>`` in help order.
 _SUBCOMMAND_HELP = (
     ("setup", "Preflight: playwright, chromium, auth"),
     ("install", "Install prerequisites (Python dependencies, Chromium, platform audio tools)"),
@@ -47,7 +47,7 @@ _SUBCOMMAND_HELP = (
 
 
 def register_cli(subparser: argparse.ArgumentParser) -> None:
-    """Build the ``hermes meet`` argparse tree (called at plugin load time)."""
+    """Build the ``kova meet`` argparse tree (called at plugin load time)."""
     subs = subparser.add_subparsers(dest="meet_command")
     p = {name: subs.add_parser(name, help=help_) for name, help_ in _SUBCOMMAND_HELP}
     p["install"].add_argument("--realtime", action="store_true",
@@ -78,7 +78,7 @@ _DISPATCH = {
     "status": lambda a: _print_result(pm.status()),
     "transcript": lambda a: _cmd_transcript(last=a.last),
     "say": lambda a: _cmd_say(text=a.text, node=a.node),
-    "stop": lambda a: _print_result(pm.stop(reason="hermes meet stop")),
+    "stop": lambda a: _print_result(pm.stop(reason="kova meet stop")),
     "node": node_command}  # node subparsers are required=True, so a sub-command is always present
 
 
@@ -187,7 +187,7 @@ def _cmd_install(*, realtime: bool, assume_yes: bool) -> int:
                               "  brew install failed — install them manually")
             print("\n  NOTE: macOS does not auto-route audio. Open\n    System Settings → Sound → "
                   "Input\n  and select 'BlackHole 2ch' before starting a realtime meeting.\n  "
-                  "hermes will not switch your default input for you.")
+                  "kova will not switch your default input for you.")
     print("\ndone. verify with: hermes meet setup")
     return 0
 
@@ -276,6 +276,6 @@ def _cmd_transcript(last: Optional[int]) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    parser = argparse.ArgumentParser(prog="hermes meet")
+    parser = argparse.ArgumentParser(prog="kova meet")
     register_cli(parser)
     sys.exit(meet_command(parser.parse_args()))

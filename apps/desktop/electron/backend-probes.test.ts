@@ -130,7 +130,7 @@ test('verifyKovaCli accepts an actual zero-exit executable', async (): Promise<v
 test.skipIf(process.platform === 'win32')(
   'verifyKovaCli quotes a spaced executable path when probing through a shell',
   async (): Promise<void> => {
-    const spacedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes probe-'))
+    const spacedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova probe-'))
     const spacedCmd = path.join(spacedDir, 'hermes.cmd')
     fs.writeFileSync(spacedCmd, '#!/bin/sh\nexit 0\n', { mode: 0o755 })
     fs.chmodSync(spacedCmd, 0o755)

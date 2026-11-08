@@ -1,4 +1,4 @@
-/** The `hermes --tui` launcher's environment as `session.create` options and the launch tool-progress
+/** The `kova --tui` launcher's environment as `session.create` options and the launch tool-progress
  *  pin: Ink's launch contract, read here and handed to the shared gateway client. */
 import { t } from './i18n/runtime.js'
 
@@ -11,12 +11,12 @@ export function localCreationOptions(env = process.env): Record<string, unknown>
 
   if (env.KOVA_TUI_TOOLSETS) { options.toolsets = env.KOVA_TUI_TOOLSETS.split(',') }
 
-  // `hermes --tui -s a,b`: the owner renders these into the session's frozen prompt.
+  // `kova --tui -s a,b`: the owner renders these into the session's frozen prompt.
   const skills = [...new Set((env.KOVA_TUI_SKILLS ?? '').split(/[,\n]/).map(name => name.trim()).filter(Boolean))]
 
   if (skills.length) { options.skills = skills }
 
-  // The launcher's shell environment (allowlisted by `hermes --tui`): this session's KOVA_* behaviour
+  // The launcher's shell environment (allowlisted by `kova --tui`): this session's KOVA_* behaviour
   // values and tool PATH/venv on the shared gateway, as main's own process had them.
   const clientEnv = parseClientEnv(env.KOVA_TUI_CLIENT_ENV)
 
@@ -30,7 +30,7 @@ export function localCreationOptions(env = process.env): Record<string, unknown>
     options.max_turns = Number.isInteger(turns) ? turns : env.KOVA_TUI_MAX_TURNS.trim()
   }
 
-  // `hermes --tui --yolo` / `--ignore-rules` export KOVA_YOLO_MODE / KOVA_IGNORE_RULES (the in-process
+  // `kova --tui --yolo` / `--ignore-rules` export KOVA_YOLO_MODE / KOVA_IGNORE_RULES (the in-process
   // TUI read them); over the canonical gateway they must ride session.create as frozen launch flags or the
   // session prompts anyway / still loads rules, SOUL, memory and skills.auto_load.
   const truthy = (value?: string) => ['1', 'true', 'yes', 'on'].includes((value ?? '').trim().toLowerCase())
@@ -68,7 +68,7 @@ function parseClientEnv(raw?: string): Record<string, string> | undefined {
 
 const TOOL_PROGRESS_MODES = new Set(['off', 'new', 'all', 'verbose'])
 
-/** `hermes --tui -v` / `-Q` export KOVA_TUI_TOOL_PROGRESS (verbose / off). The owner carries it as the
+/** `kova --tui -v` / `-Q` export KOVA_TUI_TOOL_PROGRESS (verbose / off). The owner carries it as the
  * session-scoped tool-progress mode (`config.set key=verbose`, the same control `/verbose` writes), so a
  * fresh session is pinned right after creation. An unreadable value refuses the launch, never drops it. */
 export function launchToolProgress(env = process.env): string | undefined {

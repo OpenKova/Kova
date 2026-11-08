@@ -1394,7 +1394,7 @@ test('withRemoteTimeout kills a hung probe remotely instead of orphaning it (#11
   }
 
   // Shape: POSIX watchdog — macOS remotes have no GNU `timeout`.
-  const wrapped = withRemoteTimeout('hermes --version 2>&1', 15)
+  const wrapped = withRemoteTimeout('kova --version 2>&1', 15)
 
   assert.ok(!/(^|[ ;(])timeout[ ;]/.test(wrapped), 'no GNU timeout dependency')
   assert.ok(

@@ -113,7 +113,7 @@ def restore_cron_prompt_fields_if_degraded(
     snapshot_id: str,
     kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
-    """Safety net for field-level cron-job degradation across ``hermes update``.
+    """Safety net for field-level cron-job degradation across ``kova update``.
 
     A writer active during the update's mutation window replaced every
     agent-job ``prompt`` with the job's own ``name`` while the job COUNT

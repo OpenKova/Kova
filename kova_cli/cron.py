@@ -47,7 +47,7 @@ def _builtin_gateway_liveness() -> Optional[bool]:
 
     A gateway launched from this home proves itself by process liveness. Any other scheduler that
     ticks this home — the host multiplexer for a served profile, or the in-process ticker inside
-    ``hermes serve`` / the Desktop backend (#121881) — proves itself only by the fresh heartbeat it
+    ``kova serve`` / the Desktop backend (#121881) — proves itself only by the fresh heartbeat it
     writes into this home's store. External providers use their own machinery and are exempt.
     """
     try:
@@ -84,8 +84,8 @@ def _warn_if_gateway_not_running() -> None:
     # profile's jobs, so a bare "not running" reads as a system claim it cannot make (#99579).
     print(color(f"  ⚠  Scheduler is not ready for profile '{get_active_profile_name()}': "
                 "no gateway serves it and no fresh ticker heartbeat.", Colors.YELLOW))
-    print(color("     If no gateway is running: hermes gateway install\n"
-                "                    sudo hermes gateway install --system  # Linux servers\n"
+    print(color("     If no gateway is running: kova gateway install\n"
+                "                    sudo kova gateway install --system  # Linux servers\n"
                 "     Check status:  hermes cron status", Colors.DIM))
 
 
@@ -191,7 +191,7 @@ def cron_list(show_all: bool = False):
     from kova_cli.profiles import get_active_profile_name
     if not jobs:
         print(color(f"No scheduled jobs in profile '{get_active_profile_name()}'.\n"
-                    "Create one with 'hermes cron create ...' or the /cron command in chat.", Colors.DIM))
+                    "Create one with 'kova cron create ...' or the /cron command in chat.", Colors.DIM))
         return
 
     _print_banner(f"Scheduled Jobs (profile: {get_active_profile_name()})")
@@ -274,14 +274,14 @@ def _short_reason(text: Any, limit: int = 120) -> str:
 
 
 def _delivery_fix_hint(job: dict[str, Any]) -> str:
-    return (f"Check the target with `hermes cron status` or change it with "
-            f"`hermes cron edit {job.get('id', '<id>')} --deliver <target>`.")
+    return (f"Check the target with `kova cron status` or change it with "
+            f"`kova cron edit {job.get('id', '<id>')} --deliver <target>`.")
 
 
 def _missed_fire_issue(job: dict[str, Any], fire_err: dict[str, Any]) -> str:
     return (f"missed scheduled fire at {fire_err.get('at', '?')}: {_short_reason(fire_err['detail'])}. "
-            "The messaging gateway was unreachable. Run `hermes gateway restart`, then "
-            f"`hermes cron run {job.get('id', '<id>')}` to run it now.")
+            "The messaging gateway was unreachable. Run `kova gateway restart`, then "
+            f"`kova cron run {job.get('id', '<id>')}` to run it now.")
 
 
 def _job_warnings(job: dict[str, Any]) -> list[str]:
@@ -336,7 +336,7 @@ def cron_tick():
         # For the one-shot CLI surface, report cleanly instead of dumping a traceback; the gateway ticker
         # loop handles its own retry. See #87644.
         print(color(f"✗ Cron tick failed: {exc}", Colors.RED))
-        print("  Check `hermes cron status` and the gateway log for details.")
+        print("  Check `kova cron status` and the gateway log for details.")
         return 1
     return 0
 
@@ -446,14 +446,14 @@ def _probe_then_list_jobs(*, include_disabled: bool, brief: bool = False):
 def _print_store_unwritable(report: dict, *, brief: bool = False) -> None:
     if brief:  # `cron list`: one line
         print(color(f"⚠ Cron store {report['store']} is NOT writable ({report['error']}) — scheduled jobs "
-                    f"are being skipped; {report['fix']}. See `hermes cron status`.", Colors.RED))
+                    f"are being skipped; {report['fix']}. See `kova cron status`.", Colors.RED))
         return
     print(color("⚠ Cron store is NOT writable — scheduled jobs are being skipped", Colors.RED))
     print(color(f"  {report['store']}: {report['error']} (last successful write {report['since']})", Colors.RED))
     print(color(f"  Fix: {report['fix']}. Each due job then fires once on the next tick.", Colors.YELLOW))
 
 
-def _print_ticker_health(pids: list, restart_command: str = "hermes gateway restart") -> None:
+def _print_ticker_health(pids: list, restart_command: str = "kova gateway restart") -> None:
     """Report builtin-ticker liveness for a gateway process known to be alive.
 
     The ticker THREAD can die silently or stay alive while every tick fails, so check both
@@ -478,14 +478,14 @@ def _print_ticker_health(pids: list, restart_command: str = "hermes gateway rest
         # Ticker never started (non-cron profile, gateway just started, or a config issue).
         _warn("⚠ Gateway is running but the cron ticker has not reported a heartbeat.")
         print("  Cron jobs will NOT fire until the ticker writes its first heartbeat.\n"
-              "  If the gateway just started, wait ~60s and re-run `hermes cron status`.\n"
+              "  If the gateway just started, wait ~60s and re-run `kova cron status`.\n"
               f"  If heartbeat never appears, restart: {restart_command}")
     elif not _ticker_age_is_fresh(hb_age):  # ticker thread is gone
         _warn("⚠ Gateway is running but the cron ticker looks STALLED — "
               f"no heartbeat for {int(hb_age)}s (expected every ~60s).")
         print(f"  Cron jobs may NOT be firing. Restart: {restart_command}")
     elif (skew := stale_code_yield_labels(last_error)) is not None:
-        # `hermes update` moved the checkout under a running gateway: its ticker yields every
+        # `kova update` moved the checkout under a running gateway: its ticker yields every
         # tick (heartbeat stays fresh, nothing dispatches) until the process is restarted (#117275).
         _warn("⚠ Gateway is running STALE code — its cron ticker yields every tick and "
               "fires NOTHING.")
@@ -566,7 +566,7 @@ def cron_status():
             if not gateway_alive_via_lock:
                 served_by_multiplexer = named_profile_served_by_running_multiplexer()
             if not gateway_alive_via_lock and not served_by_multiplexer:
-                # `hermes serve` / the Desktop backend ticks every local profile in-process: no
+                # `kova serve` / the Desktop backend ticks every local profile in-process: no
                 # gateway argv, lock or host record — only the heartbeat it writes here (#121881).
                 with contextlib.suppress(Exception):
                     from cron.jobs import get_ticker_heartbeat_age, ticker_heartbeat_writer_alive
@@ -574,7 +574,7 @@ def cron_status():
                                          and ticker_heartbeat_writer_alive())
         if host is not None:
             print(f"  Scheduler host: {host.describe()}")
-            # `hermes gateway restart` exits 78 for a served NAMED profile
+            # `kova gateway restart` exits 78 for a served NAMED profile
             # (_guard_named_profile_under_multiplexer): name the profile that LAUNCHED the host
             # process. On a standalone fleet that is this profile itself, not default (#120871).
             owner = None
@@ -582,13 +582,13 @@ def cron_status():
                 from kova_cli.gateway import host_multiplexer_serving
                 owner = host_multiplexer_serving(active)
             host_profile = owner.profile_label if owner is not None else "default"
-            _print_ticker_health([host.pid], restart_command=f"hermes --profile {host_profile} gateway restart")
+            _print_ticker_health([host.pid], restart_command=f"kova --profile {host_profile} gateway restart")
         elif pids or gateway_alive_via_lock or served_by_multiplexer or in_process_ticker:
             if served_by_multiplexer:
                 print("  Scheduler host: the host gateway (multiplexing this profile)")
-                _print_ticker_health([], restart_command="hermes --profile default gateway restart")
+                _print_ticker_health([], restart_command="kova --profile default gateway restart")
             elif in_process_ticker:
-                print(f"  Scheduler host: an in-process ticker (hermes serve / Desktop backend) ticking profile '{active}'")
+                print(f"  Scheduler host: an in-process ticker (kova serve / Desktop backend) ticking profile '{active}'")
                 _print_ticker_health([], restart_command="restart the Kova Desktop app (or its serve backend)")
             else:
                 _print_ticker_health(pids)
@@ -771,7 +771,7 @@ def cron_doctor() -> int:
         for issue in issues:
             print(f"    - {issue}")
     print()
-    print(color("Review the findings above, then run `hermes cron doctor` again.", Colors.DIM))
+    print(color("Review the findings above, then run `kova cron doctor` again.", Colors.DIM))
     return 1
 
 
@@ -951,7 +951,7 @@ def cron_resume(args) -> int:
 
 
 def cron_notepad(args) -> int:
-    """Handle ``hermes cron notepad <job_id> [get|set|delete|list]`` (per-job durable KV).
+    """Handle ``kova cron notepad <job_id> [get|set|delete|list]`` (per-job durable KV).
 
     A running cron agent updates its own notepad via its terminal tool; the scheduler injects
     non-empty notepads into the job prompt on each run.

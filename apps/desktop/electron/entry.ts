@@ -15,7 +15,7 @@ import { spawnWslgLaunch } from './wslg-launch-process'
 // Start-Process) must not keep the system proxy the update's children were given.
 restoreUserProxyEnv(process.env)
 
-// `hermes desktop` asks this binary whether Chromium's namespace sandbox starts under the host's
+// `kova desktop` asks this binary whether Chromium's namespace sandbox starts under the host's
 // AppArmor policy (#130177). Chromium creates its sandboxed zygote before any JS runs, so reaching
 // this line answers yes; exit before any window, single-instance lock, backend or relaunch.
 if (process.argv.includes('--hermes-sandbox-probe')) {

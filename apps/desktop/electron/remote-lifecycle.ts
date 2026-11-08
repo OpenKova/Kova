@@ -42,7 +42,7 @@ const READY_RE = READY_IN_MERGED_OUTPUT_RE // the remote log is `>> log 2>&1`: m
 const REMOTE_LOCK_DIR = '~/.kova/desktop-ssh'
 const SUPPORTED_REMOTE_OS = new Set(['Linux', 'Darwin'])
 // On a busy remote host a healthy cold boot can take 60-150s before the
-// freshly spawned `hermes serve --isolated` prints its READY line (event-loop
+// freshly spawned `kova serve --isolated` prints its READY line (event-loop
 // stalls of 5-27s each during spawn storms are routine). The historical 45s
 // budget gave up milliseconds before a healthy backend announced ready and
 // surfaced a timeout toast (issue #94642). A roomier default absorbs the

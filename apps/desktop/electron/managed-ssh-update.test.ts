@@ -358,9 +358,9 @@ test('update-all deduplicates the same recovery scope and keeps primary preceden
 test.runIf(process.platform !== 'win32').each([0, 23])(
   'POSIX managed launcher executes the updater command and atomically publishes status %i',
   async (exitCode: number): Promise<void> => {
-    const home: string = await mkdtemp(path.join(os.tmpdir(), 'hermes managed launch '))
+    const home: string = await mkdtemp(path.join(os.tmpdir(), 'kova managed launch '))
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
-    const launcher: string = path.join(home, 'hermes launcher')
+    const launcher: string = path.join(home, 'kova launcher')
 
     try {
       await writeFile(
@@ -565,7 +565,7 @@ test.runIf(process.platform !== 'win32')(
       assert.equal(owed.restoreOk, true)
       assert.deepEqual(owed.owed, [{ step: 'dependencies', reason: 'sync failed' }])
       assert.match(owed.message || '', /still owed: dependencies \(sync failed\)/)
-      assert.match(owed.message || '', /hermes update/)
+      assert.match(owed.message || '', /kova update/)
       assert.match(managedSshUpdateAllRow({ id: 'home' }, owed).detail || '', /dependencies/)
 
       const clean = await run([])
@@ -601,7 +601,7 @@ test.runIf(process.platform !== 'win32')(
       const detail = managedSshUpdateAllRow({ id: 'home' }, partial).detail || ''
       assert.ok(detail.includes(instruction), detail)
       assert.match(detail, /local_changes/)
-      assert.doesNotMatch(detail, /Re-run `hermes update`/)
+      assert.doesNotMatch(detail, /Re-run `kova update`/)
     } finally {
       await rm(home, { force: true, recursive: true })
     }

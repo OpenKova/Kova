@@ -1,4 +1,4 @@
-"""Shared leaf helpers for the ``hermes update`` modules (no Kova imports; no cycle)."""
+"""Shared leaf helpers for the ``kova update`` modules (no Kova imports; no cycle)."""
 
 import logging
 import sys

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
 """Regenerate tests/kova_cli/serve_handler_ledger.json from the code.
 
-One row per handler ``hermes serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app
+One row per handler ``kova serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app
 (``kova_cli.web_server.app``, imported the way ``serve`` imports it, ``KOVA_SERVE_HEADLESS=1``)
 and every JSON-RPC method a ``/api/ws`` client can call (the legacy ``tui_gateway.server._methods``
 table plus the verbs the session authority serves). ``gateway.ping``, the ``/api/ws`` heartbeat, is

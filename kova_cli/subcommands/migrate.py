@@ -1,4 +1,4 @@
-"""``hermes migrate`` subcommand parser."""
+"""``kova migrate`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -32,10 +32,10 @@ def build_migrate_parser(subparsers) -> None:
         "relay", help="Convert legacy KOVA_NEMO_RELAY_ATIF_*/ATOF_* exporter vars into relay-plugins.toml",
         description="The NeMo Relay cutover stopped reading the legacy exporter variables. Generate "
             "<hermes home>/relay-plugins.toml from them, point KOVA_NEMO_RELAY_PLUGINS_TOML at it, "
-            "and comment the legacy lines out. `hermes update` runs this for every profile automatically.")
+            "and comment the legacy lines out. `kova update` runs this for every profile automatically.")
     migrate_relay.add_argument(
         "--all-profiles", action="store_true",
-        help="Migrate the default home and every named profile (what `hermes update` does)")
+        help="Migrate the default home and every named profile (what `kova update` does)")
     migrate_relay.add_argument(
         "--no-validate", action="store_true",
         help="Skip activating the generated file through Relay's validator before writing it")
@@ -45,8 +45,8 @@ def build_migrate_parser(subparsers) -> None:
 
 
 def _add_agent_import_parsers(migrate_subparsers) -> None:
-    """``hermes migrate <agent>``: one per importer setup offers; runs the agent-importers plugin's
-    ``hermes import-agent <agent>`` (installing the plugin first when it is missing)."""
+    """``kova migrate <agent>``: one per importer setup offers; runs the agent-importers plugin's
+    ``kova import-agent <agent>`` (installing the plugin first when it is missing)."""
     from kova_cli.migrate import cmd_migrate_agent
     from kova_cli.setup_agent_import import IMPORT_SOURCES
 

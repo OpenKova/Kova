@@ -1,4 +1,4 @@
-"""``hermes clipboard`` subcommand parser."""
+"""``kova clipboard`` subcommand parser."""
 
 from __future__ import annotations
 

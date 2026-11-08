@@ -93,7 +93,7 @@ def _strip_console_status_footer(text: str) -> str:
     if len(lines) < 2:
         return text.rstrip()
     last, prev = (_strip_ansi(lines[i]).strip() for i in (-1, -2))
-    if not (prev.startswith("Run 'hermes doctor'") and last.startswith("Run 'hermes setup'")):
+    if not (prev.startswith("Run 'kova doctor'") and last.startswith("Run 'kova setup'")):
         return text.rstrip()
     lines = lines[:-2]
     _drop_trailing_blank(lines)
@@ -151,7 +151,7 @@ def _clean_summary(text: str | None) -> str:
     if not text or text is argparse.SUPPRESS:
         return ""
     summary = " ".join(str(text).split())
-    return "" if summary.startswith("Run `hermes ") else summary
+    return "" if summary.startswith("Run `kova ") else summary
 
 
 def _choice_help(action: argparse._SubParsersAction, name: str) -> str:
@@ -345,8 +345,8 @@ def _register_command_family(
             return _dispatch(surface, root, fixed, args, namespace_update)
 
         engine.register(
-            full_path, usage, summaries.get(full_path) or f"Run `hermes {usage}`.", handler,
-            mutating=mutating, confirmation=f"Run `hermes {usage}`?")
+            full_path, usage, summaries.get(full_path) or f"Run `kova {usage}`.", handler,
+            mutating=mutating, confirmation=f"Run `kova {usage}`?")
 
 
 _BLOCKED_TOP = frozenset(
@@ -478,7 +478,7 @@ class KovaConsoleEngine:
         if first.startswith("-"):
             return f"{first} is not available in Kova Console."
         if first in _BLOCKED_TOP:
-            return f"`hermes {first}` is not available in Kova Console."
+            return f"`kova {first}` is not available in Kova Console."
         return _BLOCKED_PAIRS.get(tuple(tokens[:2]), "")
 
     def _cap_output(self, output: str) -> str:
@@ -829,7 +829,7 @@ _BUILTIN_COMMANDS = (
 
 def run_console_repl(
     *, stdin=None, stdout=None, stderr=None, interactive: bool | None = None) -> int:
-    """Run the local ``hermes console`` REPL."""
+    """Run the local ``kova console`` REPL."""
     stdin, stdout, stderr = stdin or sys.stdin, stdout or sys.stdout, stderr or sys.stderr
     if interactive is None:
         interactive = bool(getattr(stdin, "isatty", lambda: False)())

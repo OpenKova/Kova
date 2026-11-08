@@ -6,8 +6,8 @@ import { commandLineIsKovaRuntime } from './kova-process'
 describe('commandLineIsKovaRuntime (HX003 token matching)', () => {
   it('matches a real Kova gateway command line', () => {
     expect(commandLineIsKovaRuntime('hermes\0gateway\0run')).toBe(true)
-    expect(commandLineIsKovaRuntime('hermes gateway run')).toBe(true)
-    expect(commandLineIsKovaRuntime('hermes --profile work gateway run')).toBe(true)
+    expect(commandLineIsKovaRuntime('kova gateway run')).toBe(true)
+    expect(commandLineIsKovaRuntime('kova --profile work gateway run')).toBe(true)
   })
 
   it('matches a Kova launched by an interpreter (basename of a path token)', () => {

@@ -13,9 +13,9 @@ from __future__ import annotations
 try:
     import kova_bootstrap
 except ModuleNotFoundError:
-    pass  # partial `hermes update` — only skips the Windows UTF-8 stdio setup
+    pass  # partial `kova update` — only skips the Windows UTF-8 stdio setup
 
-# The `kova-agent` console script lands here without kova_cli.main: repair a `hermes update` killed
+# The `kova-agent` console script lands here without kova_cli.main: repair a `kova update` killed
 # while git wrote the new tree before importing anything else from the checkout.
 from kova_cli import _early_recovery
 

@@ -1,4 +1,4 @@
-"""Messaging-platform setup wizards (Telegram, webhooks) and the ``hermes setup
+"""Messaging-platform setup wizards (Telegram, webhooks) and the ``kova setup
 gateway`` flow. setup.py re-exports the public names, and tests monkeypatch prompt/print/env
 helpers on kova_cli.setup, so those are imported lazily per function."""
 
@@ -301,7 +301,7 @@ def setup_gateway(config: dict):
     pre_selected = [i for i, status in enumerate(statuses) if status == "configured"]
     selected = prompt_checklist("Select platforms to configure:", items, pre_selected)
     if not selected:
-        print_info("No platforms selected. Run 'hermes setup gateway' later to configure.")
+        print_info("No platforms selected. Run 'kova setup gateway' later to configure.")
     for idx in selected or ():
         _configure_platform(platforms[idx])
 

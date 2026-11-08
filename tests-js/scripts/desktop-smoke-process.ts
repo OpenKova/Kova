@@ -69,7 +69,7 @@ const SYNTHETIC_NEXT_MARKER = '.kova-e2e-next'
 
 /** The commit a reused packaged app may still report for an installed source checkout.
  *
- * `hermes update` keeps the packaged app when no desktop build input changed, and that app keeps
+ * `kova update` keeps the packaged app when no desktop build input changed, and that app keeps
  * naming the commit it was built from (kova_cli/desktop_build_reuse.py). The harness can prove
  * that case only for the synthetic NEXT commit, whose sole change is one marker file: there the
  * parent is the commit the app may report. Any other installed commit, and any bundled install,
@@ -239,8 +239,8 @@ function gatewayIncarnationMatches(pid: number, recorded: number | null | undefi
   return started !== null && Math.abs(started - recorded / 100) < 2
 }
 
-/** The running canonical gateway (`hermes gateway run`) recorded for `homes`. Desktop reaches a
- * local backend through `hermes gateway ensure`, which attaches to that daemon or starts it
+/** The running canonical gateway (`kova gateway run`) recorded for `homes`. Desktop reaches a
+ * local backend through `kova gateway ensure`, which attaches to that daemon or starts it
  * detached, so it is neither an Electron descendant nor a `serve` spawn-ledger record. */
 function canonicalGateways(homes: string[], processes: NativeProcess[]): Map<number, string | undefined> {
   return new Map([...new Set(homes)].flatMap((home: string): Array<[number, string | undefined]> => {

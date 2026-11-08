@@ -81,7 +81,7 @@ _LAUNCHD_JOB_UNLOADED_EXIT_CODES = frozenset({3, 113, 125})
 # services (macOS 26+). Only when the retry ALSO fails do callers degrade to a detached process.
 # launchctl returns 5 ("Input/output error") or a persistent 125 in two very different situations, so exit 5
 # is NOT on its own proof the domain is broken: 1. See #42914. 2. Here launchd cannot supervise the gateway
-# at all and we degrade to a detached background process (the `nohup hermes gateway run` workaround). See
+# at all and we degrade to a detached background process (the `nohup kova gateway run` workaround). See
 # #23387.
 _LAUNCHCTL_DOMAIN_UNSUPPORTED_CODES = frozenset({5, 125})
 
@@ -257,12 +257,12 @@ def launchd_program_arguments(command: list[str], stdout_log: Path, stderr_log: 
 
 def _timestamped_stderr_gateway_command(error_log: Path, *, external_supervisor: bool = False) -> list[str]:
     """Wrap gateway run so raw stderr lines are timestamped before file write. ``external_supervisor``
-    (launchd ProgramArguments only) adds ``--external-supervisor`` so ``hermes update`` hands back to
+    (launchd ProgramArguments only) adds ``--external-supervisor`` so ``kova update`` hands back to
     launchd, and drops ``--replace``: KeepAlive respawns would re-arm takeover, so two profiles sharing
     a token would kill each other forever.
 
     ``external_supervisor=True`` is for launchd ProgramArguments only: the inner ``gateway run`` must carry
-    ``--external-supervisor`` so ``hermes update`` sees the flag on the live grandchild argv and hands the
+    ``--external-supervisor`` so ``kova update`` sees the flag on the live grandchild argv and hands the
     process back to launchd instead of starting a detached watcher (#86893 / #87005). The detached nohup
     fallback stays unmarked.
     Supervised starts also drop ``--replace`` (issue #79048): a launchd service is respawned by KeepAlive,
@@ -290,7 +290,7 @@ def _spawn_detached_gateway() -> bool:
     stdout → gateway.log, timestamped stderr → gateway.error.log, PID via gateway.pid so stop/status work.
 
     Used when launchctl can no longer bootstrap/kickstart the gateway on macOS 26+ (issue #23387). Mirrors
-    the `nohup hermes gateway run --replace` workaround but keeps it CLI-managed: stdout goes to
+    the `nohup kova gateway run --replace` workaround but keeps it CLI-managed: stdout goes to
     gateway.log, stderr is timestamped into gateway.error.log, and the PID is tracked via the gateway.pid
     file that `run_gateway` writes, so stop/status/restart keep working.
     """
@@ -327,10 +327,10 @@ def _launchd_fallback_to_detached(reason: str, *, exit_on_failure: bool = True) 
         print("✓ Started gateway as a background process instead")
         print("  It will NOT auto-start at login or auto-restart on crash.")
         print(f"  Logs: {_dhh()}/logs/gateway.log")
-        print("  Stop it with: hermes gateway stop")
+        print("  Stop it with: kova gateway stop")
         return True
     _gw().print_error("Failed to start the gateway as a background process.")
-    print(f"  Try manually: nohup hermes gateway run --replace > {_dhh()}/logs/gateway.log 2>&1 &")
+    print(f"  Try manually: nohup kova gateway run --replace > {_dhh()}/logs/gateway.log 2>&1 &")
     if exit_on_failure:
         sys.exit(1)
     return False
@@ -354,7 +354,7 @@ def _launchd_degrade_or_raise(exc: subprocess.CalledProcessError, what: str) -> 
     if _gw()._launchctl_label_supervising_process(label):
         print(f"⚠ {what} failed (exit {exc.returncode}), but launchd still supervises {label}")
         print("  Not switching to the detached fallback — this host manages the job.")
-        print("  Apply the definition with: hermes gateway stop && hermes gateway install --force")
+        print("  Apply the definition with: kova gateway stop && kova gateway install --force")
         raise exc
     _launchd_fallback_to_detached(f"{what} exit {exc.returncode}")
 
@@ -676,7 +676,7 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
                 from kova_constants import display_kova_home
                 print(
                     "⚠ Service definition could not be reloaded with launchd. "
-                    "Run 'hermes gateway install --force' or check "
+                    "Run 'kova gateway install --force' or check "
                     f"{display_kova_home()}/logs/launchd-reload.log for details."
                 )
             return
@@ -691,7 +691,7 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
 
     if not load:
         # A job left loaded but idle (a parked clean exit) keeps its old definition, and that is
-        # what `hermes gateway start` would kickstart instead of loading this plist.
+        # what `kova gateway start` would kickstart instead of loading this plist.
         subprocess.run(
             ["launchctl", "bootout", f"{_gw()._launchd_domain()}/{label}"],
             check=False, timeout=90, **_gw()._CAPTURE_TEXT)
@@ -699,8 +699,8 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
         print("✓ Service installed, not started (launchd starts it at your next login)")
         print()
         print("Next steps:")
-        print("  hermes gateway start              # Start it now")
-        print("  hermes gateway status             # Check status")
+        print("  kova gateway start              # Start it now")
+        print("  kova gateway status             # Check status")
         return
 
     if force_old_pid is not None:
@@ -729,7 +729,7 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
     _gw()._clear_launchd_unsupported_marker()
     print()
     print("Next steps:")
-    print("  hermes gateway status             # Check status")
+    print("  kova gateway status             # Check status")
     from kova_constants import display_kova_home as _dhh
     print(f"  tail -f {_dhh()}/logs/gateway.log  # View logs")
 
@@ -803,7 +803,7 @@ def launchd_stop():
     gateway_service_owner.refuse_foreign_launchd_plist("stop")
     target = f"{_launchd_domain()}/{get_launchd_label()}"
     _gw()._mark_planned_stop()
-    # bootout unloads the definition so KeepAlive doesn't respawn; `hermes gateway start` re-bootstraps.
+    # bootout unloads the definition so KeepAlive doesn't respawn; `kova gateway start` re-bootstraps.
     try:
         # Captured: an already-unloaded job (3/113/125) is handled below, so launchctl's own
         # "Boot-out failed: 3" must not print around the ✓ line; e.stderr stays on the raised error.
@@ -858,7 +858,7 @@ def launchd_restart():
             return
         if pid is not None and _gw().probe_gateway_loop_liveness(pid) == _gw().GATEWAY_LOOP_WEDGED:
             # Event loop provably dead: it can't process a graceful shutdown, so a full drain wait
-            # only stalls the restart (and `hermes update`). Bounded SIGTERM → SIGKILL, ~10s.
+            # only stalls the restart (and `kova update`). Bounded SIGTERM → SIGKILL, ~10s.
             print(f"⚠ Gateway PID {pid} event loop is unresponsive — " "skipping drain and forcing a bounded stop...")
             _gw()._escalate_wedged_gateway(pid)
             pid = None
@@ -983,12 +983,12 @@ def launchd_status(deep: bool = False):
         print("✓ Service definition matches the current Kova install")
     else:
         print("⚠ Service definition is stale relative to the current Kova install")
-        print("  Run: hermes gateway start")
+        print("  Run: kova gateway start")
 
     if not service_listed:
         print("✗ Gateway service is not loaded")
         print("  Service definition exists locally but launchd has not loaded it.")
-        print("  Run: hermes gateway start")
+        print("  Run: kova gateway start")
         if fallback_pid:
             print(f"  Note: a detached gateway process is running (PID {fallback_pid})")
     elif launchd_pid is not None:
@@ -1001,10 +1001,10 @@ def launchd_status(deep: bool = False):
         print("  launchd cannot manage the gateway on this macOS version.")
         if fallback_pid:
             print(f"✓ Detached fallback process is running (PID {fallback_pid})")
-            print("  Cron jobs will fire. Stop with: hermes gateway stop")
+            print("  Cron jobs will fire. Stop with: kova gateway stop")
         else:
             print("✗ No fallback process is running")
-            print("  Run: hermes gateway start")
+            print("  Run: kova gateway start")
         print("  ⚠ Auto-start at login and auto-restart on crash are NOT available.")
     else:
         print("✓ Gateway service is registered with launchd")

@@ -300,7 +300,7 @@ export const zhOverrides = {
     doneDescription: '调试包已私密上传。在您的支持会话中分享以下链接，团队即可查看您的日志。',
     failedTitle: '上传失败',
     failedHint:
-      '您也可以在终端运行 `hermes debug share --nous`，或运行 `hermes debug share --local` 在不上传的情况下查看报告。',
+      '您也可以在终端运行 `kova debug share --nous`，或运行 `kova debug share --local` 在不上传的情况下查看报告。',
     handoffLead: '在以下位置继续讨论:',
     links: {
       github: 'GitHub Issues',
@@ -2646,7 +2646,7 @@ export const zhOverrides = {
       wecom: '在企业微信中添加群机器人，复制其 webhook key 作为 WECOM_BOT_ID。仅可发送——双向请用企业微信 (应用) 选项。',
       wecom_callback: '设置一个企业微信自建应用，暴露其回调 URL，并提供 corp ID、secret、agent ID 和 AES key。',
       weixin:
-        '运行 `hermes gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码。Kova 会通过腾讯 iLink Bot API 连接并保存凭据。',
+        '运行 `kova gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码。Kova 会通过腾讯 iLink Bot API 连接并保存凭据。',
       qqbot: '在 QQ 开放平台 (q.qq.com) 注册一个应用，复制 App ID 和 Client Secret。',
       api_server:
         '把 Kova 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port。',
@@ -4718,7 +4718,7 @@ export const zhOverrides = {
       success: platform => `已移交到 ${platform}。随时可在此处恢复。`,
       systemNote: platform => `↻ 已移交到 ${platform} — 随时可在此处恢复。`,
       failed: error => `移交失败：${error}`,
-      timedOut: '等待网关超时。`hermes gateway` 是否正在运行？'
+      timedOut: '等待网关超时。`kova gateway` 是否正在运行？'
     }
   },
 

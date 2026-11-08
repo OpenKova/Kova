@@ -261,7 +261,7 @@ export async function fetchJSON<T>(
       return new Promise<T>(() => {});
     }
     // Loopback mode: ``_SESSION_TOKEN`` rotates on every server restart
-    // (``hermes update``, ``hermes gateway restart``, etc.). A tab kept
+    // (``kova update``, ``kova gateway restart``, etc.). A tab kept
     // open across the restart holds the OLD token in
     // ``window.__KOVA_SESSION_TOKEN__`` from the previous HTML render,
     // so every fetch returns 401. The HTML is served ``Cache-Control:
@@ -1515,7 +1515,7 @@ export interface AuthMeResponse {
   expires_at: number;
 }
 
-/** Preflight for `hermes gateway migrate --multiplex` (mirrors the CLI plan JSON). */
+/** Preflight for `kova gateway migrate --multiplex` (mirrors the CLI plan JSON). */
 export interface GatewayMigratePlan {
   already_multiplexed: boolean;
   blockers: string[];
@@ -2026,7 +2026,7 @@ export interface StatusResponse {
    * desktop falls back to the embedded-webview flow. */
   auth_flows?: string[];
   /** False when the dashboard is running in a hosted/managed layout where
-   * updates are handled by the outer launcher instead of ``hermes update``. */
+   * updates are handled by the outer launcher instead of ``kova update``. */
   can_update_hermes?: boolean;
   config_path: string;
   config_version: number;
@@ -2034,7 +2034,7 @@ export interface StatusResponse {
   gateway_exit_reason: string | null;
   /** Why a multi-profile host's gateway came up STANDALONE on a boot guard (unset
    * ``gateway.multiplex_profiles`` refused): the other profiles' bots are silent until
-   * ``hermes gateway migrate --multiplex`` runs. null/absent when it multiplexes or only one
+   * ``kova gateway migrate --multiplex`` runs. null/absent when it multiplexes or only one
    * profile exists. */
   multiplex_standalone_reason?: string | null;
   /** Every profile installed on this host (multiplex or not). */

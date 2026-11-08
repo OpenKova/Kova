@@ -1,9 +1,9 @@
-"""``hermes peer`` — bot-to-bot DMs across machines/gateways.
+"""``kova peer`` — bot-to-bot DMs across machines/gateways.
 
 A *peer* is another Kova gateway running the ``api_server`` platform; its stock
 API is the transport (no new server surface). ``dm`` resolves the remote canonical
 "Bot Chat" session (creating it when missing) and runs ONE synchronous turn — the
-cross-machine twin of ``hermes -p <bot> chat --in ~ -c "Bot Chat"``. ``run``/``status``
+cross-machine twin of ``kova -p <bot> chat --in ~ -c "Bot Chat"``. ``run``/``status``
 /``stop`` do the same turn through the async Runs API. Peer labels/URLs live in
 config.yaml (``bot_peers``); the key lives in ``~/.kova/.env`` as
 ``KOVA_PEER_<NAME>_KEY``. ``<peer>/<profile>`` targets the ``/p/<profile>/`` mirror.
@@ -79,7 +79,7 @@ def _request(
     if headers:
         request_headers.update(headers)
     req = urllib.request.Request(url, data=data, method=method, headers=request_headers)
-    # The peer URL is user-registered (``hermes peer add``); a redirect to a
+    # The peer URL is user-registered (``kova peer add``); a redirect to a
     # different origin must not carry the Authorization: Bearer key with it —
     # a compromised/MITM'd peer could otherwise harvest it. open_credentialed_url
     # strips non-safelisted headers across a cross-origin redirect.
@@ -427,7 +427,7 @@ def _peer_dm(args, message: str, peer_name: str, profile: str | None, base: str,
     # the turn stays in the peer's own transcript, the sending agent never
     # sees NO_REPLY/[SILENT] as a real reply. Same rule as the gateway's live
     # Bot Chat completion, the Desktop bot_relay.deliver RPC and the one-shot
-    # local `hermes chat -Q` transport (tools/bot_mode_dm.py) — this is the
+    # local `kova chat -Q` transport (tools/bot_mode_dm.py) — this is the
     # 4th Bot Mode delivery door and was missing the same check.
     from gateway.response_filters import is_intentional_silence_response, strip_trailing_silence_marker
     reply = "" if is_intentional_silence_response(reply) else strip_trailing_silence_marker(reply)
@@ -476,9 +476,9 @@ def build_peer_parser(subparsers) -> None:
     parser = subparsers.add_parser(
         "peer", help="Bot-to-bot DMs across machines (peer Kova gateways)",
         description="Register other Kova gateways as peers and message their agents. "
-            "'hermes peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
+            "'kova peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
             "agent's canonical Bot Chat over the peer's API server and prints "
-            "the reply — the cross-machine twin of 'hermes -p <bot> chat'. "
+            "the reply — the cross-machine twin of 'kova -p <bot> chat'. "
             "The peer must run the api_server platform; its API_SERVER_KEY is "
             "stored locally as a credential in ~/.kova/.env.",
         epilog=(
@@ -511,7 +511,7 @@ def build_peer_parser(subparsers) -> None:
         sp = peer_sub.add_parser(name, help=help)
         sp.add_argument("target", help="<peer> or <peer>/<agent> (named profile on a multiplexed peer)")
         if run_id:
-            sp.add_argument("run_id", help="Run ID returned by 'hermes peer run'")
+            sp.add_argument("run_id", help="Run ID returned by 'kova peer run'")
         else:
             sp.add_argument("message", nargs="?", default=None, help="Message text (or stdin)")
             if name == "run":

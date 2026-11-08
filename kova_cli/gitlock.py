@@ -171,7 +171,7 @@ def release_dead_index_lock(repo_root: Path) -> bool:
 
     A git killed while it held the index lock (an update's tree killed by the user, a probe killed
     by its own timeout) leaves it behind, and every later merge/stash/reset refuses with "File
-    exists". The age floor above keeps such a lock for 10 minutes, so the next ``hermes update``
+    exists". The age floor above keeps such a lock for 10 minutes, so the next ``kova update``
     died at its fast-forward (#132089; the Windows crash cell ``mid_fetch``).
 
     Two conditions, both required. A killed update run must be behind the lock
@@ -566,7 +566,7 @@ class _ShallowLock:
         except OSError as exc:
             raise RuntimeError(f"cannot create shallow lock: {exc}") from exc
         try:
-            os.write(fd, b"hermes shallow maintenance\n")
+            os.write(fd, b"kova shallow maintenance\n")
         except OSError as exc:
             # A leaked fd would read as a live holder (and pin the file on Windows).
             os.close(fd)
@@ -662,7 +662,7 @@ def prune_stale_shallow_grafts(repo_root: Path) -> int:
     Every ``git fetch --depth 1`` appends the fetched tip to ``.git/shallow`` as a new
     graft and never removes the previous one, so a long-lived shallow installer checkout
     accumulates one graft per update check (57 observed in the wild). The stale grafts
-    break ``merge-base`` and push ``hermes update`` into the orphan-divergence reset path
+    break ``merge-base`` and push ``kova update`` into the orphan-divergence reset path
     on every run. Keep only the boundaries that still protect referenced tips (HEAD,
     FETCH_HEAD, and every ref tip): the dropped commits are already unreachable and their
     objects are left for ``git gc``. Fetch reflogs naming a dropped graft are expired

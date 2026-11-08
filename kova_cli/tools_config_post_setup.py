@@ -1,4 +1,4 @@
-"""Post-setup install hooks and installed-state predicates for `hermes tools` provider rows."""
+"""Post-setup install hooks and installed-state predicates for `kova tools` provider rows."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def _ensure_browser_use_cli() -> None:
         _print_success("    browser_exec ready (browser-harness, bundled with Kova)")
     else:
         _print_warning("    browser-harness is missing from Kova's Python environment")
-        _print_info("    Re-sync it with: hermes update")
+        _print_info("    Re-sync it with: kova update")
 
 
 def _post_setup_lightpanda() -> None:
@@ -158,7 +158,7 @@ def _post_setup_xai_grok() -> None:
         "    How do you want xAI to authenticate?", default=0,
         choices=["Sign in with xAI Grok OAuth (SuperGrok / Premium+) — browser login",
                  "Paste an xAI API key (console.x.ai)",
-                 "Skip — configure later via `hermes auth add xai-oauth`"])
+                 "Skip — configure later via `kova auth add xai-oauth`"])
     if idx == 0:
         if _run_xai_oauth_login_from_setup():
             _print_success("    Logged in — xAI will use these OAuth credentials")
@@ -192,7 +192,7 @@ def _post_setup_openai_codex() -> None:
         _print_success("    Image generation will use your existing Codex/ChatGPT OAuth credentials")
         return
 
-    relogin = "hermes auth add openai-codex"
+    relogin = "kova auth add openai-codex"
     _print_info("    OpenAI (Codex auth) needs credentials.")
     try:
         from kova_cli.auth import _codex_device_code_login, _save_codex_tokens
@@ -275,7 +275,7 @@ def valid_post_setup_keys() -> set[str]:
 
 
 def run_post_setup_command(args) -> int:
-    """``hermes tools post-setup <key>`` — non-interactive runner the dashboard spawns so the GUI can drive
+    """``kova tools post-setup <key>`` — non-interactive runner the dashboard spawns so the GUI can drive
     backend setup without re-implementing install logic. Exit code: 0 ok, 2 unknown key."""
     key = getattr(args, "post_setup_key", None)
     if not key:

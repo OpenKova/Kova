@@ -67,7 +67,7 @@ describe('VersionDetails', () => {
       visible: ['Desktop app (installer)'],
       absent: ['Desktop app (MSIX)', 'Microsoft Store']
     },
-    // `hermes desktop` packs the same bootstrap payload from a source checkout;
+    // `kova desktop` packs the same bootstrap payload from a source checkout;
     // a locally built stamp names the source install, never the installer.
     {
       version: {

@@ -6,7 +6,7 @@ its dashboard mount serves the Webapp bundle. ``webapp.host`` is ``127.0.0.1``, 
 (the binds the sign-in gate leaves local-only) or a wildcard (``0.0.0.0``/``::``), and a wildcard bind
 is gated by dashboard sign-in like any non-loopback listener.
 ``webapp.public_url`` is the address a reverse proxy or tunnel serves the Webapp at: it engages the same
-sign-in on a loopback bind, and ``dashboard.public_url`` (``hermes dashboard``'s) never applies here.
+sign-in on a loopback bind, and ``dashboard.public_url`` (``kova dashboard``'s) never applies here.
 Native clients (Desktop, the CLI, Ink) dial the loopback address this module derives from the bind.
 
 The browser's credential is the dashboard session token. With the Webapp on, the gateway keeps that
@@ -63,7 +63,7 @@ class WebappMount:
 def _config_document(home: Path) -> dict:
     """*home*'s config: the merged one (managed overlay, ``${ENV}`` expansion) for this process's own
     home, which is always the case in the gateway; otherwise that home's file as written, which only
-    ``hermes webapp`` reads, about the gateway it targets, before asking that gateway itself."""
+    ``kova webapp`` reads, about the gateway it targets, before asking that gateway itself."""
     from kova_cli.config import load_config_readonly, read_user_config_raw
     from kova_constants import get_kova_home
     try:
@@ -293,10 +293,10 @@ def _one_use_links_work(platform: str = sys.platform) -> bool:
     return platform == "win32" or (platform == "linux" and not is_wsl())
 
 
-#: How every missing-bundle reason starts; ``hermes webapp --status`` asks for no restart after it.
+#: How every missing-bundle reason starts; ``kova webapp --status`` asks for no restart after it.
 NOT_BUILT = "The Webapp is not built"
-#: Why a bundle ``hermes update`` could not rebuild is not served (``kova_cli.webapp.mark_webapp_stale``).
-NOT_REBUILT = (f"{NOT_BUILT} for this version of Kova: hermes update could not rebuild it. "
+#: Why a bundle ``kova update`` could not rebuild is not served (``kova_cli.webapp.mark_webapp_stale``).
+NOT_REBUILT = (f"{NOT_BUILT} for this version of Kova: kova update could not rebuild it. "
                "Run hermes webapp to rebuild it.")
 
 
@@ -307,7 +307,7 @@ def bundle_stale_reason(dist) -> str | None:
 
 
 def bundle_missing_reason(dist) -> str | None:
-    """Why the Webapp cannot be served from *dist* (no bundle, or one ``hermes update`` could not
+    """Why the Webapp cannot be served from *dist* (no bundle, or one ``kova update`` could not
     rebuild), or None once it is built. The listener serves a bundle the moment it appears or is
     rebuilt, so building it needs no gateway restart."""
     if (Path(dist) / "index.html").is_file():
@@ -328,7 +328,7 @@ _STILL_STARTING = "The Webapp is still starting; try again in a moment."
 
 
 def register_control_verbs(runner, home, server=None, *, links_checked: bool | None = None) -> None:
-    """The private control-socket verbs ``hermes webapp`` uses on *server* (the runner's control
+    """The private control-socket verbs ``kova webapp`` uses on *server* (the runner's control
     server by default); only an authenticated same-user peer reaches them. The gateway registers them
     before its control socket answers, so they answer from its first moment: :data:`STARTING` until
     the listener sets ``runner.webapp_status``. ``webapp-launch`` returns a one-use launch link, so

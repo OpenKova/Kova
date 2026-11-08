@@ -56,7 +56,7 @@ describe("fetchJSON error contract", () => {
     const body = {
       detail: {
         error: "state_db_corrupt",
-        message: "state.db corrupt — run `hermes doctor` (then `hermes doctor --fix` or `hermes sessions repair`).",
+        message: "state.db corrupt — run `kova doctor` (then `kova doctor --fix` or `kova sessions repair`).",
         path: "/home/u/.kova/state.db",
       },
     };

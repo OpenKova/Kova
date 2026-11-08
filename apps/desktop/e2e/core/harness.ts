@@ -178,7 +178,7 @@ export function freePort(): Promise<number> {
   })
 }
 
-/** `hermes <args>` in the sandbox, as an operator runs it. */
+/** `kova <args>` in the sandbox, as an operator runs it. */
 export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
   const result = spawnSync(process.env.KOVA_E2E_PYTHON || 'python3', ['-m', 'kova_cli.main', ...args], {
     cwd: REPO_ROOT,
@@ -190,14 +190,14 @@ export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number 
   return { code: result.status, output: `${result.stdout ?? ''}${result.stderr ?? ''}` }
 }
 
-/** Starts the gateway if needed and returns a one-use launch link for its Webapp (`hermes -p <profile> webapp`
+/** Starts the gateway if needed and returns a one-use launch link for its Webapp (`kova -p <profile> webapp`
  * when a profile is named). */
 export function webappLaunchLink(sandbox: CoreSandbox, profile?: string): string {
   const profileArgs = profile ? ['-p', profile] : []
   const { code, output } = hermesCli(sandbox, [...profileArgs, 'webapp', '--no-open', '--skip-build'])
   const link = /^\s+(http:\/\/127\.0\.0\.1:\d+\/webapp\/launch#\S+)$/m.exec(output)?.[1]
-  expect(code, `hermes webapp --no-open\n${output.replace(/ticket=\S+/g, 'ticket=<redacted>')}`).toBe(0)
-  expect(link, 'hermes webapp printed a one-use launch link').toBeTruthy()
+  expect(code, `kova webapp --no-open\n${output.replace(/ticket=\S+/g, 'ticket=<redacted>')}`).toBe(0)
+  expect(link, 'kova webapp printed a one-use launch link').toBeTruthy()
 
   return link!
 }
@@ -247,7 +247,7 @@ export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
 }
 
 /**
- * The `hermes serve` backend(s) spawned for this sandbox.
+ * The `kova serve` backend(s) spawned for this sandbox.
  *
  * A child of the backend still shows the backend's argv and environ between
  * fork and exec, and the backend forks ~40 probes per boot (git, ps,
@@ -258,7 +258,7 @@ export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
  * dead backend is reparented away and still counted.
  */
 export function backendProcesses(sandbox: CoreSandbox): ProcInfo[] {
-  // The local backend is the gateway `hermes gateway ensure` attached to or started
+  // The local backend is the gateway `kova gateway ensure` attached to or started
   // (`kova_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
   const serve = sandboxProcesses(sandbox).filter(
     proc => (/ serve( |$)/.test(proc.cmdline) || / gateway run( |$)/.test(proc.cmdline))
@@ -272,7 +272,7 @@ export function backendProcesses(sandbox: CoreSandbox): ProcInfo[] {
 
 
 /**
- * `hermes gateway stop` for the sandbox profile, run with the backend's own
+ * `kova gateway stop` for the sandbox profile, run with the backend's own
  * interpreter (argv[0] of the live `gateway run`). Attach-mode Desktop never
  * owns the gateway, so this is how a test proves teardown works when asked.
  * `interrupt` passes `--yes`: stop refuses while a turn is live unless told to

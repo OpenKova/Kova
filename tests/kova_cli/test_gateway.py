@@ -998,7 +998,7 @@ def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypat
     import psutil
     from kova_cli import gateway_windows
 
-    monkeypatch.setattr(gateway_windows, "hermes_service_roots", lambda: (r"C:\hermes\kova-agent",))
+    monkeypatch.setattr(gateway_windows, "kova_service_roots", lambda: (r"C:\hermes\kova-agent",))
     profile = SimpleNamespace(profile="default", pid=18480, create_time=18480.0)
 
     class FakeService:

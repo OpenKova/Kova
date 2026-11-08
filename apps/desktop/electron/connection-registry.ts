@@ -902,7 +902,7 @@ export interface UpdateEligibility {
 
 /**
  * Whether "Update all instances" may drive this connection. Kova Cloud
- * instances are platform-managed — we never run `hermes update` against them,
+ * instances are platform-managed — we never run `kova update` against them,
  * including one saved as a plain URL remote. Local, remote, and ssh sources
  * are all eligible (reachability and busy checks happen at dispatch time).
  */

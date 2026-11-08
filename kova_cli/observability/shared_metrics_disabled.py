@@ -267,7 +267,7 @@ def record_config_saved(old_raw: Any, new_config: Any) -> None:
 
 
 def recording_raw_config_write(config_path: Any, user_config: Any, write) -> None:
-    """``hermes config set/unset`` write the raw file directly (not via ``save_config``): diff the file
+    """``kova config set/unset`` write the raw file directly (not via ``save_config``): diff the file
     they replace against what they write. The write itself runs unguarded, so its errors are the caller's."""
     before = None
     if _process_surface is not None:

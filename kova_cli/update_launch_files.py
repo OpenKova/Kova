@@ -1,4 +1,4 @@
-"""Rewrite the launch files Kova owns before ``hermes update`` starts any gateway.
+"""Rewrite the launch files Kova owns before ``kova update`` starts any gateway.
 
 A service manager starts a gateway from the definition it holds, so a unit, plist or task script
 left from the previous release starts the new code under the old command line and environment.
@@ -8,7 +8,7 @@ gateway start or restart.
 
 Each file is independent: a failure is reported as the ``launch_files`` follow-up and the rest
 are still rewritten. A failure never keeps the source-update tail pending: every
-``hermes gateway start``/``restart`` and every gateway boot regenerates its own file again.
+``kova gateway start``/``restart`` and every gateway boot regenerates its own file again.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import os
 import sys
 
 FOLLOWUP_STEP = "launch_files"
-_RETRY = "the next `hermes update` or `hermes gateway restart` rewrites it"
+_RETRY = "the next `kova update` or `kova gateway restart` rewrites it"
 
 
 def refresh_launch_files() -> None:

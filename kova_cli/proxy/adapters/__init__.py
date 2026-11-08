@@ -6,7 +6,7 @@ from kova_cli.proxy.adapters.base import UpstreamAdapter
 from kova_cli.proxy.adapters.nous_portal import NousPortalAdapter
 from kova_cli.proxy.adapters.xai import XAIGrokAdapter
 
-# Keyed by the ``hermes proxy start --provider <name>`` value.
+# Keyed by the ``kova proxy start --provider <name>`` value.
 ADAPTERS: dict[str, type[UpstreamAdapter]] = {"nous": NousPortalAdapter, "xai": XAIGrokAdapter}
 
 

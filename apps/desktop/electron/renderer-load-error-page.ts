@@ -3,7 +3,7 @@
  *
  * The white-screen failure modes this exists for:
  *
- * 1. TORN BUNDLE after an update (#95575): `hermes update` replaces the app
+ * 1. TORN BUNDLE after an update (#95575): `kova update` replaces the app
  *    while its files are locked (antivirus, a still-running instance, an
  *    interrupted Windows replace), leaving index.html and its hashed chunks
  *    from DIFFERENT generations. The window loads, then dies on the first
@@ -33,7 +33,7 @@ export interface RendererLoadErrorDetails {
   url?: string
   /** Module files index.html declares but that are missing on disk. */
   missingAssets?: string[]
-  /** Repair command hint, e.g. `hermes desktop --force-build`. */
+  /** Repair command hint, e.g. `kova desktop --force-build`. */
   repairHint?: string
   /**
    * URL to navigate to when the user clicks Reload. On a data: page
