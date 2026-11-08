@@ -18,7 +18,7 @@ export default function setup(): void {
   try {
     const python = execFileSync(
       'bash',
-      [path.join(repo, 'scripts', 'run-in-hermes-env'), 'sh', '-c', 'printf %s "$__KOVA_TEST_PYTHON"'],
+      [path.join(repo, 'scripts', 'run-in-kova-env'), 'sh', '-c', 'printf %s "$__KOVA_TEST_PYTHON"'],
       { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }
     )
 

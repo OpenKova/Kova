@@ -33,11 +33,12 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-ARCHIVE_PREFIX = "refs/hermes/archive/"
+ARCHIVE_PREFIX = "refs/kova/archive/"
+LEGACY_ARCHIVE_PREFIX = "refs/hermes/archive/"
 _SUBJECT = "kova worktree archive: "
 _IDENTITY = {
-    "GIT_AUTHOR_NAME": "Kova worktree archive", "GIT_AUTHOR_EMAIL": "hermes-archive@localhost",
-    "GIT_COMMITTER_NAME": "Kova worktree archive", "GIT_COMMITTER_EMAIL": "hermes-archive@localhost",
+    "GIT_AUTHOR_NAME": "Kova worktree archive", "GIT_AUTHOR_EMAIL": "kova-archive@localhost",
+    "GIT_COMMITTER_NAME": "Kova worktree archive", "GIT_COMMITTER_EMAIL": "kova-archive@localhost",
 }
 # Raw bytes in, raw bytes out: no line-ending conversion on either side of the round trip.
 _RAW_CONFIG = (("core.autocrlf", "false"), ("core.safecrlf", "false"), ("core.eol", "lf"))
@@ -304,7 +305,7 @@ def snapshot_worktree(repo_root: str, wt_path, *, reason: str, max_untracked_mb:
             leftover.unlink(missing_ok=True)
     ref = _create_ref(repo_root, wt.name, sha, env)
     logger.info("Archived worktree %s -> %s (%s)", wt, ref, reason)
-    return Archive(ref=ref, name=ref[len(ARCHIVE_PREFIX):], sha=sha, created=meta["created"], meta=meta,
+    return Archive(ref=ref, name=ref[len(ARCHIVE_PREFIX):] if ref.startswith(ARCHIVE_PREFIX) else ref[len(LEGACY_ARCHIVE_PREFIX):], sha=sha, created=meta["created"], meta=meta,
                    staged=staged)
 
 
@@ -323,13 +324,13 @@ def list_archives(repo_root: str) -> list[Archive]:
         env = _env(repo_root)
         out = _ok(["for-each-ref", "--sort=-creatordate",
                    "--format=%(refname)%00%(objectname)%00%(creatordate:unix)%00%(contents:body)%00",
-                   ARCHIVE_PREFIX], repo_root, env, timeout=60)
+                   ARCHIVE_PREFIX, LEGACY_ARCHIVE_PREFIX], repo_root, env, timeout=60)
     except (ArchiveError, OSError, subprocess.SubprocessError):
         return []
     archives = []
     for record in out.split("\0\n"):
         parts = record.split("\0")
-        if len(parts) < 4 or not parts[0].startswith(ARCHIVE_PREFIX):
+        if len(parts) < 4 or not (parts[0].startswith(ARCHIVE_PREFIX) or parts[0].startswith(LEGACY_ARCHIVE_PREFIX)):
             continue
         meta = _parse_meta(parts[3])
         created = float(meta.get("created") or parts[2] or 0)
@@ -341,7 +342,7 @@ def list_archives(repo_root: str) -> list[Archive]:
 def find_archive(repo_root: str, name: str) -> Optional[Archive]:
     """Exact archive name/ref first, else the newest archive of the tree called *name*."""
     archives = list_archives(repo_root)
-    wanted = name.removeprefix(ARCHIVE_PREFIX)
+    wanted = name.removeprefix(ARCHIVE_PREFIX).removeprefix(LEGACY_ARCHIVE_PREFIX)
     for arc in archives:
         if arc.name == wanted:
             return arc

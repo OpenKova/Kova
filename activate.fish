@@ -6,7 +6,7 @@
 # CURRENT shell, with save/restore (`deactivate` undoes exactly what activation
 # changed), makes `hermes` a function for this checkout, and prefixes the prompt
 # with the worktree name. Scripts and other processes run under
-# `scripts/run-in-hermes-env` instead.
+# `scripts/run-in-kova-env` instead.
 #
 # Options: `--test-extras a,b` selects the test environment's runtime extras
 # (default: [all]).
@@ -24,7 +24,7 @@ if set -q _flag_test_extras
 end
 
 set -l library '. "$1/scripts/_activation.sh"'
-bash -c "$library; hermes_sync \"\$1\" \"\$2\"" _ $repo $test_environment >&2
+bash -c "$library; kova_sync \"\$1\" \"\$2\"" _ $repo $test_environment >&2
 or begin
     echo 'activate.fish: setup failed; shell environment unchanged' >&2
     return 1
@@ -34,7 +34,7 @@ end
 functions -q deactivate
 and deactivate
 
-set -l composed (bash -c "$library; hermes_compose_env \"\$1\" fish" _ $repo)
+set -l composed (bash -c "$library; kova_compose_env \"\$1\" fish" _ $repo)
 or begin
     echo 'activate.fish: could not compose the environment (see above)' >&2
     return 1

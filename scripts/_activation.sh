@@ -1,12 +1,12 @@
 # Sourced, never executed: how a POSIX shell gets the Kova dev environment.
-# `activate` (interactive, reversible) and `scripts/run-in-hermes-env` (a child
+# `activate` (interactive, reversible) and `scripts/run-in-kova-env` (a child
 # process, one-way) both build on it; neither owns any of it.
 #
-#   hermes_sync REPO [FLAG]         bring the install up to date (setup-hermes.sh)
-#   hermes_compose_env REPO DIALECT print the composed environment, `sh` or `fish`
-#   hermes_apply_env SCRIPT         evaluate a composed `sh` script into this shell
-#   hermes_activation_current REPO  is the inherited environment still REPO's?
-#   hermes_ensure_env REPO          sync, compose and apply unless it is current
+#   kova_sync REPO [FLAG]         bring the install up to date (setup-kova.sh)
+#   kova_compose_env REPO DIALECT print the composed environment, `sh` or `fish`
+#   kova_apply_env SCRIPT         evaluate a composed `sh` script into this shell
+#   kova_activation_current REPO  is the inherited environment still REPO's?
+#   kova_ensure_env REPO          sync, compose and apply unless it is current
 #
 # pm records, beside the installed-state file named by __KOVA_ACTIVATED, one
 # stamp per dependency input carrying the exact mtime that input had when the
@@ -19,14 +19,14 @@
 # stale, and so does an install that did not build the test environment:
 # every environment this library composes includes it.
 
-# hermes_sync REPO [--test-environment[=EXTRAS]]: run setup in a child, so a
+# kova_sync REPO [--test-environment[=EXTRAS]]: run setup in a child, so a
 # failure cannot exit or half-change the caller's shell and setup never
 # republishes launchers or shell config. Progress goes to stderr.
-hermes_sync() {
+kova_sync() {
     local repo="$1" test_environment="${2:---test-environment}"
     (
         unset PYTHONHOME PYTHONPATH VIRTUAL_ENV
-        bash "$repo/setup-hermes.sh" --runtime-only "$test_environment"
+        bash "$repo/setup-kova.sh" --runtime-only "$test_environment"
     ) >&2
 }
 
@@ -48,24 +48,24 @@ kova_bootstrap_python() {
     return 1
 }
 
-# hermes_compose_env REPO DIALECT: print the environment of the installed state
+# kova_compose_env REPO DIALECT: print the environment of the installed state
 # as a script for a shell of DIALECT (`sh` or `fish`).
-hermes_compose_env() {
+kova_compose_env() {
     local repo="$1" dialect="$2" python script
     python="$(kova_bootstrap_python "$repo")" || {
-        echo "no bootstrap Python found; run setup-hermes.sh" >&2
+        echo "no bootstrap Python found; run setup-kova.sh" >&2
         return 1
     }
     script="$(PYTHONHOME= PYTHONPATH="$repo" "$python" -m pm.environments --format "$dialect")" &&
         [ -n "$script" ] || {
-        echo "could not read pm env (run ./setup-hermes.sh first)" >&2
+        echo "could not read pm env (run ./setup-kova.sh first)" >&2
         return 1
     }
     printf '%s\n' "$script"
 }
 
-# hermes_apply_env SCRIPT: evaluate a script from `hermes_compose_env REPO sh`.
-hermes_apply_env() {
+# kova_apply_env SCRIPT: evaluate a script from `kova_compose_env REPO sh`.
+kova_apply_env() {
     # Resolved before the eval replaces PATH.
     local cygpath name
     cygpath="$(command -v cygpath 2>/dev/null || :)"
@@ -83,9 +83,9 @@ hermes_apply_env() {
     fi
 }
 
-# hermes_activation_current REPO: status 0 when the inherited environment
+# kova_activation_current REPO: status 0 when the inherited environment
 # matches REPO's current inputs.
-hermes_activation_current() {
+kova_activation_current() {
     local repo="$1" sentinel stamps stamp input stamped=0
     [ -n "${__KOVA_ACTIVATED:-}" ] && [ -e "${__KOVA_ACTIVATED}" ] || return 1
     # activate.ps1 records a Windows path; Git Bash accepts it with slashes.
@@ -112,15 +112,15 @@ hermes_activation_current() {
     [ "$stamped" = 1 ]
 }
 
-# hermes_ensure_env REPO: leave this shell with REPO's environment, doing
+# kova_ensure_env REPO: leave this shell with REPO's environment, doing
 # nothing when the inherited one is current.
-hermes_ensure_env() {
+kova_ensure_env() {
     local repo="$1" script
-    hermes_activation_current "$repo" && return 0
-    hermes_sync "$repo" || {
+    kova_activation_current "$repo" && return 0
+    kova_sync "$repo" || {
         echo "setup failed" >&2
         return 1
     }
-    script="$(hermes_compose_env "$repo" sh)" || return 1
-    hermes_apply_env "$script"
+    script="$(kova_compose_env "$repo" sh)" || return 1
+    kova_apply_env "$script"
 }

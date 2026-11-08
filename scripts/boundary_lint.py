@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
+#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-kova-env" python3 "$0" "$@"'
 """Report-only import lint for the core/module boundary, in both directions.
 
 * **module -> core internals**: a bundled module imports a Kova module or name that is not on the

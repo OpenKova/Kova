@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
+#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-kova-env" python3 "$0" "$@"'
 """Regenerate tests/kova_cli/serve_handler_ledger.json from the code.
 
 One row per handler ``kova serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app

@@ -14,7 +14,7 @@
 # keeps its own command. A prompt prefix names the worktree.
 #
 # Scripts and other processes do not source this: they run under
-# `scripts/run-in-hermes-env`. Both build on scripts/_activation.sh.
+# `scripts/run-in-kova-env`. Both build on scripts/_activation.sh.
 #
 # Sync through setup before selecting the environment. PM owns freshness;
 # activation does not maintain a second dependency stamp. It trusts the
@@ -26,37 +26,37 @@ _KOVA_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # (default: [all]); `--` ends options.
 # A bare `source ./activate` inherits the caller's positional parameters.
 # Ignore unrelated words so scripts with their own arguments can source it.
-_hermes_test_env="--test-environment"
+_kova_test_env="--test-environment"
 _hermes_expect_extras=""
-for _hermes_arg in "$@"; do
+for _kova_arg in "$@"; do
     if [ -n "$_hermes_expect_extras" ]; then
-        _hermes_test_env="--test-environment=$_hermes_arg"
+        _kova_test_env="--test-environment=$_kova_arg"
         _hermes_expect_extras=""
         continue
     fi
-    case "$_hermes_arg" in
+    case "$_kova_arg" in
         --) break ;;
         --test-extras) _hermes_expect_extras=1 ;;
-        --test-extras=*) _hermes_test_env="--test-environment=${_hermes_arg#--test-extras=}" ;;
+        --test-extras=*) _kova_test_env="--test-environment=${_kova_arg#--test-extras=}" ;;
         *) : ;;
     esac
 done
 if [ -n "$_hermes_expect_extras" ]; then
     printf '%s\n' 'activate: --test-extras needs a comma-separated list' >&2
-    unset _hermes_arg _hermes_test_env _hermes_expect_extras
+    unset _kova_arg _kova_test_env _hermes_expect_extras
     return 2 2>/dev/null || exit 2
 fi
-unset _hermes_arg _hermes_expect_extras
+unset _kova_arg _hermes_expect_extras
 
 # shellcheck source=scripts/_activation.sh
 . "$_KOVA_REPO/scripts/_activation.sh"
 
-if ! hermes_sync "$_KOVA_REPO" "$_hermes_test_env"; then
+if ! kova_sync "$_KOVA_REPO" "$_kova_test_env"; then
     printf '%s\n' 'activate: setup failed; shell environment unchanged' >&2
-    unset _hermes_test_env
+    unset _kova_test_env
     return 1 2>/dev/null || exit 1
 fi
-unset _hermes_test_env
+unset _kova_test_env
 
 # Guard against double-sourcing: venv activate precedent (re-activating is a
 # no-op re-save; we keep it idempotent by deactivating first). Key on the
@@ -66,12 +66,12 @@ if [ "$(type -t deactivate 2>/dev/null)" = "function" ]; then
     deactivate
 fi
 
-_hermes_script="$(hermes_compose_env "$_KOVA_REPO" sh)" || {
+_kova_script="$(kova_compose_env "$_KOVA_REPO" sh)" || {
     echo "activate: could not compose the environment (see above)" >&2
-    unset _hermes_script
+    unset _kova_script
     return 1 2>/dev/null || exit 1
 }
-_hermes_keys="$(printf '%s\n' "$_hermes_script" | sed -n 's/^export \([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' | tr '\n' ' ')"
+_hermes_keys="$(printf '%s\n' "$_kova_script" | sed -n 's/^export \([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' | tr '\n' ' ')"
 
 # --- snapshot what we are about to change (deactivate restores this) ---
 # __KOVA_ACTIVATED is part of the composed env below (it carries the
@@ -82,7 +82,7 @@ for _hermes_k in $_hermes_keys; do
     eval "__KOVA_SAVED_$_hermes_k=\"\${$_hermes_k+set}\""
     eval "__KOVA_PRIOR_$_hermes_k=\${$_hermes_k-__KOVA_UNSET__}"
 done
-hermes_apply_env "$_hermes_script"
+kova_apply_env "$_kova_script"
 
 # This checkout, not whichever `hermes` PATH finds. A function beats PATH, an
 # alias, and a hashed command, including the MSIX execution alias.
@@ -176,6 +176,6 @@ deactivate() {
 __KOVA_KEY_LIST="$_hermes_keys"
 
 # The composition library is not part of the user's shell.
-unset -f hermes_sync kova_bootstrap_python hermes_compose_env hermes_apply_env \
-         hermes_activation_current hermes_ensure_env
-unset _KOVA_REPO _hermes_script _hermes_keys _hermes_k _hermes_top
+unset -f kova_sync kova_bootstrap_python kova_compose_env kova_apply_env \
+         kova_activation_current kova_ensure_env
+unset _KOVA_REPO _kova_script _hermes_keys _hermes_k _hermes_top

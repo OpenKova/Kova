@@ -159,7 +159,7 @@ install JS workspaces or rewrite launchers and shell configuration. `deactivate`
 restores the prior shell environment and removes the function.
 
 To run one command in the environment without activating a shell, use
-`scripts/run-in-hermes-env CMD...`.
+`scripts/run-in-kova-env CMD...`.
 
 ### Manual development and test environment
 

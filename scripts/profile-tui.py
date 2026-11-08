@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
+#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-kova-env" python3 "$0" "$@"'
 """Drive the Kova TUI under KOVA_DEV_PERF and summarize the pipeline.
 
 Usage:

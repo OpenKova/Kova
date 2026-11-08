@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
+#!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-kova-env" python3 "$0" "$@"'
 """Regenerate website/docs/developer-guide/plugins/public-api.md from kova_cli/data/plugin_api.json.
 
 The same file is the public list ``kova plugins validate`` checks plugin imports against, so the

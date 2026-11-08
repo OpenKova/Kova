@@ -11,7 +11,7 @@
 #   * Env vars blanked (conftest.py also does this, but this
 #     is belt-and-suspenders for anyone running pytest outside our
 #     conftest path — e.g. on a single file)
-#   * The checkout's test environment (via scripts/run-in-hermes-env when needed)
+#   * The checkout's test environment (via scripts/run-in-kova-env when needed)
 #
 # Usage:
 #   scripts/run_tests.sh                            # full suite
@@ -40,7 +40,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # ── Locate python ───────────────────────────────────────────────────────────
 # The suite runs under the checkout's isolated test environment (pm.testenv),
 # and only there: unless the inherited environment is current for this
-# checkout, this script re-executes itself under scripts/run-in-hermes-env,
+# checkout, this script re-executes itself under scripts/run-in-kova-env,
 # which syncs and applies it. That holds however the script is launched
 # (`scripts/run_tests.sh`, `bash scripts/run_tests.sh`, from CI or a shell), so
 # a branch switch or lock edit never runs the suite against the previous
@@ -107,12 +107,12 @@ if [ -z "${__KOVA_ACTIVATED:-}" ] && _has_pytest "${KOVA_PYTHON:-}"; then
 else
   if ! hermes_activation_current "$REPO_ROOT"; then
     if [ -n "${__KOVA_TESTS_REEXEC:-}" ]; then
-      echo "error: run-in-hermes-env did not produce a current environment for $REPO_ROOT" >&2
+      echo "error: run-in-kova-env did not produce a current environment for $REPO_ROOT" >&2
       exit 1
     fi
-    echo "▶ environment missing or stale for $REPO_ROOT — re-running under run-in-hermes-env" >&2
+    echo "▶ environment missing or stale for $REPO_ROOT — re-running under run-in-kova-env" >&2
     export __KOVA_TESTS_REEXEC=1
-    exec "$SCRIPT_DIR/run-in-hermes-env" "$BASH" "${BASH_SOURCE[0]}" "$@"
+    exec "$SCRIPT_DIR/run-in-kova-env" "$BASH" "${BASH_SOURCE[0]}" "$@"
   fi
   PYTHON="${__KOVA_TEST_PYTHON:-}"
   if ! _has_pytest "$PYTHON"; then
