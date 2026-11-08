@@ -97,7 +97,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('@nous-research/ui/fonts/Collapse-Bold.woff2') format('woff2');
+  src: url('@neural-studio/ui/fonts/Collapse-Bold.woff2') format('woff2');
 }
 
 /* JetBrains Mono — bundled terminal font (Apache-2.0) so bold/italic share the
@@ -1339,12 +1339,12 @@
   animation: arc-border var(--arc-duration) linear infinite;
 }
 
-/* Flip the arc's travel direction (e.g. the Nous Portal hero row). */
+/* Flip the arc's travel direction (e.g. the Neural Studio Portal hero row). */
 .arc-border.arc-reverse::before {
   animation-direction: reverse;
 }
 
-/* Nous Portal hero: slower, blue → orange arc. */
+/* Neural Studio Portal hero: slower, blue → orange arc. */
 .arc-border.arc-nous,
 :root.dark .arc-border.arc-nous {
   --arc-c1: #4f8cff;

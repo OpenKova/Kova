@@ -38,7 +38,7 @@ class OptionalSkillSource(SkillSource):
 
     SOURCE_ID = "official"
     TRUST_LEVEL = "builtin"
-    OFFICIAL_REPO = "NousResearch/kova-agent"
+    OFFICIAL_REPO = "NeuralStudio/kova-agent"
     OPTIONAL_SKILLS_PREFIX = "optional-skills"
 
     _parse_frontmatter = staticmethod(_parse_frontmatter)

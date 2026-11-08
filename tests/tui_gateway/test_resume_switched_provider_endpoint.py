@@ -1,7 +1,7 @@
 """A chat switched to another provider must resume on THAT provider's endpoint.
 
 The messaging gateway's /model wrote only ``model``/``provider`` over a row the Desktop had persisted
-with the Nous Portal route, so resuming a chat switched to openai-codex sent the Codex slug to the
+with the Neural Studio Portal route, so resuming a chat switched to openai-codex sent the Codex slug to the
 Portal's chat/completions ("Model 'gpt-6-luna-900k' isn't available on ChatGPT or Codex").
 """
 

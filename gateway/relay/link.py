@@ -188,7 +188,7 @@ def request_link(platform: str) -> dict[str, Any]:
     if managed_by() == "portal":
         raise RelayLinkError(
             "managed_by_portal",
-            "Accounts for this agent are linked from Nous Portal: open the agent there and use Message platforms.",
+            "Accounts for this agent are linked from Neural Studio Portal: open the agent there and use Message platforms.",
             409)
     payload = _post("/manage/link", {"platform": platform})
     code = str(payload.get("code") or "").strip()

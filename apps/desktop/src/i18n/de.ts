@@ -2313,12 +2313,12 @@ export const deOverrides = {
       activeBackend: 'Aktiv',
       activeBackendHint: 'Das ist Ihr aktives Backend',
       useBackend: 'Dieses Backend verwenden',
-      nousIncluded: 'In einem Nous-Abo enthalten – melden Sie sich im Nous Portal an, um es zu aktivieren.',
-      nousAuthNeededTitle: 'Im Nous Portal anmelden',
+      nousIncluded: 'In einem Nous-Abo enthalten – melden Sie sich im Neural Studio Portal an, um es zu aktivieren.',
+      nousAuthNeededTitle: 'Im Neural Studio Portal anmelden',
       nousAuthNeededMessage: provider =>
-        `${provider} ist gespeichert, wird aber erst aktiviert, wenn Sie sich im Nous Portal anmelden.`,
+        `${provider} ist gespeichert, wird aber erst aktiviert, wenn Sie sich im Neural Studio Portal anmelden.`,
       nousAuthSignIn: 'Anmelden',
-      nousAuthDoneTitle: 'Nous Portal verbunden',
+      nousAuthDoneTitle: 'Neural Studio Portal verbunden',
       nousAuthDoneMessage: 'Ihre Abo-Backends sind jetzt aktiv.',
       nousAuthFailed: 'Die Nous-Portal-Anmeldung wurde nicht abgeschlossen',
       nousAuthFailedMessage: 'Versuchen Sie es erneut.',
@@ -3013,8 +3013,8 @@ export const deOverrides = {
       qrAlt: (platform: string) => `QR-Code für den gemeinsamen ${platform}-Bot`,
       managed: 'Von Team Gateway verwaltet',
       managedNote: (platform: string) => `Team Gateway übernimmt auf dieser Instanz das Messaging, daher schaltet das Gateway die direkte ${platform}-Verbindung bei jedem Start ab. Um sie parallel zum Relay zu betreiben, setze GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true in der Umgebung des Gateways (eine direkte Verbindung verhindert das Herunterskalieren auf null und kann Nachrichten doppelt zustellen).`,
-      managedIntro: 'Die Konten dieses Agenten werden im Nous Portal verknüpft.',
-      openPortal: 'Konten im Nous Portal verknüpfen',
+      managedIntro: 'Die Konten dieses Agenten werden im Neural Studio Portal verknüpft.',
+      openPortal: 'Konten im Neural Studio Portal verknüpfen',
       noNewAccount: (platform: string) => `Der Code ist nicht mehr aktiv und es ist kein neues Konto erschienen. Falls dein ${platform}-Konto nicht aufgeführt ist, hol dir einen neuen Code und versuche es erneut.`
     },
     telegramQr: {

@@ -431,7 +431,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
 
 
 class TestLoginNousSkipKeepsCurrent:
-    """When a user runs `hermes model` → Nous Portal → Skip (keep current) after
+    """When a user runs `hermes model` → Neural Studio Portal → Skip (keep current) after
     a successful OAuth login, the prior provider and model MUST be preserved.
 
     Regression: previously, _update_config_for_provider was called
@@ -673,7 +673,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
 def test_refresh_token_reuse_detection_surfaces_actionable_message():
     """Regression for #15099.
 
-    When the Nous Portal server returns ``invalid_grant`` with
+    When the Neural Studio Portal server returns ``invalid_grant`` with
     ``error_description`` containing "reuse detected", Kova must surface an
     actionable message explaining that an external process consumed the
     refresh token.  The default opaque "Refresh token reuse detected; please

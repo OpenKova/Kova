@@ -30,7 +30,7 @@ import { PluginInstallModal } from './plugin-install-modal'
 
 const DELEGATION = {
   catalogName: 'advanced-delegation',
-  repo: 'https://github.com/NousResearch/hermes-official-plugins#advanced-delegation',
+  repo: 'https://github.com/NeuralStudio/hermes-official-plugins#advanced-delegation',
   sha: 'e404b6816b20237a82f6fbe2749b5a576cf75dba',
   summary: 'Two extra delegation modes for delegate_task.',
   title: 'Advanced Delegation',

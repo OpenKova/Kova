@@ -1388,7 +1388,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
 
         Another process refreshing via ``resolve_nous_runtime_credentials``
         writes fresh tokens under ``_auth_store_lock``; adopting them avoids a
-        "refresh token reuse" revocation on the Nous Portal.
+        "refresh token reuse" revocation on the Neural Studio Portal.
         """
         if self.provider != "nous" or entry.source != "device_code":
             return entry

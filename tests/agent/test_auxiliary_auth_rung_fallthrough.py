@@ -25,7 +25,7 @@ fall through to the provider fallback" and guards its retry with try/except.
 The first test drives the real ladder generator with a scripted driver. The second
 exercises the real path end to end: a temp ``KOVA_HOME`` whose ``config.yaml``
 declares a ``fallback_chain``, the real client construction and HTTP layer against a
-local endpoint, with only the credential sources stubbed (the Nous portal account
+local endpoint, with only the credential sources stubbed (the Neural Studio Portal account
 probe and the runtime-credential fetch are external boundaries).
 """
 

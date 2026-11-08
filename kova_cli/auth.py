@@ -170,7 +170,7 @@ def _api_key_provider(
 # [, auth_type]])``; OAuth / bespoke rows are full ``ProviderConfig`` objects.
 _REGISTRY_ROWS: tuple[Any, ...] = (
     ProviderConfig(
-        "nous", "Nous Portal", "oauth_device_code", portal_base_url=DEFAULT_NOUS_PORTAL_URL,
+        "nous", "Neural Studio Portal", "oauth_device_code", portal_base_url=DEFAULT_NOUS_PORTAL_URL,
         inference_base_url=DEFAULT_NOUS_INFERENCE_URL, client_id=DEFAULT_NOUS_CLIENT_ID,
         scope=DEFAULT_NOUS_SCOPE),
     ProviderConfig("openai-codex", "OpenAI Codex", "oauth_external", inference_base_url=DEFAULT_CODEX_BASE_URL),
@@ -1767,7 +1767,7 @@ def _optional_base_url(value: Any) -> Optional[str]:
     return cleaned or None
 
 
-# Valid Nous Portal hosts; a stored portal_base_url outside this set is a misconfiguration and falls
+# Valid Neural Studio Portal hosts; a stored portal_base_url outside this set is a misconfiguration and falls
 # back to the default. localhost / 127.0.0.1 are for local development and testing.
 _NOUS_PORTAL_ALLOWED_HOSTS: frozenset[str] = frozenset({
     "portal.nousresearch.com", "localhost", "127.0.0.1"})
@@ -1789,7 +1789,7 @@ def resolve_nous_access_token(
     insecure: Optional[bool] = None,
     ca_bundle: Optional[str] = None,
     refresh_skew_seconds: int = ACCESS_TOKEN_REFRESH_SKEW_SECONDS) -> str:
-    """Refresh-aware Nous Portal token for managed tool gateways, connectors and account reads, never
+    """Refresh-aware Neural Studio Portal token for managed tool gateways, connectors and account reads, never
     the free model: a guest gets a live held token, else a connectors-only mint NAS never challenges.
     Only a NAS from before hermes-portal#1516 challenges that mint; it is worked here as before."""
     from kova_cli.anon_challenge import run_with_challenge
@@ -1821,7 +1821,7 @@ def _resolve_nous_access_token(
 
     with _provider_state_transaction("nous") as (auth_store, state, state_source_path):
         if not state:
-            raise _nous_err("Kova is not logged into Nous Portal.", "nous_auth_missing", relogin=True)
+            raise _nous_err("Kova is not logged into Neural Studio Portal.", "nous_auth_missing", relogin=True)
         portal_base_url = _nous_portal_base_url(state)
         client_id = str(state.get("client_id") or DEFAULT_NOUS_CLIENT_ID)
         verify = _resolve_verify(insecure=insecure, ca_bundle=ca_bundle, auth_state=state)
@@ -1847,7 +1847,7 @@ def _resolve_nous_access_token(
             refresh_token = state.get("refresh_token")
             if not isinstance(access_token, str) or not access_token:
                 raise _nous_err(
-                    "No access token found for Nous Portal login.", "nous_auth_missing_access_token", relogin=True)
+                    "No access token found for Neural Studio Portal login.", "nous_auth_missing_access_token", relogin=True)
 
             if not _is_expiring(state.get("expires_at"), refresh_skew_seconds):
                 if merged_shared:

@@ -43,7 +43,7 @@ def nous_tool_gateway_unavailable_message(capability: str = "the Nous Tool Gatew
     except Exception:
         pass
     return (f"{capability} is unavailable. Run `kova model` to refresh your "
-            "Nous Portal login and billing status.")
+            "Neural Studio Portal login and billing status.")
 
 
 def normalize_browser_cloud_provider(value: object | None) -> str:

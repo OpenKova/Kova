@@ -224,7 +224,7 @@ def missing_provider_credentials_message(provider_id: str) -> str:
 
 def _nous_credential_present(exc: BaseException) -> bool:
     """True when a Nous credential exists that failed — a coded error (``invalid_grant``, a quarantine
-    marker, ``refresh_failed``) or persisted Nous auth state. The uncoded "not logged into Nous Portal"
+    marker, ``refresh_failed``) or persisted Nous auth state. The uncoded "not logged into Neural Studio Portal"
     with no stored state is the normal condition for users who never chose Nous; the auto-route walk
     hits it on every discovery pass and must not warn (the ladder already logs its own summary).
     """
@@ -251,7 +251,7 @@ def record_nous_credential_failure(exc: BaseException) -> str:
     code = getattr(exc, "code", None)
     if code and str(code) not in message:
         message = f"{message} (code: {code})"
-    detail = f"Nous Portal runtime credentials unavailable: {message}"
+    detail = f"Neural Studio Portal runtime credentials unavailable: {message}"
     global _last_nous_detail
     with _lock:
         _last_nous_detail = detail

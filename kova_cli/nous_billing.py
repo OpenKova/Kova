@@ -1,4 +1,4 @@
-"""Nous Portal Remote Spending HTTP client.
+"""Neural Studio Portal Remote Spending HTTP client.
 
 Thin, fail-loud client for the ``/api/billing/*`` endpoints the terminal billing screens drive.
 ``nous_account.py`` owns read-only entitlement/balance; this module owns the *write* side: buy
@@ -139,7 +139,7 @@ def invalidate_cached_token() -> None:
 
 def _billing_not_logged_in(exc: Optional[BaseException] = None) -> BillingAuthError:
     """Build the canonical 'not logged in' BillingAuthError (single source)."""
-    err = BillingAuthError("Not logged into Nous Portal — run `kova portal` to log in.", status=401, error="invalid_token")
+    err = BillingAuthError("Not logged into Neural Studio Portal — run `kova portal` to log in.", status=401, error="invalid_token")
     if exc is not None:
         err.__cause__ = exc
     return err
@@ -285,11 +285,11 @@ def _request(
         _raise_for_error(exc.code, payload, getattr(exc, "headers", None))
         raise  # unreachable; _raise_for_error always raises
     except urllib.error.URLError as exc:
-        raise BillingError(f"Could not reach Nous Portal: {exc.reason}", error="network_error") from exc
+        raise BillingError(f"Could not reach Neural Studio Portal: {exc.reason}", error="network_error") from exc
     except TimeoutError as exc:
         # urlopen() wraps CONNECT-phase timeouts in URLError, but a timeout during resp.read()
         # surfaces as a bare TimeoutError — normalize to the typed-BillingError contract.
-        raise BillingError("Could not reach Nous Portal: timed out", error="network_error") from exc
+        raise BillingError("Could not reach Neural Studio Portal: timed out", error="network_error") from exc
 
 
 # --- Endpoints ---

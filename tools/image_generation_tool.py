@@ -146,7 +146,7 @@ def _submit_fal_request(model: str, arguments: dict[str, Any]):
                     "managed FAL image generation", force_fresh=True)
             raise ValueError(
                 f"Nous Subscription gateway rejected model '{model}' (HTTP {status}). This model "
-                f"may not yet be enabled on the Nous Portal's FAL proxy. Either:\n"
+                f"may not yet be enabled on the Neural Studio Portal's FAL proxy. Either:\n"
                 f"  • Set FAL_KEY in your environment to use FAL.ai directly, or\n"
                 f"  • Pick a different model via `kova tools` → Image Generation."
                 f"{gateway_message}") from exc
@@ -775,7 +775,7 @@ def _maybe_route_managed_model(
         if plugin_name == "krea":
             return None
         return _provider_error(
-            f"image_gen.model='{model_id}' is a Nous Portal model but the Portal image backend is not "
+            f"image_gen.model='{model_id}' is a Neural Studio Portal model but the Portal image backend is not "
             f"available. Pick another model via `kova tools` → Image Generation.", "provider_not_registered")
     kwargs: dict[str, Any] = {"prompt": prompt, "aspect_ratio": aspect_ratio, "model": model_id}
     try:

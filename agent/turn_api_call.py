@@ -1,5 +1,5 @@
 """The provider call for the conversation turn's retry loop: ``nous_rate_limit_guard`` (skip
-the attempt while another session's Nous Portal rate limit is active), ``perform_api_call``
+the attempt while another session's Neural Studio Portal rate limit is active), ``perform_api_call``
 (streaming decision, MoA prepared-request handshake, LLM execution middleware wrapper, the
 redirect ``_model_request_active`` bracket and the response-vs-redirect crossing check) and
 ``handle_api_interrupt`` (``InterruptedError`` mid-call). Nothing here imports
@@ -233,7 +233,7 @@ def nous_rate_limit_guard(
     agent: Any, *, _retry: Any, api_messages: Any, messages: Any, conversation_history: Any,
     active_system_prompt: Any, retry_count: Any, compression_attempts: Any, api_call_count: Any,
 ) -> NousRateGuardVerdict:
-    """Skip the call if another session recorded a Nous Portal rate limit: every attempt (incl.
+    """Skip the call if another session recorded a Neural Studio Portal rate limit: every attempt (incl.
     SDK retries) counts against RPH. Never lets the guard itself break the agent loop."""
     from agent.conversation_loop import _arm_fallback_restart
 

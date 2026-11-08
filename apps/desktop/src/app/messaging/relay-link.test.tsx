@@ -75,7 +75,7 @@ test('a Portal-managed agent is sent to the Portal: no code is minted and nothin
   }))
   render(<RelayLinkSetup platform={telegram} />)
 
-  expect(await screen.findByRole('button', { name: /Link accounts in Nous Portal/ })).toBeTruthy()
+  expect(await screen.findByRole('button', { name: /Link accounts in Neural Studio Portal/ })).toBeTruthy()
   expect(screen.getByText('Ada')).toBeTruthy()
   expect(screen.queryByRole('button', { name: /Link (another )?Telegram|Unlink/ })).toBeNull()
 })

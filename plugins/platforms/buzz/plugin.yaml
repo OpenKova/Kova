@@ -9,7 +9,7 @@ description: >
   channels/DMs and the Kova agent. Relay operations shell out to the
   buzz CLI binary (JSON in/out); verified inbound media uses Kova' bundled
   HTTP client.
-author: Nous Research
+author: Neural Studio
 # ``requires_env`` entries are surfaced in ``hermes config`` UI via the
 # platform-plugin env var injector in ``kova_cli/config.py``.
 requires_env:

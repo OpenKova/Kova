@@ -947,11 +947,11 @@ class TestFetchEndpointModelMetadata:
 
 
 # =========================================================================
-# Nous Portal context-window resolution (provider="nous")
+# Neural Studio Portal context-window resolution (provider="nous")
 # =========================================================================
 
 class TestNousPortalContextResolution:
-    """Nous Portal /v1/models is authoritative for what Nous infra enforces
+    """Neural Studio Portal /v1/models is authoritative for what Nous infra enforces
     and may diverge from the OpenRouter catalog.
 
     Invariants this class pins down:
@@ -977,7 +977,7 @@ class TestNousPortalContextResolution:
         """An empty model name must not substring-match arbitrary catalog
         entries — '' is a substring of every key, so pre-fix it "matched"
         whatever the endpoint listed first (e.g. a 32K embedding model on
-        the Nous portal) and poisoned the resolved context length."""
+        the Neural Studio Portal) and poisoned the resolved context length."""
         import agent.model_metadata as mm
         mock_fetch.return_value = {
             "voyageai/voyage-code-4": {"context_length": 32_000},

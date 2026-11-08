@@ -10,7 +10,7 @@ description: >
   inbound. Supports text, media (image/video/audio/document), voice notes,
   interactive buttons, and DM allowlists. Complements the Baileys bridge
   (whatsapp) plugin; both share WhatsAppBehaviorMixin.
-author: NousResearch
+author: NeuralStudio
 requires_env:
   - name: WHATSAPP_CLOUD_PHONE_NUMBER_ID
     description: "WhatsApp phone number ID from the Meta App Dashboard (WhatsApp → API Setup)"

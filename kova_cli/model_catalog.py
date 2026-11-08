@@ -28,7 +28,7 @@ DEFAULT_CATALOG_URL = (
 # The Docusaurus site sits behind Vercel, which occasionally 403s non-browser clients (bot
 # challenge); the raw GitHub copy is the same manifest and is not bot-gated.
 DEFAULT_CATALOG_FALLBACK_URLS: tuple[str, ...] = (
-    "https://raw.githubusercontent.com/NousResearch/kova-agent/main/website/static/api/model-catalog.json",
+    "https://raw.githubusercontent.com/NeuralStudio/kova-agent/main/website/static/api/model-catalog.json",
 )
 DEFAULT_TTL_MINUTES = 20
 # Legacy key, honoured only when the user set it explicitly; ``ttl_minutes`` is the shipped default.
@@ -291,7 +291,7 @@ def refresh_interval_seconds() -> float:
 
 def refresh_catalogs() -> bool:
     """Force-refresh every remote catalog the picker reads (manifest, OpenRouter live list, and the
-    Nous Portal recommendations for a Nous account, the only reader), writing each disk cache so the
+    Neural Studio Portal recommendations for a Nous account, the only reader), writing each disk cache so the
     next ``/model`` open in ANY process sees them. Blocking; run it off the event loop."""
     if not _load_catalog_config()["enabled"]:
         return False
@@ -356,7 +356,7 @@ def get_curated_openrouter_models() -> list[tuple[str, str]] | None:
 
 
 def get_curated_nous_models() -> list[str] | None:
-    """Nous Portal's curated model ids from the manifest."""
+    """Neural Studio Portal's curated model ids from the manifest."""
     return [mid for mid, _ in _block_ids(_get_provider_block("nous"))] or None
 
 

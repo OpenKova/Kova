@@ -412,7 +412,7 @@ describe('GatewaySettings', () => {
 
     const oauthProbe = {
       authMode: 'oauth',
-      providers: [{ displayName: 'Nous Research', name: 'nous', supportsPassword: false }],
+      providers: [{ displayName: 'Neural Studio', name: 'nous', supportsPassword: false }],
       reachable: true
     }
 
@@ -431,7 +431,7 @@ describe('GatewaySettings', () => {
       // The env override still owns the URL: the editor stays read-only.
       expect(((await screen.findByDisplayValue(envUrl)) as HTMLInputElement).disabled).toBe(true)
 
-      fireEvent.click(await screen.findByRole('button', { name: 'Sign in with Nous Research' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Sign in with Neural Studio' }))
 
       await waitFor(() => expect(oauthLoginConnectionConfig).toHaveBeenCalledWith(envUrl))
     })
@@ -448,7 +448,7 @@ describe('GatewaySettings', () => {
       render(<GatewaySettings embedded />)
 
       expect(((await screen.findByDisplayValue(envUrl)) as HTMLInputElement).disabled).toBe(false)
-      expect(await screen.findByRole('button', { name: 'Sign in with Nous Research' })).toBeTruthy()
+      expect(await screen.findByRole('button', { name: 'Sign in with Neural Studio' })).toBeTruthy()
       expect(oauthLoginConnectionConfig).not.toHaveBeenCalled()
     })
   })

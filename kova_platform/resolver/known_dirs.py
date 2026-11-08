@@ -38,11 +38,11 @@ def machine_marker_files() -> tuple[str, ...]:
     The first entry is the one written; the rest are read too (Windows: MSIX builds that ran with
     filesystem virtualisation wrote under the package's LocalCache)."""
     if _WIN:
-        return ("%LOCALAPPDATA%/Nous Research/.machine",
-                "%LOCALAPPDATA%/Packages/NousResearch*_*/LocalCache/Local/Nous Research/.machine")
+        return ("%LOCALAPPDATA%/Neural Studio/.machine",
+                "%LOCALAPPDATA%/Packages/NeuralStudio*_*/LocalCache/Local/Neural Studio/.machine")
     if sys.platform == "darwin":
-        return ("~/Library/Application Support/Nous Research/.machine",)
-    return ("$XDG_STATE_HOME/nous-research/.machine", "~/.local/state/nous-research/.machine")
+        return ("~/Library/Application Support/Neural Studio/.machine",)
+    return ("$XDG_STATE_HOME/neural-studio/.machine", "~/.local/state/neural-studio/.machine")
 
 
 def kova_home_globs() -> tuple[str, ...]:
@@ -50,7 +50,7 @@ def kova_home_globs() -> tuple[str, ...]:
     root, and the per-package roots of MSIX builds that ran with filesystem virtualisation."""
     if _WIN:
         return ("%LOCALAPPDATA%/hermes*", "%USERPROFILE%/.kova",
-                "%LOCALAPPDATA%/Packages/NousResearch*_*/LocalCache/Local/hermes*")
+                "%LOCALAPPDATA%/Packages/NeuralStudio*_*/LocalCache/Local/hermes*")
     return ("~/.kova*",)
 
 

@@ -21,7 +21,7 @@ function skippedState(overrides: Partial<DesktopOnboardingState> = {}): DesktopO
     configured: false,
     flow: { status: 'idle' },
     mode: 'oauth',
-    providers: [makeOAuthProvider('nous', 'Nous Portal')],
+    providers: [makeOAuthProvider('nous', 'Neural Studio Portal')],
     reason: null,
     requested: false,
     firstRunSkipped: true,

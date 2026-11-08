@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # account access, so fidelity can vary by configured backend.
 _REF_CAPABLE = ("nous", "openai", "openai-codex", "openrouter", "krea")
 # Friendly display label per reference-capable provider (desktop pet-gen picker).
-_PROVIDER_LABELS = {"nous": "Nous Portal", "openrouter": "OpenRouter", "openai": "OpenAI", "openai-codex": "OpenAI (Codex)", "krea": "Krea"}
+_PROVIDER_LABELS = {"nous": "Neural Studio Portal", "openrouter": "OpenRouter", "openai": "OpenAI", "openai-codex": "OpenAI (Codex)", "krea": "Krea"}
 
 
 class GenerationError(RuntimeError):
@@ -82,7 +82,7 @@ def resolve_provider(*, require_references: bool = True, prefer: str | None = No
         return SpriteProvider(name=getattr(active, "name", "unknown"), provider=active, supports_references=False)
     raise GenerationError(
         "Pet generation needs an image backend that supports reference images. "
-        "Open `kova tools` → Image Generation and configure Nous Portal, "
+        "Open `kova tools` → Image Generation and configure Neural Studio Portal, "
         "OpenRouter, or OpenAI (gpt-image-2) with an API key."
     )
 

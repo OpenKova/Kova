@@ -102,14 +102,14 @@ describe('connected external provider row', () => {
           docs_url: '',
           flow: 'device_code',
           id: 'nous',
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           status: { logged_in: true }
         }
       ]
     })
 
     await renderAccounts()
-    fireEvent.click(await screen.findByRole('button', { name: 'Remove Nous Portal' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove Neural Studio Portal' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
 
     await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalled())

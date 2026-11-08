@@ -23,7 +23,7 @@ interface CookieWindowOptions {
 
 type CookieWindowOutcome = 'landed' | 'closed' | 'timeout' | Error
 
-// Canonical Nous portal base URL, overridable for staging/dev. Mirrors the CLI
+// Canonical Neural Studio Portal base URL, overridable for staging/dev. Mirrors the CLI
 // convention (kova_cli/auth.py DEFAULT_NOUS_PORTAL_URL + the same env names)
 // so a single override flips every Kova surface to the same portal.
 const DEFAULT_NOUS_PORTAL_URL = 'https://portal.nousresearch.com'

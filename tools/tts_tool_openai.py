@@ -1,6 +1,6 @@
 """OpenAI-compatible TTS backends for ``tools.tts_tool``: OpenAI and DeepInfra.
 
-Also owns the managed-gateway (Nous portal ``openai-audio`` proxy) route selection that
+Also owns the managed-gateway (Neural Studio Portal ``openai-audio`` proxy) route selection that
 decides where the OpenAI client points. Seams defined on the origin module (``_load_tts_config``,
 ``_import_openai_client``, ``_resolve_provider_key``, ``_generate_openai_tts``) are resolved
 through :func:`_origin` at call time.

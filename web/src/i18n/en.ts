@@ -60,7 +60,7 @@ export const en: Translations = {
     closeNavigation: "Close navigation",
     closeModelTools: "Close model and tools",
     footer: {
-      org: "Nous Research",
+      org: "Neural Studio",
     },
     activeSessionsLabel: "Active Sessions:",
     gatewayStatusLabel: "Gateway Status:",
@@ -118,7 +118,7 @@ export const en: Translations = {
       "Shared metrics are bounded counters, never prompts, files, paths or error text. Sharing sends them to Nous once a day.",
     sharedMetricsReaskBody:
       "Asking once more: an earlier version could save \"No thanks\" before you saw this question.",
-    sharedMetricsShare: "Share with Nous",
+    sharedMetricsShare: "Share with Neural Studio",
     sharedMetricsOff: "No thanks",
     sharedMetricsDetails: "Details",
     sharedMetricsSaveFailed: "Couldn't save your choice",

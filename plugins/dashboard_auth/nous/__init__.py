@@ -1,4 +1,4 @@
-"""NousDashboardAuthProvider — Nous Portal OAuth (authorization-code + PKCE).
+"""NousDashboardAuthProvider — Neural Studio Portal OAuth (authorization-code + PKCE).
 
 Implements ``nous-account-service/docs/agent-dashboard-oauth-contract.md``; registers only
 when a client_id (``dashboard.oauth.client_id`` / ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``, shape
@@ -43,10 +43,10 @@ LAST_SKIP_REASON: str = ""  # cleared on every register() so restarts don't leak
 
 
 class NousDashboardAuthProvider(JwtOAuthProvider):
-    """Nous Portal OAuth via authorization-code + PKCE (S256)."""
+    """Neural Studio Portal OAuth via authorization-code + PKCE (S256)."""
 
     name = "nous"
-    display_name = "Nous Research"
+    display_name = "Neural Studio"
 
     def __init__(self, *, client_id: str, portal_url: str, token_leeway: float = DEFAULT_TOKEN_LEEWAY_SECONDS) -> None:
         # Defense-in-depth: register() filters too, but a malformed id must never construct a provider.
@@ -114,7 +114,7 @@ class NousDashboardAuthProvider(JwtOAuthProvider):
         contract_version = claims.get("oauth_contract_version")
         if contract_version is None:
             logger.warning(
-                "Nous Portal token missing oauth_contract_version claim (contract says it should be %d); proceeding anyway.",
+                "Neural Studio Portal token missing oauth_contract_version claim (contract says it should be %d); proceeding anyway.",
                 _EXPECTED_CONTRACT_VERSION)
         elif contract_version != _EXPECTED_CONTRACT_VERSION:
             raise ProviderError(
@@ -146,7 +146,7 @@ def _settings() -> dict:
     if not client_id:
         raise SkipRegistration(
             "KOVA_DASHBOARD_OAUTH_CLIENT_ID is not set (and dashboard.oauth.client_id "
-            "in config.yaml is empty). The Nous Portal provisions this env var (shape "
+            "in config.yaml is empty). The Neural Studio Portal provisions this env var (shape "
             "'agent:{instance_id}') when it deploys a Kova Agent instance — set it to "
             "your provisioned client id (either as an env var or under "
             "dashboard.oauth.client_id in config.yaml), or pass --insecure to skip the "
@@ -154,7 +154,7 @@ def _settings() -> dict:
     if not client_id.startswith("agent:"):
         raise SkipRegistration(
             f"KOVA_DASHBOARD_OAUTH_CLIENT_ID={client_id!r} doesn't match the contract "
-            f"shape 'agent:{{instance_id}}'. The Nous Portal provisions this value at deploy "
+            f"shape 'agent:{{instance_id}}'. The Neural Studio Portal provisions this value at deploy "
             f"time; check your Fly app's secrets or override with the value from the Portal admin UI.",
             level="warning")
     return {"client_id": client_id, "portal_url": portal_url,

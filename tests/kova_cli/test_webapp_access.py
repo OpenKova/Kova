@@ -1,7 +1,7 @@
 """Remote Webapp access (``kova_cli.webapp_access``, ``/api/webapp-access/*``).
 
 Contracts: Web Access writes only the ``webapp:`` block (the own-URL mode's URL in
-``webapp.public_url``), LAN access registers the LAN callback on a Nous Portal client of Web Access's
+``webapp.public_url``), LAN access registers the LAN callback on a Neural Studio Portal client of Web Access's
 own (never the dashboard's, never in ``.env``), and nothing is written or restarted without a Nous
 account to sign in with.
 """
@@ -391,7 +391,7 @@ LAN_CALLBACK = "http://192.168.1.50:9120/auth/callback"
 
 @pytest.fixture()
 def portal(monkeypatch):
-    """A signed-in Nous account and a fake Nous Portal (no network). Its self-hosted-client endpoint
+    """A signed-in Nous account and a fake Neural Studio Portal (no network). Its self-hosted-client endpoint
     mints ``agent:client-N`` for a request without a known client id and, for one it knows, REPLACES
     that client's redirect URI: the worst case the real Portal may do. It already holds the
     standalone dashboard's client (``agent:dashboard``)."""

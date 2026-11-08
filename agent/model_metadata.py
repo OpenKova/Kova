@@ -303,7 +303,7 @@ DEFAULT_CONTEXT_LENGTHS = {
     # its own branch). 5.4-nano/-mini are 400k, not 1.05M; gpt-5.3-codex-spark is
     # Codex-OAuth-only and listed so "gpt-5" (400k) doesn't win.
     "gpt-6-astra": 1050000,  # also matches -pro (verified live on OpenRouter)
-    "gpt-6.1-sol": 1050000, "gpt-6.1-terra": 1050000,  # Sol -pro too; both live on OpenRouter (Terra also Nous Portal, 2026-10-26)
+    "gpt-6.1-sol": 1050000, "gpt-6.1-terra": 1050000,  # Sol -pro too; both live on OpenRouter (Terra also Neural Studio Portal, 2026-10-26)
     "gpt-6-sol": 1050000, "gpt-6-luna": 1050000,  # -pro too (OpenRouter live 2026-09-22)
     "gpt-5.6-luna": 1050000, "gpt-5.6-terra": 1050000, "gpt-5.6-sol": 1050000, "gpt-5.5": 1050000,
     "gpt-5.4-nano": 400000, "gpt-5.4-mini": 400000, "gpt-5.4": 1050000,
@@ -323,7 +323,7 @@ DEFAULT_CONTEXT_LENGTHS = {
     # muse-image/muse-voice). Thinking Machines inkling (covers inkling-small and :free/:batch variants)
     "llama": 131072, "muse-spark-1.3": 1_048_576, "muse-spark": 1_048_576, "inkling": 1_048_576,
     # Qwen — https://help.aliyun.com/zh/model-studio/developer-reference/ (3.8-max/flash
-    # 1M verified on OpenRouter & Nous portal 2026-08; qwen3-max = 256K Coding Plan snapshot)
+    # 1M verified on OpenRouter & Neural Studio Portal 2026-08; qwen3-max = 256K Coding Plan snapshot)
     "qwen3.8-max": 1_000_000, "qwen3.8-flash": 1_000_000, "qwen3.6-plus": 1048576, "qwen3.7-plus": 1048576,
     "qwen3-coder-plus": 1000000, "qwen3-coder": 262144, "qwen3-max": 262144, "qwen": 131072,
     # MiniMax — M3 is 1M; M2.x is 204,800. https://platform.minimax.io/docs/api-reference/text-chat-openai
@@ -1928,7 +1928,7 @@ def _resolve_codex_oauth_context_length_with_source(model: str, access_token: st
 
 
 def _resolve_nous_context_length(model: str, base_url: str = "", api_key: str = "") -> tuple[Optional[int], str]:
-    """``(context_length, source)`` for a Nous Portal model: portal /v1/models is authoritative
+    """``(context_length, source)`` for a Neural Studio Portal model: portal /v1/models is authoritative
     ("portal"). Fallback matches OR's prefixed ids against the bare Nous id with dot/dash
     normalisation ("openrouter" — callers must NOT persist it, or a portal blip freezes the wrong value)."""
     if base_url:
@@ -1980,10 +1980,10 @@ def _validate_cached_context_length(model: str, base_url: str, cached: int, *, a
             log(msg, model, base_url, shown)
             _invalidate_cached_context_length(model, base_url)
             return None
-    # Nous Portal: /v1/models is authoritative. Bypass (don't drop) the cache so step
+    # Neural Studio Portal: /v1/models is authoritative. Bypass (don't drop) the cache so step
     # 5b reconciles OR-seeded entries without touching disk when the portal is down.
     if _infer_provider_from_url(base_url) == "nous":
-        logger.debug("Bypassing persistent cache for %s@%s (Nous portal authoritative)", model, base_url)
+        logger.debug("Bypassing persistent cache for %s@%s (Neural Studio Portal authoritative)", model, base_url)
         return None
 
     # For local endpoints, run the probe that respects configured Modelfile context values first.
@@ -2160,7 +2160,7 @@ def _resolve_provider_aware_context_length(model: str, base_url: str, api_key: s
     with contextlib.suppress(Exception):  # fall through to models.dev
         if profile is not None and (ctx := profile.live_context_length(model, api_key=api_key or "", base_url=base_url or "")):
             return ctx
-    # 5b/5c. Nous portal and Codex OAuth (lower limits than the direct API for the same slug; its
+    # 5b/5c. Neural Studio Portal and Codex OAuth (lower limits than the direct API for the same slug; its
     # own /models is authoritative). Persist ONLY the authoritative source ("portal" / "live"): an
     # OR-fallback or static-table value cached on a blip would be frozen in by step 1 forever.
     sourced = {

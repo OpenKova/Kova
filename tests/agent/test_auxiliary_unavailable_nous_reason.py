@@ -30,7 +30,7 @@ def test_goal_judge_reason_names_nous_auth_failure_and_still_fails_open(tmp_path
         "ship the fix", "edited the file and ran the tests", timeout=5)
 
     assert (verdict, parse_failed, wait_directive, judge_errored) == ("continue", False, None, True)
-    assert reason.startswith("goal_judge auxiliary client unavailable: Nous Portal runtime credentials unavailable:")
+    assert reason.startswith("goal_judge auxiliary client unavailable: Neural Studio Portal runtime credentials unavailable:")
     assert "hermes model" in reason, reason
     assert "judge error" not in reason
 
@@ -42,7 +42,7 @@ def test_nous_credential_failure_is_remembered_and_warned_once(caplog, monkeypat
         detail = unavailable.record_nous_credential_failure(exc)
         unavailable.record_nous_credential_failure(exc)
 
-    assert detail.startswith("Nous Portal runtime credentials unavailable: ")
+    assert detail.startswith("Neural Studio Portal runtime credentials unavailable: ")
     assert "invalid_grant" in detail and "hermes model" in detail
     assert unavailable.nous_credential_failure_detail() == detail
     assert sum(detail in rec.getMessage() for rec in caplog.records) == 1
@@ -54,7 +54,7 @@ def test_never_logged_in_is_debug_but_a_dead_credential_warns(caplog, monkeypatc
     """The auto-route walk resolves Nous on every pass; users who never chose Nous must not be nagged."""
     _reset(monkeypatch)
     monkeypatch.setenv("KOVA_HOME", str(tmp_path))
-    not_logged_in = AuthError("Kova is not logged into Nous Portal.", provider="nous", relogin_required=True)
+    not_logged_in = AuthError("Kova is not logged into Neural Studio Portal.", provider="nous", relogin_required=True)
     dead = AuthError("Invalid refresh token", provider="nous", code="invalid_grant", relogin_required=True)
     with caplog.at_level(logging.DEBUG, logger="agent.auxiliary_unavailable"):
         quiet = unavailable.record_nous_credential_failure(not_logged_in)

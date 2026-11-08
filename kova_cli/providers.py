@@ -142,7 +142,7 @@ ALIASES: dict[str, str] = {alias: canon for canon, aliases in _ALIAS_GROUPS.item
 # -- Display labels for providers not in the models.dev catalog ---------------
 
 _LABEL_OVERRIDES: dict[str, str] = {
-    "moa": "Mixture of Agents", "nous": "Nous Portal", "openai-codex": "ChatGPT or Codex Subscription",
+    "moa": "Mixture of Agents", "nous": "Neural Studio Portal", "openai-codex": "ChatGPT or Codex Subscription",
     "stepfun": "StepFun Step Plan", "xiaomi": "Xiaomi MiMo", "gmi": "GMI Cloud",
     "upstage": "Upstage Solar", "actual": "Actual Computer", "tencent-tokenhub": "Tencent TokenHub",
     "nebius-token-factory": "Nebius Token Factory", "tencent-tokenplan": "Tencent TokenPlan", "lmstudio": "LM Studio",
@@ -429,7 +429,7 @@ def host_mandated_api_mode(base_url: str = "") -> Optional[str]:
 
 
 def nous_api_mode(model: str = "") -> str:
-    """Wire protocol for a Nous Portal model. Portal serves its ``anthropic/*`` catalog on a native
+    """Wire protocol for a Neural Studio Portal model. Portal serves its ``anthropic/*`` catalog on a native
     Messages route alongside OpenAI-compatible chat/completions for everything else.
 
     ``anthropic/*`` rides chat/completions by default for now (``nous.anthropic_wire``). Measured
@@ -437,7 +437,7 @@ def nous_api_mode(model: str = "") -> str:
     native route re-wrote the previous turn on 14-20% of consecutive calls (4 runs; the cache read
     stopped at the prior breakpoint with byte-identical prefixes), chat/completions 0 of 320 pairs.
     That is 15-20% of a fan-out's cache-write bill. The cause is inside the portal's native route
-    (NousResearch/api#227 carries the diagnostics); flip the default back to ``native`` when it is
+    (NeuralStudio/api#227 carries the diagnostics); flip the default back to ``native`` when it is
     fixed. Cost of ``chat``: prior-turn thinking travels as OpenAI-style reasoning fields instead of
     signed native blocks, and cache_control scopes are translated by the portal's adapter.
     Empty/unknown model defaults to ``chat_completions`` (the historical Nous transport)."""

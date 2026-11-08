@@ -152,7 +152,7 @@ class TestPluginRegister:
         self, monkeypatch
     ):
         """Phase 7 follow-up: KOVA_DASHBOARD_PORTAL_URL is optional —
-        defaults to the production Nous Portal. The user shouldn't have
+        defaults to the production Neural Studio Portal. The user shouldn't have
         to set it for the common production deployment path."""
         monkeypatch.setenv("KOVA_DASHBOARD_OAUTH_CLIENT_ID", "agent:inst1")
         monkeypatch.delenv("KOVA_DASHBOARD_PORTAL_URL", raising=False)

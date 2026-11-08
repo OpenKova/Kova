@@ -339,7 +339,7 @@
         tier_part: tierPart,
         name: achievement.name,
       });
-      return tmpl + "\n\n@NousResearch · https://kova-agent.nousresearch.com";
+      return tmpl + "\n\n@NeuralStudio · https://kova-agent.nousresearch.com";
     }
 
     function shareOnX() {

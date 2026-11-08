@@ -1,4 +1,4 @@
-"""Normalized Nous Portal account entitlement helpers."""
+"""Normalized Neural Studio Portal account entitlement helpers."""
 
 from __future__ import annotations
 
@@ -252,29 +252,29 @@ def format_nous_portal_entitlement_message(
                 return None
             if account_info.tool_gateway_entitled:
                 return (
-                    f"{capability} isn't included with your current Nous Portal access. "
+                    f"{capability} isn't included with your current Neural Studio Portal access. "
                     f"Add credits or a subscription to enable it at {billing_url}."
                 )
         elif account_info.tool_gateway_entitled:
             return None
     if account_info is None:
         return (
-            f"Kova could not verify your Nous Portal entitlement, so {capability} is unavailable. "
+            f"Kova could not verify your Neural Studio Portal entitlement, so {capability} is unavailable. "
             f"Run `kova model` to refresh your login, or check billing at {billing_url}."
         )
     if not account_info.logged_in:
         if account_info.inference_credential_present:
             return (
-                f"Nous inference credentials are configured, but Kova cannot verify your Nous Portal "
+                f"Nous inference credentials are configured, but Kova cannot verify your Neural Studio Portal "
                 f"paid access for {capability}. Log in with `kova model` to enable Portal-managed "
                 f"features. Billing and credits are managed at {billing_url}."
             )
         return (
-            f"Log in to Nous Portal to use {capability}: run `kova model`. "
+            f"Log in to Neural Studio Portal to use {capability}: run `kova model`. "
             f"Billing and credits are managed at {billing_url}."
         )
     if account_info.paid_service_access is None:
-        detail = f"Kova could not verify your Nous Portal paid access, so {capability} is unavailable."
+        detail = f"Kova could not verify your Neural Studio Portal paid access, so {capability} is unavailable."
         if account_info.error:
             detail += f" Account lookup failed: {account_info.error}."
         if include_refresh_hint:
@@ -284,7 +284,7 @@ def format_nous_portal_entitlement_message(
     reason = access.reason if access else None
     if reason == "account_missing":
         return (
-            f"Kova could not find a Nous Portal account or organisation for this login, so {capability} "
+            f"Kova could not find a Neural Studio Portal account or organisation for this login, so {capability} "
             f"is unavailable. Run `kova model` to authenticate again; if the problem persists, contact Nous support."
         )
     if reason == "no_usable_credits" or account_info.paid_service_access is False:
@@ -293,7 +293,7 @@ def format_nous_portal_entitlement_message(
             message += " If you recently bought credits, run `kova model` to refresh Kova."
         return message
     return (
-        f"Your Nous Portal account does not currently have paid service access, "
+        f"Your Neural Studio Portal account does not currently have paid service access, "
         f"so {capability} is unavailable. Add credits or update billing at {billing_url}."
     )
 
@@ -320,27 +320,27 @@ def _no_paid_access_message(
         elif cap is not None:
             cap_detail = f" Your organisation's per-member spend cap is ${cap:.2f}."
         return (
-            f"Your Nous Portal access is paused because you've exceeded the per-member spend cap set by "
+            f"Your Neural Studio Portal access is paused because you've exceeded the per-member spend cap set by "
             f"your organisation.{cap_detail}{credit_detail} Ask your organisation admin to raise the "
             f"member spend cap at {billing_url}, then run `kova model` to refresh."
         )
     if active and paid:
         return (
-            f"Your Nous Portal credits are exhausted{credit_detail}, so {capability} is unavailable. "
+            f"Your Neural Studio Portal credits are exhausted{credit_detail}, so {capability} is unavailable. "
             f"Top up or renew credits at {billing_url}."
         )
     if active and paid is False:
         return (
-            f"Your current Nous Portal plan does not include paid service access, "
+            f"Your current Neural Studio Portal plan does not include paid service access, "
             f"so {capability} is unavailable. Upgrade or add credits at {billing_url}."
         )
     if active is False:
         return (
-            f"Your Nous Portal account has no active subscription or usable credits{credit_detail}, "
+            f"Your Neural Studio Portal account has no active subscription or usable credits{credit_detail}, "
             f"so {capability} is unavailable. Subscribe or add credits at {billing_url}."
         )
     return (
-        f"Your Nous Portal account has no usable paid credits{credit_detail}, so "
+        f"Your Neural Studio Portal account has no usable paid credits{credit_detail}, so "
         f"{capability} is unavailable. Add credits or update billing at {billing_url}."
     )
 
@@ -353,7 +353,7 @@ def reset_nous_portal_account_info_cache() -> None:
 
 
 def get_nous_portal_account_info(*, force_fresh: bool = False, min_jwt_ttl_seconds: int = 60) -> NousPortalAccountInfo:
-    """Normalized Nous Portal account entitlement.
+    """Normalized Neural Studio Portal account entitlement.
 
     A valid unexpired OAuth JWT serves as a local snapshot (UX gating only; the server stays
     authoritative). ``force_fresh=True`` always calls ``/api/oauth/account`` and bypasses the cache.

@@ -638,9 +638,9 @@ def _run_debug_share_nous(args, *, log_lines: int, redact: bool) -> None:
     print("\nShare this private link with the Nous team — only Nous staff "
           "(via Google login) can open it.\n"
           "\nPick up the discussion in:\n"
-          "  GitHub Issues        https://github.com/NousResearch/kova-agent/issues\n"
-          "  Nous Portal Support  https://portal.nousresearch.com/help\n"
-          "  Discord              https://discord.gg/NousResearch")
+          "  GitHub Issues        https://github.com/NeuralStudio/kova-agent/issues\n"
+          "  Neural Studio Portal Support  https://portal.nousresearch.com/help\n"
+          "  Discord              https://discord.gg/NeuralStudio")
 
 
 def run_debug_delete(args):

@@ -71,7 +71,7 @@ async function fixture(): Promise<{
       artifactNamePascal: 'KovaH1234567890abcdef',
       cliName: 'hermes-fresh-preview-29',
       windowsExecutableName: 'KovaH1234567890abcdef.exe',
-      msixAppIdWithOrg: 'NousResearch.KovaH1234567890abcdef'
+      msixAppIdWithOrg: 'NeuralStudio.KovaH1234567890abcdef'
     }
   }
 
@@ -232,7 +232,7 @@ test('protected canary accepts bounded Windows revisions without relaxing stable
       variant: 'bundled',
       version: '1.2.4.10',
       identity: f.build.identity.msixAppIdWithOrg,
-      publisher: 'CN=Nous Research',
+      publisher: 'CN=Neural Studio',
       artifact: {
         key: `releases/channel-builds/${f.manifest.request.buildId}/win32/Kova.msixbundle`,
         sha256: 'd'.repeat(64),
@@ -248,7 +248,7 @@ test('protected canary accepts bounded Windows revisions without relaxing stable
   f.manifest.request.version = f.manifest.request.releaseTag.slice(1)
   f.manifest.request.windowsVersion = '1.2.4.10'
   f.publish()
-  const resolver = new ChannelResolver({ build: f.build, platform: 'win32', arch: 'x64', signer: 'CN=Nous Research' })
+  const resolver = new ChannelResolver({ build: f.build, platform: 'win32', arch: 'x64', signer: 'CN=Neural Studio' })
   expect((await resolver.resolve()).kind).toBe('active')
 
   for (const version of ['1.2.4.65536', '65536.2.4.0', '1.2.4.-1', '1.2.4.1.0', '1.2.4.x']) {
@@ -647,7 +647,7 @@ test('Windows resolves its numeric native version, publisher and immutable descr
       variant: 'bundled',
       version: '0.0.2.0',
       identity: f.build.identity.msixAppIdWithOrg,
-      publisher: 'CN=Nous Research',
+      publisher: 'CN=Neural Studio',
       artifact: {
         key: `releases/channel-builds/${f.manifest.request.buildId}/win32/Kova.msixbundle`,
         sha256: 'd'.repeat(64),
@@ -665,7 +665,7 @@ test('Windows resolves its numeric native version, publisher and immutable descr
     build: f.build,
     platform: 'win32',
     arch: 'x64',
-    signer: 'CN=Nous Research'
+    signer: 'CN=Neural Studio'
   }).resolve()
 
   expect(result.kind).toBe('active')

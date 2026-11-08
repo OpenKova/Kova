@@ -2,7 +2,7 @@
 
 One real HTTP server on 127.0.0.1 that plays the vendor side of the OAuth providers:
 
-* Nous Portal (RFC 8628 device flow + single-use refresh-token rotation):
+* Neural Studio Portal (RFC 8628 device flow + single-use refresh-token rotation):
   ``POST /api/oauth/device/code`` and ``POST /api/oauth/token`` (``grant_type`` device_code or
   refresh_token; the refresh token rides in the ``x-nous-refresh-token`` header). The device poll
   answers the scripted error codes in ``poll_script`` (one per poll) and then issues tokens; every

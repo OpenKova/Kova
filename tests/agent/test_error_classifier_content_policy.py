@@ -13,7 +13,7 @@ class _APIError(Exception):
 
 
 @pytest.mark.parametrize("status, message", [
-    # Output guardrail relayed by OpenRouter / the Nous Portal as an in-band 502 marked provider_unavailable.
+    # Output guardrail relayed by OpenRouter / the Neural Studio Portal as an in-band 502 marked provider_unavailable.
     (502, "Upstream error from Alibaba: Output data may contain inappropriate content."),
     (None, "Upstream error from Alibaba: Output data may contain inappropriate content."),
     # Input guardrail: DashScope's documented 400 (code data_inspection_failed).

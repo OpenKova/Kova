@@ -79,7 +79,7 @@ def test_nous_free_models_render_across_partitioned_selects():
         providers=[
             {
                 "slug": "nous",
-                "name": "Nous Portal",
+                "name": "Neural Studio Portal",
                 "models": list(models),
                 "total_models": len(models),
                 "is_current": True,
@@ -162,7 +162,7 @@ def test_a_large_row_carries_its_tag_as_the_option_description():
     second line (Large / Free only); every other row and every other account has no description."""
     view = ModelPickerView(
         providers=[{
-            "slug": "nous", "name": "Nous Portal", "models": ["example/model-b", "example/model-free:free"],
+            "slug": "nous", "name": "Neural Studio Portal", "models": ["example/model-b", "example/model-free:free"],
             "total_models": 2, "is_current": True,
             "model_labels": {"example/model-b": "Large"},
         }],

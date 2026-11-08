@@ -382,7 +382,7 @@ def is_foreign_provider_endpoint(provider: Optional[str], base_url: Optional[str
     """True when ``base_url`` is another built-in provider's canonical endpoint, not ``provider``'s.
 
     A persisted session route that pairs one provider with another's endpoint is left over from a
-    switch that kept the old URL (openai-codex + the Nous Portal URL sent the Codex slug to the Portal).
+    switch that kept the old URL (openai-codex + the Neural Studio Portal URL sent the Codex slug to the Portal).
     Only registered providers are judged: a custom or proxy URL is never another provider's canonical one.
     """
     pconfig = PROVIDER_REGISTRY.get(str(provider or "").strip().lower())

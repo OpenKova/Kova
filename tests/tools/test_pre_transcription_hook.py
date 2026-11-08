@@ -35,7 +35,7 @@ import kova_cli.plugins as plugins_mod
 from tools import transcription_tools
 
 
-PROMPT = "Kova, Teknium, Nous Research, kanban"
+PROMPT = "Kova, Teknium, Neural Studio, kanban"
 
 
 # ---------------------------------------------------------------------------

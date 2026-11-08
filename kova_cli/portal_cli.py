@@ -1,4 +1,4 @@
-"""``kova portal`` — the human-readable entry point for Nous Portal."""
+"""``kova portal`` — the human-readable entry point for Neural Studio Portal."""
 from __future__ import annotations
 
 import sys
@@ -47,7 +47,7 @@ def _cmd_status(args) -> int:
         auth = {}
     logged_in = bool(auth.get("logged_in"))
     free_tier = bool(auth.get("free_tier"))
-    _heading("Nous Portal")
+    _heading("Neural Studio Portal")
     if free_tier:
         from kova_cli.anon_auth import FREE_TIER_LABEL, GUEST_MODEL, UPGRADE_HINT
         print(f"  Auth:    {color(f'{FREE_TIER_LABEL} · {GUEST_MODEL}', Colors.GREEN)}")
@@ -78,7 +78,7 @@ def _cmd_status(args) -> int:
     except Exception:
         print("  (could not resolve subscription state)")
         return 0
-    rows = [(feat.label, _feature_state(feat, via_nous="via Nous Portal")) for feat in features.items()]
+    rows = [(feat.label, _feature_state(feat, via_nous="via Neural Studio Portal")) for feat in features.items()]
     width = max((len(r[0]) for r in rows), default=0)
     for label, state in rows:
         print(f"  {label:<{width}}   {state}")
@@ -115,7 +115,7 @@ def _cmd_tools(args) -> int:
 
     _heading("Tool Gateway catalog")
     if not features.nous_auth_present:
-        print(color("  Not logged into Nous Portal — sign in with `kova portal`.", Colors.YELLOW))
+        print(color("  Not logged into Neural Studio Portal — sign in with `kova portal`.", Colors.YELLOW))
         print()
 
     label_width = max(len(label) for _, label, _ in _CATALOG)
@@ -123,7 +123,7 @@ def _cmd_tools(args) -> int:
         if key == "image_gen":
             partner = managed_image_partner(config) or partner
         feat = features.features.get(key)
-        state = color("unknown", Colors.DIM) if feat is None else _feature_state(feat, via_nous="✓ via Nous Portal")
+        state = color("unknown", Colors.DIM) if feat is None else _feature_state(feat, via_nous="✓ via Neural Studio Portal")
         print(f"  {label:<{label_width}}  partner: {partner:<14} {state}")
 
     print()
@@ -133,7 +133,7 @@ def _cmd_tools(args) -> int:
 
 
 def _cmd_login(args) -> int:
-    """One-shot Nous Portal onboarding (login + model + provider + tools).
+    """One-shot Neural Studio Portal onboarding (login + model + provider + tools).
 
     Reuses the exact wiring behind ``kova setup --portal`` so the commands stay in lockstep.
     """
@@ -177,9 +177,9 @@ def add_parser(subparsers) -> None:
     """Register `kova portal` on the given argparse subparsers object."""
     portal_parser = subparsers.add_parser(
         "portal",
-        help="Set up Nous Portal (login, model pick, Tool Gateway); see also `portal info`",
+        help="Set up Neural Studio Portal (login, model pick, Tool Gateway); see also `portal info`",
         description=(
-            "Run `kova portal` with no subcommand to log in to Nous Portal "
+            "Run `kova portal` with no subcommand to log in to Neural Studio Portal "
             "and set it up — pick a model, set Nous as your provider, and offer "
             "the Tool Gateway (the human-readable alias for `kova auth add "
             "nous --type oauth`, identical to `kova setup --portal`). "
@@ -190,7 +190,7 @@ def add_parser(subparsers) -> None:
 
     # `status` is a hidden (no help) back-compat alias; registration order = `kova portal -h` order.
     for name, help_text in (
-        ("login", "Log in to Nous Portal + set it up (default; one-shot onboarding)"),
+        ("login", "Log in to Neural Studio Portal + set it up (default; one-shot onboarding)"),
         ("info", "Show Portal auth + Tool Gateway routing summary"),
         ("status", None),
         ("open", "Open the Portal subscription page in your default browser"),

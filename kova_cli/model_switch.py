@@ -98,14 +98,14 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
 # --- Non-agentic model warning
 
 _KOVA_MODEL_WARNING = (
-    "Nous Research Kova 3 & 4 models are NOT agentic and are not designed "
+    "Neural Studio Kova 3 & 4 models are NOT agentic and are not designed "
     "for use with Kova Agent. They lack the tool-calling capabilities "
     "required for agent workflows. Consider using an agentic model instead "
     "(Claude, GPT, Gemini, DeepSeek, etc.).")
 
-# Match only the real Nous Research Kova 3 / 4 chat families; a bare substring check
+# Match only the real Neural Studio Kova 3 / 4 chat families; a bare substring check
 # false-positived on tool-capable local Modelfiles like ``hermes-brain:qwen3-14b-ctx16k``.
-#   match:    NousResearch/Kova-3-Llama-3.1-70B, hermes-4-405b, openrouter/hermes3:70b
+#   match:    NeuralStudio/Kova-3-Llama-3.1-70B, hermes-4-405b, openrouter/hermes3:70b
 #   no match: hermes-brain:qwen3-14b-ctx16k, qwen3:14b, claude-opus-4-6
 _NOUS_KOVA_NON_AGENTIC_RE = re.compile(r"(?:^|[/:])hermes[-_ ]?[34](?:[-_.:]|$)", re.IGNORECASE)
 

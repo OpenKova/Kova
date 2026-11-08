@@ -1,4 +1,4 @@
-"""Nous Portal OAuth: device-code login, refresh, shared-store mirroring, JWT selection, status.
+"""Neural Studio Portal OAuth: device-code login, refresh, shared-store mirroring, JWT selection, status.
 
 Split out of ``kova_cli/auth.py``; origin helpers are imported lazily inside each function
 so ``kova_cli.auth.<name>`` patches still intercept (and no import cycle).
@@ -45,7 +45,7 @@ def _unusable_invoke_jwt_error(reason: str, *, no_refresh_token: bool = False) -
     """
     detail = " and no refresh token is available" if no_refresh_token else ""
     return _nous_err(
-        f"Nous Portal access token is not a usable inference JWT ({reason}){detail}. "
+        f"Neural Studio Portal access token is not a usable inference JWT ({reason}){detail}. "
         f"{_UNUSABLE_JWT_RELOGIN}",
         "nous_auth_missing_refresh_token" if no_refresh_token else reason, relogin=True)
 
@@ -91,7 +91,7 @@ def _format_nous_entitlement_auth_error(error: AuthError) -> str:
     with suppress(Exception):
         if message := _portal_entitlement_message("Nous model access"):
             return message
-    return f"{error} Check credits or billing in Nous Portal, then retry."
+    return f"{error} Check credits or billing in Neural Studio Portal, then retry."
 
 
 def _migrate_stale_nous_portal_url(providers: dict[str, Any]) -> None:
@@ -105,7 +105,7 @@ def _migrate_stale_nous_portal_url(providers: dict[str, Any]) -> None:
         nous["portal_base_url"] = DEFAULT_NOUS_PORTAL_URL
 
 
-# Allowlist of hosts the Nous Portal proxy will forward inference JWTs to — a bearer sent anywhere
+# Allowlist of hosts the Neural Studio Portal proxy will forward inference JWTs to — a bearer sent anywhere
 # else would leak. Consulted only for URLs from the NETWORK side (Portal refresh responses);
 # the NOUS_INFERENCE_BASE_URL env override bypasses it (documented dev/staging escape hatch, the
 # user set it themselves).
@@ -713,7 +713,7 @@ def _refresh_access_token(
         return payload
     if 500 <= response.status_code <= 599:
         raise AuthError(
-            f"Nous Portal is temporarily unavailable (HTTP {response.status_code}).",
+            f"Neural Studio Portal is temporarily unavailable (HTTP {response.status_code}).",
             provider="nous", code="temporarily_unavailable", retryable=True)
     # Vercel's Security Checkpoint in front of the Portal answers non-browser clients with a
     # 403 (``x-vercel-mitigated: deny``) or 429 (``challenge``) page (#120602). That is the edge
@@ -723,7 +723,7 @@ def _refresh_access_token(
     if mitigated:
         from agent.retry_utils import parse_retry_after_seconds
         raise AuthError(
-            f"Nous Portal's edge firewall challenged the token refresh (HTTP {response.status_code}, "
+            f"Neural Studio Portal's edge firewall challenged the token refresh (HTTP {response.status_code}, "
             f"x-vercel-mitigated={mitigated}). Credentials kept; try again shortly.",
             provider="nous", code="upstream_blocked", retryable=True,
             retry_after=parse_retry_after_seconds(response.headers))
@@ -749,7 +749,7 @@ def _refresh_access_token(
     # server retired the original and revoked the whole session chain as a token-theft signal.
     if code == "refresh_token_reused" or "reuse" in description.lower():
         description = (
-            "Nous Portal detected refresh-token reuse and revoked this session.\n"
+            "Neural Studio Portal detected refresh-token reuse and revoked this session.\n"
             "This usually means an external process (monitoring script, "
             "custom self-heal hook, or another Kova install sharing "
             "~/.kova/auth.json) called POST /api/oauth/token with Kova's "
@@ -920,7 +920,7 @@ def refresh_nous_oauth_from_state(
                     raise _unusable_invoke_jwt_error(
                         current_invoke_jwt_status, no_refresh_token=True)
                 raise _nous_err(
-                    "No refresh token is available for Nous Portal.", "nous_auth_missing_refresh_token",
+                    "No refresh token is available for Neural Studio Portal.", "nous_auth_missing_refresh_token",
                     relogin=True)
             refreshed = _refresh_access_token(
                 client=client, portal_base_url=state["portal_base_url"],
@@ -1132,7 +1132,7 @@ class _NousRuntimeResolve:
                     self.persist("runtime_shared_merge_missing_access_token")
         if not self.has_access_token():
             raise _nous_err(
-                "No access token found for Nous Portal login.", "nous_auth_missing_access_token", relogin=True)
+                "No access token found for Neural Studio Portal login.", "nous_auth_missing_access_token", relogin=True)
         invoke_jwt_status = self.invoke_jwt_status()
         self.skip_refresh_if_peer_rotated()
         if not (self.force_refresh or invoke_jwt_status is not None):
@@ -1187,11 +1187,11 @@ def _resolve_nous_runtime_credentials(
         _tls_state_from_verify)
     with _provider_state_transaction("nous") as (auth_store, state, state_source_path):
         if not state:
-            raise _nous_err("Kova is not logged into Nous Portal.", "nous_auth_missing", relogin=True)
+            raise _nous_err("Kova is not logged into Neural Studio Portal.", "nous_auth_missing", relogin=True)
         from kova_cli.anon_auth import guest_without_free_tier
         if guest_without_free_tier(state):
             # Not terminal (no relogin): the identity stays for connectors.
-            raise _nous_err("Kova is not logged into Nous Portal.", "nous_auth_missing")
+            raise _nous_err("Kova is not logged into Neural Studio Portal.", "nous_auth_missing")
         run = _NousRuntimeResolve(
             auth_store, state, state_source_path, force_refresh=force_refresh,
             stale_access_token=stale_access_token, timeout_seconds=timeout_seconds)
@@ -1662,7 +1662,7 @@ def _pick_nous_model_after_login(
         print("No free models currently available.")
         print(unavailable_message or f"Upgrade at {_url} to access paid models.")
     else:
-        print("No curated models available for Nous Portal.")
+        print("No curated models available for Neural Studio Portal.")
     return None
 
 
@@ -1708,7 +1708,7 @@ def _restore_active_provider(prior_active_provider: Any) -> None:
 
 
 def _login_nous(args, pconfig: ProviderConfig) -> None:
-    """Nous Portal device authorization flow."""
+    """Neural Studio Portal device authorization flow."""
     from kova_cli.auth import (
         _auth_store_lock, _load_auth_store, _nous_device_code_login, _save_active_provider_state,
         _save_model_choice, _sync_nous_pool_from_auth_store, _update_config_for_provider,
@@ -1759,7 +1759,7 @@ def _login_nous(args, pconfig: ProviderConfig) -> None:
             _restore_active_provider(prior_active_provider)
             print()
             print("No provider change. Nous credentials saved for future use.")
-            print("  Run `kova model` again to switch to Nous Portal.")
+            print("  Run `kova model` again to switch to Neural Studio Portal.")
             return
         config_path = _update_config_for_provider(
             "nous", inference_base_url, default_model=selected_model)

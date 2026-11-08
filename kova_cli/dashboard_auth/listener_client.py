@@ -1,4 +1,4 @@
-"""The Nous Portal client the listener this process serves signs in with instead of the configured one.
+"""The Neural Studio Portal client the listener this process serves signs in with instead of the configured one.
 
 The gateway's Webapp listener signs browsers in with the client Web Access registered for it
 (``kova_cli.webapp_access.sign_in_client``), so the dashboard's ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``

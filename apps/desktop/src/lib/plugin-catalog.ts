@@ -31,7 +31,7 @@ export const CATALOG_ORIGIN = 'https://kova-agent.nousresearch.com'
 export const PLUGIN_CATALOG_URL = `${CATALOG_ORIGIN}/docs/api/plugins.json`
 export const PLUGIN_CATALOG_DOCS_URL = `${CATALOG_ORIGIN}/docs/user-guide/features/plugin-catalog`
 export const SKILLS_DOCS_URL = `${CATALOG_ORIGIN}/docs/skills/`
-export const SUBMIT_MOD_URL = 'https://github.com/NousResearch/kova-agent/compare'
+export const SUBMIT_MOD_URL = 'https://github.com/NeuralStudio/kova-agent/compare'
 
 /** Catalog names are directory names under `plugin-catalog/`; anything else is not a lookup key. */
 export const PLUGIN_CATALOG_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/

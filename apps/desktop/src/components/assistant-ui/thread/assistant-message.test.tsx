@@ -158,7 +158,7 @@ function oauthExpiredMessage(): ThreadMessage {
           code: 'auth',
           layer: 'auth',
           provider: 'nous',
-          providerLabel: 'Nous Portal',
+          providerLabel: 'Neural Studio Portal',
           retryable: false
         }
       }
@@ -830,11 +830,11 @@ describe('expired OAuth grant recovery', () => {
   it('explains the expiry and re-runs that provider sign-in in one click', async () => {
     render(<Harness assistant={oauthExpiredMessage()} />)
 
-    expect(await screen.findByText(/Nous Portal sign-in expired/)).toBeTruthy()
+    expect(await screen.findByText(/Neural Studio Portal sign-in expired/)).toBeTruthy()
     // Signing in changes the outcome, so Retry stays as the follow-up click.
     expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
 
-    screen.getByRole('button', { name: 'Sign in to Nous Portal again' }).click()
+    screen.getByRole('button', { name: 'Sign in to Neural Studio Portal again' }).click()
     expect(startManualProviderOAuth).toHaveBeenCalledWith('nous', undefined)
   })
 })

@@ -243,6 +243,6 @@ class TestInteractiveSurfaces:
         providers = asyncio.run(api_auth_providers())
         assert providers == {"providers": []}
 
-        registry.register_global_provider(self._stub("nous", "Nous Research"))
+        registry.register_global_provider(self._stub("nous", "Neural Studio"))
         providers = asyncio.run(api_auth_providers())
         assert [p["name"] for p in providers["providers"]] == ["nous"]

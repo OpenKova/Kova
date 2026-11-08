@@ -72,9 +72,9 @@ UPDATE_TIMEOUT = 1200.0
 CMD_TIMEOUT = 300.0
 GATEWAY_READY_TIMEOUT = 240.0
 CANONICAL_URLS = (
-    "https://github.com/NousResearch/kova-agent.git",
-    "https://github.com/NousResearch/kova-agent",
-    "git@github.com:NousResearch/kova-agent.git",
+    "https://github.com/NeuralStudio/kova-agent.git",
+    "https://github.com/NeuralStudio/kova-agent",
+    "git@github.com:NeuralStudio/kova-agent.git",
 )
 NEXT_MARKER = ".kova-e2e-next"
 # Captured before any machine strips PATH: harness plumbing (serve.git, rev-parse) only.

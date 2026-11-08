@@ -24,7 +24,7 @@ def channel_request(commit: str, sequence: int = 65536) -> dict:
             "appId": f"com.nousresearch.kova-channel-{token}",
             "appNamePascal": f"KovaChannel{token}", "artifactNamePascal": "KovaBundled",
             "cliName": "hermes-unregistered-preview", "windowsExecutableName": "hermes-unregistered-preview",
-            "msixAppIdWithOrg": f"NousResearch.KovaChannel{token}",
+            "msixAppIdWithOrg": f"NeuralStudio.KovaChannel{token}",
         },
         "bundleEnv": {"KOVA_PREVIEW_FULL_CONNECTORS": "1", "KOVA_HOME": None},
         "publicBase": "https://builds.example.test",

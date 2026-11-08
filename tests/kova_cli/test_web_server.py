@@ -3015,7 +3015,7 @@ class TestNewEndpoints:
         from kova_cli import tools_config
         from kova_cli.nous_account import NousPortalAccountInfo
 
-        # Logged out of Nous Portal → managed subscription rows need sign-in.
+        # Logged out of Neural Studio Portal → managed subscription rows need sign-in.
         monkeypatch.setattr(
             "kova_cli.nous_subscription.get_nous_portal_account_info",
             lambda *a, **k: NousPortalAccountInfo(

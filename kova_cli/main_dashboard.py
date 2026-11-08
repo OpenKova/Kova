@@ -662,7 +662,7 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
     print()
     print("  How do you want to authenticate the dashboard?")
     print("    [1] Username & password (quickest; for a trusted LAN / VPN)")
-    print("    [2] OAuth via Nous Portal (run `kova dashboard register`)\n    [3] Cancel\n")
+    print("    [2] OAuth via Neural Studio Portal (run `kova dashboard register`)\n    [3] Cancel\n")
 
     try:
         choice = input("  Choice [1]: ").strip() or "1"
@@ -675,7 +675,7 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
             "  Run this on the host where the dashboard lives, then start "
             "the dashboard again:\n"
             "    hermes dashboard register\n"
-            "  It provisions a Nous Portal OAuth client and writes "
+            "  It provisions a Neural Studio Portal OAuth client and writes "
             "KOVA_DASHBOARD_OAUTH_CLIENT_ID into ~/.kova/.env for you.\n"
             "  Docs: https://kova-agent.nousresearch.com/docs/"
             "user-guide/features/web-dashboard#authentication-gated-mode"

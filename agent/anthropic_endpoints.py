@@ -105,7 +105,7 @@ def _is_deepseek_anthropic_endpoint(base_url: str | None) -> bool:
 
 
 def _is_nous_portal_endpoint(base_url: str | None) -> bool:
-    """Nous Portal's Anthropic Messages route (Bearer JWT, verbatim catalog ids, native
+    """Neural Studio Portal's Anthropic Messages route (Bearer JWT, verbatim catalog ids, native
     thinking-signature replay). Trusted hosts only: prod ``inference-api.nousresearch.com`` or the
     operator-set ``NOUS_INFERENCE_BASE_URL`` host (exact hostname equality, so neither lookalike
     domains nor sibling hosts of the override match)."""
@@ -122,7 +122,7 @@ def _is_nous_portal_endpoint(base_url: str | None) -> bool:
 
 def _requires_bearer_auth(base_url: str | None) -> bool:
     """Providers needing ``Authorization: Bearer`` instead of ``x-api-key``: MiniMax, Azure AI
-    Foundry, Palantir Foundry's LLM proxy, CommandCode, Nous Portal. Palantir/CommandCode use
+    Foundry, Palantir Foundry's LLM proxy, CommandCode, Neural Studio Portal. Palantir/CommandCode use
     hostname matching (not substring) so ``evil.com/palantirfoundry`` paths don't trigger it."""
     normalized = _normalized_lower(base_url)
     return (

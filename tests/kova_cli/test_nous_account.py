@@ -1,4 +1,4 @@
-"""Tests for normalized Nous Portal account entitlement helpers."""
+"""Tests for normalized Neural Studio Portal account entitlement helpers."""
 
 from __future__ import annotations
 

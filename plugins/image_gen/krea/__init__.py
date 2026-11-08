@@ -425,7 +425,7 @@ def _submit_job(
             if managed and 400 <= status < 500:
                 hint = (
                     "Krea's shared-key concurrency cap was hit — retry shortly." if status == 429 else
-                    f"Model '{model_id}' may not be enabled/priced on the Nous Portal's Krea gateway. "
+                    f"Model '{model_id}' may not be enabled/priced on the Neural Studio Portal's Krea gateway. "
                     "Set KREA_API_KEY to use Krea directly, or pick a different model via "
                     "`kova tools` → Image Generation.")
                 return None, submit_fail(

@@ -3,7 +3,7 @@
 A browser tab's ``/api/ws`` reaches the gateway through the dashboard mount (``chat_ws.gateway_ws``),
 not the native ticket path (``gateway/run_api.py``) that wraps the socket in ``owner_scope``. The
 authority answers ``-32601`` for ``billing.state``, so the frame falls back to the legacy handler,
-which reads the Nous Portal override through the socket's scope: unbound, a multiplexed gateway
+which reads the Neural Studio Portal override through the socket's scope: unbound, a multiplexed gateway
 refused the read (``UnscopedSecretError`` -> "no profile secret scope on a multiplexed call") and the
 token went to the default Portal. ``dispatch_legacy`` binds a non-launch ticket's profile; a
 launch-profile socket relies on ``gateway_ws``'s own scope.

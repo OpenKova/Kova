@@ -215,7 +215,7 @@ export const jaOverrides = {
     handoffLead: '続きは次の場所で:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal サポート',
+      portal: 'Neural Studio Portal サポート',
       discord: 'Discord'
     }
   },
@@ -1245,14 +1245,14 @@ export const jaOverrides = {
       activeBackend: '使用中',
       activeBackendHint: 'これが現在アクティブなバックエンドです',
       useBackend: 'このバックエンドを使う',
-      nousIncluded: 'Nous サブスクリプションに含まれています。有効にするには Nous Portal にサインインしてください。',
-      nousAuthNeededTitle: 'Nous Portal にサインイン',
+      nousIncluded: 'Nous サブスクリプションに含まれています。有効にするには Neural Studio Portal にサインインしてください。',
+      nousAuthNeededTitle: 'Neural Studio Portal にサインイン',
       nousAuthNeededMessage: provider =>
-        `${provider} は保存されましたが、Nous Portal にサインインするまで有効になりません。`,
+        `${provider} は保存されましたが、Neural Studio Portal にサインインするまで有効になりません。`,
       nousAuthSignIn: 'サインイン',
-      nousAuthDoneTitle: 'Nous Portal に接続しました',
+      nousAuthDoneTitle: 'Neural Studio Portal に接続しました',
       nousAuthDoneMessage: 'サブスクリプションのバックエンドが有効になりました。',
-      nousAuthFailed: 'Nous Portal のサインインが完了しませんでした',
+      nousAuthFailed: 'Neural Studio Portal のサインインが完了しませんでした',
       noApiKeyRequired: 'API キーは不要です。',
       postSetupHint: step =>
         `このバックエンドは一度だけインストールが必要です (${step})。このマシン上で実行され、数分かかる場合があります。`,
@@ -1644,8 +1644,8 @@ export const jaOverrides = {
       qrAlt: (platform: string) => `共有 ${platform} ボットの QR コード`,
       managed: 'Team Gateway が管理',
       managedNote: (platform: string) => `このインスタンスではメッセージを Team Gateway が扱うため、ゲートウェイは起動のたびに ${platform} の直接接続をオフにします。リレーと併用するには、ゲートウェイの環境に GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true を設定してください（直接接続があるとインスタンスがゼロまでスケールダウンできず、メッセージが二重に届くことがあります）。`,
-      managedIntro: 'このエージェントのアカウントは Nous Portal からリンクします。',
-      openPortal: 'Nous Portal でアカウントをリンク',
+      managedIntro: 'このエージェントのアカウントは Neural Studio Portal からリンクします。',
+      openPortal: 'Neural Studio Portal でアカウントをリンク',
       noNewAccount: (platform: string) => `コードは無効になり、新しいアカウントは表示されませんでした。${platform} アカウントが一覧にない場合は、新しいコードを取得してもう一度お試しください。`
     },
     telegramQr: {

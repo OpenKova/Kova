@@ -34,7 +34,7 @@ pytestmark = [
     pytest.mark.skipif(I.real_uv() is None, reason="uv required"),
 ]
 
-GIT_PATH = "/NousResearch/kova-agent.git/"
+GIT_PATH = "/NeuralStudio/kova-agent.git/"
 
 
 @pytest.fixture(scope="module")

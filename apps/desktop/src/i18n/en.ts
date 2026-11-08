@@ -518,7 +518,7 @@ export const en: Translations = {
     handoffLead: 'Pick up the discussion in:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal Support',
+      portal: 'Neural Studio Portal Support',
       discord: 'Discord'
     }
   },
@@ -1386,7 +1386,7 @@ export const en: Translations = {
       cloudLoadingAgents: 'Loading your agents…',
       cloudNoAgents: {
         before: 'No agents found on this account. Create one in the ',
-        linkText: 'Nous portal',
+        linkText: 'Neural Studio Portal',
         after: ', then refresh.'
       },
       cloudRefresh: 'Refresh',
@@ -2618,8 +2618,8 @@ export const en: Translations = {
       qrAlt: (platform: string) => `QR code for the shared ${platform} bot`,
       managed: 'Managed by Team Gateway',
       managedNote: (platform: string) => `Team Gateway carries messaging on this deployment, so the gateway turns the direct ${platform} connection off at every start. To run it alongside the relay, set GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true in the gateway's environment (a direct connection keeps the instance from scaling to zero and can deliver messages twice).`,
-      managedIntro: "This agent's accounts are linked from Nous Portal.",
-      openPortal: 'Link accounts in Nous Portal',
+      managedIntro: "This agent's accounts are linked from Neural Studio Portal.",
+      openPortal: 'Link accounts in Neural Studio Portal',
       noNewAccount: (platform: string) => `The code is no longer active and no new account appeared. If your ${platform} account isn't listed, get a new code and try again.`
     },
     telegramQr: {

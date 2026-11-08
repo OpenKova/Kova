@@ -16,7 +16,7 @@ export const enSharedMetrics: Translations['sharedMetrics'] = {
   sending:
     'If you share, Kova sends stats to Nous once a day with a random ID for this profile. Apart from a one-time note that Kova was installed, stats from before you opt in are never sent. Change this anytime in Settings.',
   readDocs: 'Read the full details',
-  share: 'Share with Nous',
+  share: 'Share with Neural Studio',
   off: 'No thanks',
   saveFailed: 'Couldn’t save your choice',
   sendLabel: 'Share usage stats with Nous',
@@ -25,6 +25,6 @@ export const enSharedMetrics: Translations['sharedMetrics'] = {
   unavailable: 'Update the Kova backend to change this setting.',
   stripBody: 'Counts only. Never your messages or files.',
   stripReaskBody: 'Asking once more: an earlier version could save “No thanks” before you saw this.',
-  stripChoices: { share: 'Share with Nous', off: 'No thanks' },
+  stripChoices: { share: 'Share with Neural Studio', off: 'No thanks' },
   stripDetails: 'Details'
 }

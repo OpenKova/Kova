@@ -565,7 +565,7 @@ describe('OAuth onboarding', () => {
       }
 
       if (path.startsWith('/api/model/options')) {
-        return { providers: [{ models: ['nous/m'], name: 'Nous Portal', slug: 'nous' }] }
+        return { providers: [{ models: ['nous/m'], name: 'Neural Studio Portal', slug: 'nous' }] }
       }
 
       return path.startsWith('/api/model/recommended-default') ? { model: 'nous/m' } : { ok: true }
@@ -573,7 +573,7 @@ describe('OAuth onboarding', () => {
     vi.spyOn(window, 'open').mockReturnValue(null)
     setOnboardingSurfaceActive('onboarding', true)
 
-    await startProviderOAuth(makeOAuthProvider('nous', 'Nous Portal'), {
+    await startProviderOAuth(makeOAuthProvider('nous', 'Neural Studio Portal'), {
       requestGateway: async method =>
         // SAFETY: onboarding reads only `provider_configured` from setup.status and `ok` from the rest.
         (method === 'setup.status' ? { provider_configured: true } : { ok: true }) as never
@@ -600,7 +600,7 @@ describe('OAuth onboarding', () => {
         return {
           providers: [
             {
-              name: 'Nous Portal',
+              name: 'Neural Studio Portal',
               slug: 'nous',
               models: [model]
             }
@@ -641,7 +641,7 @@ describe('OAuth onboarding', () => {
       baseState({
         flow: {
           status: 'awaiting_user',
-          provider: makeOAuthProvider('nous', 'Nous Portal'),
+          provider: makeOAuthProvider('nous', 'Neural Studio Portal'),
           start: {
             auth_url: 'https://portal.example/auth',
             expires_in: 600,
@@ -651,7 +651,7 @@ describe('OAuth onboarding', () => {
           code: 'fresh-code'
         },
         reason:
-          'No access token found for Nous Portal login. setup.status reports configured credentials, but runtime resolution still failed.',
+          'No access token found for Neural Studio Portal login. setup.status reports configured credentials, but runtime resolution still failed.',
         requested: true
       })
     )
@@ -663,7 +663,7 @@ describe('OAuth onboarding', () => {
     expect(state.flow.status).toBe('confirming_model')
 
     if (state.flow.status === 'confirming_model') {
-      expect(state.flow.label).toBe('Nous Portal')
+      expect(state.flow.label).toBe('Neural Studio Portal')
       expect(state.flow.currentModel).toBe(model)
     }
 
@@ -686,7 +686,7 @@ describe('OAuth onboarding', () => {
       }
 
       if (path.startsWith('/api/model/options')) {
-        return { providers: [{ name: 'Nous Portal', slug: 'nous', models: [model] }] }
+        return { providers: [{ name: 'Neural Studio Portal', slug: 'nous', models: [model] }] }
       }
 
       if (path.startsWith('/api/model/recommended-default?')) {
@@ -719,7 +719,7 @@ describe('OAuth onboarding', () => {
       baseState({
         flow: {
           status: 'awaiting_user',
-          provider: makeOAuthProvider('nous', 'Nous Portal'),
+          provider: makeOAuthProvider('nous', 'Neural Studio Portal'),
           start: {
             auth_url: 'https://portal.example/auth',
             expires_in: 600,
@@ -765,7 +765,7 @@ describe('manual onboarding (Settings / Add provider on an already-configured in
       }
 
       if (path.startsWith('/api/model/options')) {
-        return { providers: [{ name: 'Nous Portal', slug: 'nous', models: [model] }] }
+        return { providers: [{ name: 'Neural Studio Portal', slug: 'nous', models: [model] }] }
       }
 
       if (path.startsWith('/api/model/recommended-default?')) {
@@ -808,7 +808,7 @@ describe('manual onboarding (Settings / Add provider on an already-configured in
         manual: true,
         flow: {
           status: 'awaiting_user',
-          provider: makeOAuthProvider('nous', 'Nous Portal'),
+          provider: makeOAuthProvider('nous', 'Neural Studio Portal'),
           start: {
             auth_url: 'https://portal.example/auth',
             expires_in: 600,
@@ -856,7 +856,7 @@ describe('manual onboarding (Settings / Add provider on an already-configured in
           status: 'confirming_model',
           providerSlug: 'nous',
           currentModel: model,
-          label: 'Nous Portal',
+          label: 'Neural Studio Portal',
           saving: false
         }
       })
@@ -1186,7 +1186,7 @@ describe('device-code poll expiry', () => {
   function deviceCodeProvider() {
     // makeOAuthProvider builds a pkce provider; device-code flows need the
     // device_code branch instead.
-    return { ...makeOAuthProvider('nous', 'Nous Portal'), flow: 'device_code' as const }
+    return { ...makeOAuthProvider('nous', 'Neural Studio Portal'), flow: 'device_code' as const }
   }
 
   function deviceStart(expiresIn: number) {
@@ -1296,7 +1296,7 @@ describe('setOnboardingModel', () => {
     })
     $desktopOnboarding.set(confirmingModelState())
 
-    await setOnboardingModel('deepseek/deepseek-v4-flash-0731', 'nous', 'Nous Portal')
+    await setOnboardingModel('deepseek/deepseek-v4-flash-0731', 'nous', 'Neural Studio Portal')
 
     const flow = $desktopOnboarding.get().flow
     expect(flow.status).toBe('confirming_model')

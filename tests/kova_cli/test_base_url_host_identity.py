@@ -4,7 +4,7 @@ not raw substrings.
 Port of earendil-works/pi#7933's bug class (DeepSeek base-URL detection used a
 substring check, missing case variants and matching lookalike URLs). Kova
 had the same class at several sites: keyless-endpoint detection, /model
-catalog routing, local-endpoint detection, and Nous Portal cache-layout
+catalog routing, local-endpoint detection, and Neural Studio Portal cache-layout
 detection all used ``"host" in base_url``. A proxy URL that merely *contains*
 a provider host in its path (``https://proxy.internal/openrouter.ai/v1``) or
 a lookalike domain (``https://openrouter.ai.evil.com``) must not be treated

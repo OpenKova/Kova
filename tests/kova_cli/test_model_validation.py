@@ -637,7 +637,7 @@ class TestValidateOpenRouterVariantSuffixes:
 class TestValidateRequestedModelNousPortalRecommendations:
     """Regression tests for issue #71312: the Nous Telegram picker (and any
     other messaging-platform /model validation, since they all share
-    validate_requested_model()) rejected models that are live Nous Portal
+    validate_requested_model()) rejected models that are live Neural Studio Portal
     recommendations (/api/nous/recommended-models) but not yet in the
     hardcoded curated catalog -- even though `hermes chat` already accepts
     these via union_with_portal_free/paid_recommendations() at model-list

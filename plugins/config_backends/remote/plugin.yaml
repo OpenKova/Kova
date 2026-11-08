@@ -6,4 +6,4 @@ description: >-
   written back as key-level changes with compare-and-swap. Selected only by
   KOVA_CONFIG_BACKEND=remote in the environment; never loaded as a general plugin.
 version: 1.0.0
-author: Nous Research
+author: Neural Studio

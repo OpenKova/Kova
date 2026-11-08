@@ -5,7 +5,7 @@ Three gateways sit behind the single stored selection ``image_gen.provider: nous
 
 * ``fal``    — the FAL managed gateway, every id in the in-tree ``FAL_MODELS`` catalog;
 * ``krea``   — the Krea managed gateway, the ``plugins/image_gen/krea`` model ids;
-* ``portal`` — Nous Portal chat-completions image models (``plugins/image_gen/openrouter``'s
+* ``portal`` — Neural Studio Portal chat-completions image models (``plugins/image_gen/openrouter``'s
   ``nous`` provider), anything else.
 
 Before this module the second and third gateways each had their own picker row that also

@@ -1,4 +1,4 @@
-"""Nous Portal ``anthropic/*`` models route on the native Messages wire.
+"""Neural Studio Portal ``anthropic/*`` models route on the native Messages wire.
 
 Portal serves its ``anthropic/*`` catalog at
 ``https://inference-api.nousresearch.com/v1/messages`` alongside the

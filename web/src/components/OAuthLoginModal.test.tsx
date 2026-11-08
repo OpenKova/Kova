@@ -40,7 +40,7 @@ const provider = {
   docs_url: "https://example.com/nous",
   flow: "device_code" as const,
   id: "nous",
-  name: "Nous Portal",
+  name: "Neural Studio Portal",
   status: { logged_in: false },
 };
 

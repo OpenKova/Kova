@@ -1,6 +1,6 @@
 """A Cloud agent's first remote config read, in a cold process, with the Nous credential.
 
-In Cloud mode (no ``GATEWAY_RELAY_IDP_*``) the plane bearer is the Nous Portal access token from the
+In Cloud mode (no ``GATEWAY_RELAY_IDP_*``) the plane bearer is the Neural Studio Portal access token from the
 profile's ``auth.json``. Resolving it imports ``kova_cli.auth`` inside the profile's first fetch;
 that import discovers model providers, and provider discovery reads config (the gate on
 pip-installed provider plugins). That read used to wait on the fetch's own lock forever, so a Cloud

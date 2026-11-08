@@ -5199,7 +5199,7 @@ class TestRetryExhaustion:
         content after retries".
 
         Regression: running a Claude refusal through an OpenAI-compatible
-        portal (Nous Portal fronting Anthropic) returns ``message.refusal``
+        portal (Neural Studio Portal fronting Anthropic) returns ``message.refusal``
         with empty content. The transport now promotes that to a
         ``content_filter`` finish reason and the loop surfaces it as a terminal
         ``content_policy_blocked`` result instead of retrying a deterministic

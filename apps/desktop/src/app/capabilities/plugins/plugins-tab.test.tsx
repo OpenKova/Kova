@@ -278,7 +278,7 @@ describe('PluginsTab', () => {
         kind: 'disk',
         status: 'loaded',
         packageName: 'hermes-media-studio',
-        packageOrigin: { repo: 'https://github.com/NousResearch/hermes-media-studio.git', sha: 'abc' }
+        packageOrigin: { repo: 'https://github.com/NeuralStudio/hermes-media-studio.git', sha: 'abc' }
       }
     })
 
@@ -291,7 +291,7 @@ describe('PluginsTab', () => {
       expect($pluginInstallRequest.get()).toMatchObject({
         legacyHint: 'agent',
         profile: 'workbot',
-        repo: 'https://github.com/NousResearch/hermes-media-studio.git',
+        repo: 'https://github.com/NeuralStudio/hermes-media-studio.git',
         sha: 'abc'
       })
     })
@@ -308,7 +308,7 @@ describe('PluginsTab', () => {
         packageName: 'hermes-media-studio',
         packageOrigin: {
           catalogName: 'hermes-media-studio',
-          repo: 'https://github.com/NousResearch/hermes-media-studio.git',
+          repo: 'https://github.com/NeuralStudio/hermes-media-studio.git',
           sha: 'abc'
         }
       }

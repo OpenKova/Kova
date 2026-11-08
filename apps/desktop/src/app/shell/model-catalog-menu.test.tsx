@@ -735,7 +735,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5', 'nous/hermes-4'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous',
           pricing: {
             'anthropic/claude-sonnet-5': { input: '$1.60', output: '$8.00', cache: '$0.16', free: false },
@@ -761,7 +761,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous',
           pricing: {
             'anthropic/claude-sonnet-5': {
@@ -787,7 +787,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['nous/hermes-4'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous',
           pricing: {
             'nous/hermes-4': { input: 'free', output: 'free', cache: null, free: true }
@@ -806,7 +806,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous',
           pricing: {
             'anthropic/claude-sonnet-5': {
@@ -833,7 +833,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5', 'anthropic/claude-sonnet-5-fast'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous',
           pricing: {
             'anthropic/claude-sonnet-5-fast': {
@@ -857,7 +857,7 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
+          name: 'Neural Studio Portal',
           slug: 'nous'
         }
       ]

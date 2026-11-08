@@ -1794,7 +1794,7 @@ if (IS_WINDOWS) {
 app.setAboutPanelOptions({
   applicationName: APP_NAME,
   applicationVersion: nativeAboutVersion(appVersionInfo(INSTALL_STAMP, '', app.getVersion())),
-  copyright: 'Copyright © 2026 Nous Research'
+  copyright: 'Copyright © 2026 Neural Studio'
 })
 
 // Custom scheme for streaming audio/video into the renderer. Local paths read
@@ -6840,7 +6840,7 @@ function safeFrameOrigin(frame: { origin?: string } | null | undefined): string 
 // OAuth remote-gateway auth.
 //
 // Hosted Kova gateways gate the dashboard behind an OAuth provider (e.g.
-// Nous Research) instead of a static session token. The auth model is
+// Neural Studio) instead of a static session token. The auth model is
 // fundamentally different from the token path:
 //
 //   * REST is authed by HttpOnly session cookies (``hermes_session_at``),
@@ -6853,7 +6853,7 @@ function safeFrameOrigin(frame: { origin?: string } | null | undefined): string 
 //   * WebSocket upgrades require a single-use ``?ticket=`` minted at
 //     ``POST /api/auth/ws-ticket`` (cookie-authed). The legacy ``?token=``
 //     path is unconditionally rejected by gated gateways.
-//   * Nous Portal now issues a 24h ROTATING, reuse-detected refresh token
+//   * Neural Studio Portal now issues a 24h ROTATING, reuse-detected refresh token
 //     alongside the ~15-min access token (Portal NAS #293 / hermes #37247).
 //     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
 //     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
@@ -7612,7 +7612,7 @@ async function freshGatewayWsUrl(profile, webContentsId) {
 // --- Kova Cloud discovery + silent per-agent sign-in (cloud-auto-discovery
 // Phase 3) ---------------------------------------------------------------
 //
-// The "cloud" connection mode lets a user sign in to the Nous portal ONCE in
+// The "cloud" connection mode lets a user sign in to the Neural Studio Portal ONCE in
 // the OAuth session partition, then (a) discover their hosted agents and (b)
 // connect to any of them with no second interactive sign-in. Both ride the one
 // portal session cookie living in `persist:hermes-remote-oauth`:
@@ -10105,7 +10105,7 @@ async function probeRemoteAuthMode(rawUrl) {
 
   if (authRequired) {
     // Best-effort: a gated gateway exposes the registered providers so the
-    // button can read "Sign in with Nous Research" instead of a generic
+    // button can read "Sign in with Neural Studio" instead of a generic
     // label, and so a username/password provider can be distinguished from
     // an OAuth-redirect one (``supports_password``). A failure here doesn't
     // change the auth mode, so swallow it.
@@ -17079,7 +17079,7 @@ function showAboutPanelFresh(): void {
     app.setAboutPanelOptions({
       applicationName: APP_NAME,
       applicationVersion: skew.outOfSync ? `${display} — app build out of date, update the desktop app` : display,
-      copyright: 'Copyright © 2026 Nous Research'
+      copyright: 'Copyright © 2026 Neural Studio'
     })
     app.showAboutPanel()
   })

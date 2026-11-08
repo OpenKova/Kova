@@ -25,7 +25,7 @@ from plugins.config_backends.remote.paths import decode, encode
 from plugins.config_backends.remote.values import secret_literal_path
 
 TOKEN = "plane-token-1"
-# Cloud mode: the agent sends its Nous Portal access token; the stub also serves the Portal's
+# Cloud mode: the agent sends its Neural Studio Portal access token; the stub also serves the Portal's
 # refresh route (``/api/oauth/token``), which hands out NOUS_TOKEN.
 NOUS_TOKEN = "nous-access-token-1"
 CLIENT_ID = "agent-client"

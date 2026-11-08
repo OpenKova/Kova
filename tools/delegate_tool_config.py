@@ -577,7 +577,7 @@ def _resolve_child_runtime(
 ) -> dict[str, Any]:
     """Child credentials, transport and routing (config override > parent inherit) as ``AIAgent`` kwargs. Rules that
     are easy to break: api_mode is re-derived (not inherited) when the child's provider differs from the parent's
-    or is Nous Portal (dual-wire); a pinned ``delegation.command`` must exist on PATH or the spawn fails loudly;
+    or is Neural Studio Portal (dual-wire); a pinned ``delegation.command`` must exist on PATH or the spawn fails loudly;
     ``override_provider`` clears the parent's ACP transport, fallback chain and OpenRouter routing filters so the
     pinned provider is actually honoured."""
     effective_model = model or parent_agent.model
@@ -596,7 +596,7 @@ def _resolve_child_runtime(
         effective_provider = getattr(parent_agent, "provider", None)
         effective_base_url, parent_api_key = _inherit_parent_endpoint(parent_agent, parent_agent.base_url, parent_api_key)
     # api_mode: each provider has its own wire, so a different provider re-derives (None) instead of inheriting (404s
-    # otherwise). Nous Portal is dual-wire within one provider (anthropic/* → Messages, else chat_completions), so
+    # otherwise). Neural Studio Portal is dual-wire within one provider (anthropic/* → Messages, else chat_completions), so
     # same-provider inheritance would pin the child on the wrong wire — re-derive.
     # Bug #20558 / PR #20563: api_mode must NOT be inherited when the child uses a different provider than
     # the parent — each provider has its own API surface (e.g. MiniMax uses anthropic_messages, DeepSeek

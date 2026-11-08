@@ -101,7 +101,7 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
     identity: { token: 'ab12cd34ef56ab78', displayName: 'Kova sdk-preview',
       appId: 'ai.kova.channel.hab12cd34ef56ab78', appNamePascal: 'KovaChannelab12cd34ef56ab78',
       artifactNamePascal: 'KovaChannelab12cd34ef56ab78', cliName: 'hermes-sdk-preview',
-      windowsExecutableName: 'KovaChannelab12cd34ef56ab78', msixAppIdWithOrg: 'NousResearch.KovaChannelab12cd34ef56ab78' },
+      windowsExecutableName: 'KovaChannelab12cd34ef56ab78', msixAppIdWithOrg: 'NeuralStudio.KovaChannelab12cd34ef56ab78' },
     bundleEnv: {}, publicBase: 'https://example.invalid'
   })
   const cases = [

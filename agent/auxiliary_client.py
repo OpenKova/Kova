@@ -1,6 +1,6 @@
 """Shared auxiliary client router for side tasks (compression, search, vision, ...).
 
-Text auto chain: main provider+model → OpenRouter → Nous Portal → custom endpoint →
+Text auto chain: main provider+model → OpenRouter → Neural Studio Portal → custom endpoint →
 native Anthropic → direct API-key providers → None. Vision auto chain: main
 provider (if a supported vision backend) → OpenRouter → Nous → Anthropic → custom.
 ``auxiliary.free_only`` restricts the OpenRouter lane to ``:free`` SKUs. Codex OAuth is
@@ -945,7 +945,7 @@ def _ai_gateway_headers() -> dict[str, str]:
     return {"HTTP-Referer": "https://kova-agent.nousresearch.com", "X-Title": "Kova Agent",
             "User-Agent": hermes_user_agent("KovaAgent")}
 
-# Nous Portal attribution tags, built per call. They come from agent.portal_tags so the client=
+# Neural Studio Portal attribution tags, built per call. They come from agent.portal_tags so the client=
 # marker tracks the canonical base version — never inline a literal here.
 from agent.portal_tags import nous_portal_tags as _nous_portal_tags
 
@@ -1698,7 +1698,7 @@ class _AnthropicCompletionsAdapter:
         self._client = real_client
         self._model = model
         self._is_oauth = is_oauth
-        # Caller URL first; fall back to the SDK client's host only for Nous Portal — a blanket
+        # Caller URL first; fall back to the SDK client's host only for Neural Studio Portal — a blanket
         # fallback would flip MiniMax/Zhipu aux adapters to third-party handling (strips thinking sigs).
         self._base_url = base_url or None
         if not self._base_url:
@@ -2381,13 +2381,13 @@ def _try_nous(vision: bool = False) -> tuple[Optional[OpenAI], Optional[str]]:
         anonymous = is_anonymous_request("nous", api_key)
         remaining = nous_rate_limit_remaining(anonymous=anonymous)
         if remaining is not None and remaining > 0:
-            logger.debug("Auxiliary: skipping Nous Portal (rate-limited, resets in %.0fs)", remaining)
+            logger.debug("Auxiliary: skipping Neural Studio Portal (rate-limited, resets in %.0fs)", remaining)
             # The health marker is provider-wide, so a full-length anonymous cooldown would
             # outlive signing in mid-cooldown; bound it instead of re-resolving credentials
             # (auth store lock, pool read) on every auxiliary call for the cooldown's duration.
             _mark_provider_unhealthy(
                 "nous", ttl=min(remaining, 60.0) if anonymous else remaining,
-                reason="Nous Portal rate-limited", level=logging.INFO)
+                reason="Neural Studio Portal rate-limited", level=logging.INFO)
             return None, None
     lane = "vision" if vision else "text"
     # The free tier's host serves exactly one model, for every lane: asking it for the Portal's
@@ -2398,7 +2398,7 @@ def _try_nous(vision: bool = False) -> tuple[Optional[OpenAI], Optional[str]]:
     if route_is_welcome_host(base_url):
         logger.debug("Auxiliary/%s: Nous free tier; using %s", lane, GUEST_MODEL)
         return _create_openai_client(api_key=api_key, base_url=base_url), GUEST_MODEL
-    logger.debug("Auxiliary client: Nous Portal")
+    logger.debug("Auxiliary client: Neural Studio Portal")
     # Portal recommended-models is authoritative (tier-aware); _NOUS_MODEL when unreachable/null.
     # Probes skip the lookup: exact model is irrelevant and it hits the network.
     model = _NOUS_MODEL
@@ -4531,7 +4531,7 @@ def _discovery_chain_allowed(main_provider: str, task: Optional[str] = None) -> 
     Once the user picked one, every auxiliary route must be a provider they configured (main,
     ``auxiliary.<task>``, ``fallback_providers``); guessing "whatever else is logged in" bills an
     account they never pointed this session at (xAI OAuth session with a dead token → every
-    compression silently charged to a Nous Portal balance)."""
+    compression silently charged to a Neural Studio Portal balance)."""
     if (main_provider or "").strip().lower() in {"", "auto"}:
         return True
     logger.warning(
@@ -4916,13 +4916,13 @@ def _resolve_openrouter_branch(req: _ResolveRequest) -> _ResolveResult:
 
 
 def _resolve_nous_branch(req: _ResolveRequest) -> _ResolveResult:
-    """Nous Portal (OAuth)."""
+    """Neural Studio Portal (OAuth)."""
     model = req.model
     # Vision: caller flag, _PROVIDER_VISION_MODELS override, or a known vision id.
     client, default = _try_nous(vision=(req.is_vision or model in _PROVIDER_VISION_MODELS.values()
                                         or (model or "").strip().lower() == "mimo-v2-omni"))
     if client is None:
-        logger.warning("resolve_provider_client: nous requested but Nous Portal not configured (run: hermes auth)")
+        logger.warning("resolve_provider_client: nous requested but Neural Studio Portal not configured (run: hermes auth)")
         return None, None
     final_model = _normalize_resolved_model(model or default, req.provider)
     # Dual-wire: anthropic/* → /v1/messages, else /chat/completions. Derive from the catalog id
@@ -5542,7 +5542,7 @@ def _vision_auto_route(
     runtime: dict[str, Any], resolved_model: Optional[str], resolved_api_mode: Optional[str],
     async_mode: bool,
 ) -> tuple[Optional[str], Optional[Any], Optional[str]]:
-    """Auto-detect order: 1. main provider + model, 2. OpenRouter, 3. Nous Portal, 4. DeepInfra, 5. stop."""
+    """Auto-detect order: 1. main provider + model, 2. OpenRouter, 3. Neural Studio Portal, 4. DeepInfra, 5. stop."""
     main_provider = str(runtime.get("provider") or _read_main_provider())
     main_model = str(runtime.get("model") or _read_main_model())
     if main_provider.strip().lower() == "moa":
@@ -6441,7 +6441,7 @@ _NOUS_PROVIDER_NAMES = frozenset({"nous", "nous-portal", "nousresearch"})
 
 
 def _nous_on_messages_wire(provider_norm: str, model: str) -> bool:
-    """True when a Nous Portal route serves ``model`` over /v1/messages (dual-wire catalog)."""
+    """True when a Neural Studio Portal route serves ``model`` over /v1/messages (dual-wire catalog)."""
     if provider_norm not in _NOUS_PROVIDER_NAMES:
         return False
     from kova_cli.providers import nous_api_mode
@@ -7525,7 +7525,7 @@ def _parameter_rungs(client: Any, max_tokens: Optional[int]) -> tuple:
         # (top-level ``reasoning_effort: none``), and strict-schema gateways reject the generic
         # ``extra_body.reasoning`` fallback outright (#109774); the caller only wanted "no thinking",
         # so retry with every reasoning field omitted and let the route default apply (#112781).
-        # The endpoint refuses the *disable* rather than the field (Nous Portal gpt-6-astra: "Reasoning is
+        # The endpoint refuses the *disable* rather than the field (Neural Studio Portal gpt-6-astra: "Reasoning is
         # mandatory ... cannot be disabled"): step the effort up to the floor and remember the route so
         # the next thinking-off aux call starts there. Ordered before the strip so a floor that still
         # 400s falls through to it.

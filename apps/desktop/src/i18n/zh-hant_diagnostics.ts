@@ -102,7 +102,7 @@ export const zhHantDiagnostics = {
     handoffLead: '在以下位置繼續討論:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal 支援',
+      portal: 'Neural Studio Portal 支援',
       discord: 'Discord'
     }
   },

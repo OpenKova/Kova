@@ -69,17 +69,17 @@ def test_canary_tag_order_and_remote_selection(release_repo):
 def test_github_repo_parsed_from_ssh_and_https_urls(tmp_path, release_repo):
     urls = {
         "fork": "git@github.com:ethernet8023/kova-agent.git",
-        "origin": "https://github.com/NousResearch/kova-agent",
+        "origin": "https://github.com/NeuralStudio/kova-agent",
         "gitlab": "git@gitlab.com:someone/elsewhere.git",
     }
     for name, url in urls.items():
         subprocess.run(['git', 'config', f'remote.{name}.url', url], cwd=tmp_path, check=True)
 
     assert release.remote_github_repo("fork") == "ethernet8023/kova-agent"
-    assert release.remote_github_repo("origin") == "NousResearch/kova-agent"
+    assert release.remote_github_repo("origin") == "NeuralStudio/kova-agent"
     assert release.remote_github_repo("gitlab") is None
     subprocess.run(['git', 'config', 'url.https://github.com/fork/.pushInsteadOf',
-                    'https://github.com/NousResearch/'], cwd=tmp_path, check=True)
+                    'https://github.com/NeuralStudio/'], cwd=tmp_path, check=True)
     assert release.remote_github_repo('origin') == 'fork/kova-agent'
     subprocess.run(['git', 'config', 'remote.origin.pushurl', 'ssh://git@github.com:22/other/repo.git'],
                    cwd=tmp_path, check=True)

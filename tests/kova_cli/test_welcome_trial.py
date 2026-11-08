@@ -151,7 +151,7 @@ def test_a_leftover_guest_pool_row_is_not_reported_as_a_nous_login(portal, monke
     store["providers"].pop("nous")  # the claim is lost; only the pool row is left
     _save_auth_store(store)
 
-    # Provider setup would otherwise tag Nous Portal "Connected" for a credential that runs nothing.
+    # Provider setup would otherwise tag Neural Studio Portal "Connected" for a credential that runs nothing.
     assert get_nous_auth_status_local()["logged_in"] is False
 
 

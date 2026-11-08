@@ -221,7 +221,7 @@ class TestLiveCatalog:
         assert len(ids) == len(set(ids))                   # deduped
 
     def test_nous_portal_picker_excludes_image_api_catalog(self):
-        """Nous Portal has no /images route; its picker must not offer
+        """Neural Studio Portal has no /images route; its picker must not offer
         Image-API-only models it cannot serve."""
         from plugins.image_gen.openrouter import _build_providers
 
@@ -553,7 +553,7 @@ class TestImageApiSurface:
         assert mock_post.call_args[0][0].endswith("/chat/completions")
 
     def test_nous_never_uses_the_image_api(self):
-        """Nous Portal proxies chat-completions and has no /images route."""
+        """Neural Studio Portal proxies chat-completions and has no /images route."""
         from plugins.image_gen.openrouter import _build_providers
 
         nous_runtime = _runtime_ok(

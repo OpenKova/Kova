@@ -1,7 +1,7 @@
 """Per-model reasoning capabilities from OpenRouter-schema ``/v1/models`` catalogs.
 
 Split out of ``kova_cli.models``. OpenRouter and
-Nous Portal share one implementation parametrized by :class:`_CapsSource`; the per-source module
+Neural Studio Portal share one implementation parametrized by :class:`_CapsSource`; the per-source module
 globals (``_openrouter_reasoning_caps_cache``, ``_nous_caps_disk_checked``, ...) stay defined on
 ``kova_cli.models`` — tests reset them there — and are read/written by attribute name.
 
@@ -157,7 +157,7 @@ def _fetch_reasoning_caps_catalog(url: str, timeout: float) -> Optional[Caps]:
     return _seed_reasoning_caps(url, payload.get("data"))
 
 
-# ── Per-source cache (OpenRouter, Nous Portal) ─────────────────────────
+# ── Per-source cache (OpenRouter, Neural Studio Portal) ─────────────────────────
 
 @dataclass(frozen=True)
 class _CapsSource:
@@ -259,7 +259,7 @@ _OPENROUTER_CAPS = _CapsSource(
     "_openrouter_caps_disk_checked", "_openrouter_caps_warm_started",
     lambda: _OPENROUTER_CATALOG_URL,
 )
-# Nous Portal serves OpenRouter's catalog schema, so the same parser and contract apply. Its own
+# Neural Studio Portal serves OpenRouter's catalog schema, so the same parser and contract apply. Its own
 # cache because the two catalogs list different models (and different capabilities for shared ids).
 _NOUS_CAPS = _CapsSource(
     "_nous_reasoning_caps_cache", "_nous_reasoning_caps_failed_at",
@@ -292,7 +292,7 @@ def openrouter_model_reasoning_capabilities(
 def nous_model_reasoning_capabilities(
     model_id: Optional[str], *, timeout: float = 6.0, allow_fetch: bool = False,
 ) -> Optional[dict[str, Any]]:
-    """Nous Portal counterpart of :func:`openrouter_model_reasoning_capabilities`; warm the cache
+    """Neural Studio Portal counterpart of :func:`openrouter_model_reasoning_capabilities`; warm the cache
     with :func:`warm_nous_reasoning_caps_async` from hot paths."""
     return _model_caps(_NOUS_CAPS, model_id, timeout=timeout, allow_fetch=allow_fetch)
 
@@ -303,5 +303,5 @@ def warm_openrouter_reasoning_caps_async() -> None:
 
 
 def warm_nous_reasoning_caps_async() -> None:
-    """Nous Portal counterpart of :func:`warm_openrouter_reasoning_caps_async`."""
+    """Neural Studio Portal counterpart of :func:`warm_openrouter_reasoning_caps_async`."""
     _warm_caps_async(_NOUS_CAPS)

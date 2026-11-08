@@ -56,7 +56,7 @@ export interface RelayLinkedAccount {
 }
 
 export interface RelayLinksResponse {
-  /** "portal" when the Nous Portal access setting governs this agent: links are made there. */
+  /** "portal" when the Neural Studio Portal access setting governs this agent: links are made there. */
   managed_by?: "portal" | "connector";
   portal_url?: string;
   platforms: { platform: string; bot_url: string | null; accounts: RelayLinkedAccount[] }[];

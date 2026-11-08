@@ -418,10 +418,10 @@ def _rename_result(target: HostedTarget) -> str:
     except GatewayUnavailable as exc:
         if exc.code == "connection_not_found":
             return tool_error(f"That {target.name} account no longer exists. Use action status to list accounts.")
-        return tool_error("This Nous Portal cannot rename connector accounts yet.")
+        return tool_error("This Neural Studio Portal cannot rename connector accounts yet.")
     except ToolGatewayError as exc:
         if exc.status == 405:
-            return tool_error("This Nous Portal cannot rename connector accounts yet.")
+            return tool_error("This Neural Studio Portal cannot rename connector accounts yet.")
         raise
     return json.dumps({
         "renamed": {"connector": account["connector"], "alias": account.get("alias"), "label": account["label"]},
@@ -477,5 +477,5 @@ def run_managed_action(
             return tool_error(str(exc))
         return tool_error(
             f"The connector gateway request failed: {exc}. "
-            "If this persists, the user can manage connections in the Nous Portal."
+            "If this persists, the user can manage connections in the Neural Studio Portal."
         )

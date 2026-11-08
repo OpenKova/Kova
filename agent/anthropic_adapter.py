@@ -576,11 +576,11 @@ def _oauth_wire_namer(anthropic_tools: list[dict[str, Any]]):
 
 
 _OAUTH_SYSTEM_REPLACEMENTS = (
-    ("Kova Agent", "Claude Code"), ("Kova agent", "Claude Code"), ("Nous Research", "Anthropic"),
+    ("Kova Agent", "Claude Code"), ("Kova agent", "Claude Code"), ("Neural Studio", "Anthropic"),
 )
 # The slug is rewritten only as a standalone prose word. Joined to a host, path, repo, mailbox
 # or quoted as an identifier (``kova-agent.nousresearch.com``, ``~/.kova/kova-agent/venv``,
-# ``NousResearch/kova-agent``, ``skill_view(name='kova-agent')``) it is an address the model
+# ``NeuralStudio/kova-agent``, ``skill_view(name='kova-agent')``) it is an address the model
 # dereferences, and the rewritten form does not exist (#48860). The OPENING quote marks an
 # identifier; a sentence-final ``.`` or a possessive ``'s`` is prose.
 _OAUTH_SLUG_PATTERN = re.compile(r"""(?<![\w./:@'"`-])kova-agent(?![\w/@-]|\.\w)""")
@@ -663,7 +663,7 @@ def build_anthropic_kwargs(
     ``fast_mode`` adds ``extra_body.speed="fast"`` plus the fast-mode beta on native Anthropic only."""
     system, anthropic_messages = convert_messages_to_anthropic(messages, base_url=base_url, model=model)
     anthropic_tools = convert_tools_to_anthropic(tools) if tools else []
-    # Nous Portal routes on its own catalog ids (``anthropic/claude-opus-4.8``); normalizing would
+    # Neural Studio Portal routes on its own catalog ids (``anthropic/claude-opus-4.8``); normalizing would
     # make the model unresolvable there (prefix AND dots kept).
     if not _is_nous_portal_endpoint(base_url):
         model = normalize_model_name(model, preserve_dots=preserve_dots)
@@ -866,7 +866,7 @@ def create_anthropic_message(
     turn path and fall back to ``create()`` only for providers that explicitly don't support
     streaming (restricted Bedrock roles). Both callbacks are best-effort and fire only on the
     streaming path: ``on_stream_event(event)`` lets liveness watchdogs see forward progress;
-    ``on_response(httpx_response)`` exposes headers the parsed Message drops (Nous Portal's
+    ``on_response(httpx_response)`` exposes headers the parsed Message drops (Neural Studio Portal's
     ``x-nous-credits-*`` balance family)."""
     sanitize_anthropic_kwargs(api_kwargs, log_prefix=log_prefix)
     messages_api = getattr(client, "messages", None)

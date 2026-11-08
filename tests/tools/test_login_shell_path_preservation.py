@@ -7,7 +7,7 @@ dropping the venv dir the process environment put there — so the snapshot
 to the system interpreter (#56634). These tests read the snapshot back from a
 real ``LocalEnvironment`` instead of asserting on injected markers.
 
-See: https://github.com/NousResearch/kova-agent/issues/56634
+See: https://github.com/NeuralStudio/kova-agent/issues/56634
 """
 
 import pathlib

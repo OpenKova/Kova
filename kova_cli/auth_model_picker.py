@@ -272,7 +272,7 @@ def _prompt_model_selection(
     """
     from kova_cli.cli_output import line_input
     _unavailable = unavailable_models or []
-    # Sale chrome is Nous Portal-only, even if pricing.original is present for another provider.
+    # Sale chrome is Neural Studio Portal-only, even if pricing.original is present for another provider.
     sale_chrome = (confirm_provider or "").strip().lower() == "nous"
 
     def _confirmed_selection(mid: str) -> Optional[str]:

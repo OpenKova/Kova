@@ -20,7 +20,7 @@ Forked from Anthropic's claude-plugins-official repository
   See the License for the specific language governing permissions and
   limitations under the License.
 
-NousResearch modifications: pattern data unchanged from upstream; the upstream RuleId
+NeuralStudio modifications: pattern data unchanged from upstream; the upstream RuleId
 telemetry table (Claude Code PostToolUse metrics) is dropped — Kova has no consumer.
 Kova-side wiring lives in __init__.py.
 """

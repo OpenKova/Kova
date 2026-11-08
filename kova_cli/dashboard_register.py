@@ -1,6 +1,6 @@
 """``kova dashboard register`` — register a self-hosted dashboard OAuth client.
 
-Automates the Nous Portal ``/local-dashboards`` flow: resolve a fresh Nous access token, POST
+Automates the Neural Studio Portal ``/local-dashboards`` flow: resolve a fresh Nous access token, POST
 ``{portal}/api/oauth/self-hosted-client`` (the ``agent:`` prefix is applied server-side),
 write ``KOVA_DASHBOARD_OAUTH_CLIENT_ID`` (+ portal/public URL when warranted) into ``.env``
 idempotently, then print the gate-engagement hint.
@@ -82,7 +82,7 @@ def _register_self_hosted_client(
         except Exception:
             detail = ""
         if exc.code == 401:
-            message = ("Nous Portal rejected the access token (401). "
+            message = ("Neural Studio Portal rejected the access token (401). "
                        "Try `kova auth add nous` to re-authenticate.")
         elif exc.code == 403:
             message = detail or "Your account is not permitted to register a self-hosted dashboard."
@@ -90,7 +90,7 @@ def _register_self_hosted_client(
             message = f"Portal returned HTTP {exc.code}" + (f": {detail}" if detail else "")
         raise RuntimeError(message) from exc
     except urllib.error.URLError as exc:
-        raise RuntimeError(f"Could not reach Nous Portal at {portal_base_url}: {exc.reason}") from exc
+        raise RuntimeError(f"Could not reach Neural Studio Portal at {portal_base_url}: {exc.reason}") from exc
     if not isinstance(payload, dict) or not payload.get("client_id"):
         raise RuntimeError("Portal returned an unexpected response (no client_id).")
     return payload
@@ -161,7 +161,7 @@ def _public_url_from_redirect(redirect_uri: Optional[str]) -> str:
 
 
 def cmd_dashboard_register(args) -> None:
-    """Register a self-hosted dashboard OAuth client with Nous Portal."""
+    """Register a self-hosted dashboard OAuth client with Neural Studio Portal."""
     from kova_cli.auth import AuthError, resolve_nous_access_token
     from kova_cli.config import is_managed, save_env_value
     # Managed installs get the client id stamped in by the orchestrator (save_env_value refuses).
@@ -174,10 +174,10 @@ def cmd_dashboard_register(args) -> None:
         access_token = resolve_nous_access_token()
     except Exception as exc:
         if isinstance(exc, AuthError) and getattr(exc, "relogin_required", False):
-            print("✗ You're not logged into Nous Portal.\n"
+            print("✗ You're not logged into Neural Studio Portal.\n"
                   "  Run `kova setup` (or `kova auth add nous`) first, then retry.")
         else:
-            print(f"✗ Could not resolve a Nous Portal access token: {exc}")
+            print(f"✗ Could not resolve a Neural Studio Portal access token: {exc}")
         sys.exit(1)
     # An explicitly supplied portal (flag or env) is persisted in place; an inferred one is
     # written only if absent so .env isn't cluttered for the common production case.

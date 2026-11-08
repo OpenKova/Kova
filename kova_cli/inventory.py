@@ -977,7 +977,7 @@ def _apply_pricing(rows: list[dict], *, force_fresh_nous_tier: bool = False, cac
                 "cache": _format_price_per_mtok(cache_raw) if cache_raw else None,
                 "free": inp == "free" and out in ("free", ""),  # both input and output cost nothing
             }
-            # Sale chrome is Nous Portal-only (other catalogs' nested pricing.original is ignored); free
+            # Sale chrome is Neural Studio Portal-only (other catalogs' nested pricing.original is ignored); free
             # models get flat -100% chrome, was_* only when the gateway served an original.
             if slug == "nous":
                 sale = compute_sale_discount(inp_raw, out_raw, p.get("original"))

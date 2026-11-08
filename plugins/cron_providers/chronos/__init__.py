@@ -127,7 +127,7 @@ class ChronosCronScheduler(CronScheduler):
             "Chronos: NAS rejected this agent's Nous credential for agent-cron (403 invalid_client). "
             "The Nous token in auth.json is not this instance's provisioned identity (an agent:* client "
             "or the hosted bootstrap session), so no job can be armed. A normal `kova auth` re-login "
-            "cannot fix this; the hosted credential has to be restored from the Nous Portal. Falling back "
+            "cannot fix this; the hosted credential has to be restored from the Neural Studio Portal. Falling back "
             "to the built-in cron ticker for this process so scheduled jobs keep firing on time.")
         if self._stop_event is None:
             return  # start() never ran (e.g. a CLI `kova cron add`); nothing to tick here

@@ -1,4 +1,4 @@
-"""Streamlined setup flows: the Nous Portal one-shot (`kova portal`), first-time quick setup,
+"""Streamlined setup flows: the Neural Studio Portal one-shot (`kova portal`), first-time quick setup,
 Blank Slate setup and the `--quick` missing-items pass. Names from setup.py are imported lazily
 per function so test patches on ``kova_cli.setup`` take effect."""
 
@@ -55,12 +55,12 @@ def _run_nous_flow(config: dict, *, context: str, cancel_exc: tuple, cancel_line
 
 
 def _run_portal_one_shot(config: dict) -> None:
-    """One-shot Nous Portal setup (``kova setup --portal`` / ``kova portal``)."""
+    """One-shot Neural Studio Portal setup (``kova setup --portal`` / ``kova portal``)."""
     from kova_cli.setup import _info, _print_banner, _record_setup_completed, print_error, print_info, print_success
-    _print_banner("│     ☤ Kova Setup — Nous Portal (one-shot)             │")
+    _print_banner("│     ☤ Kova Setup — Neural Studio Portal (one-shot)             │")
     _info(None, "  One subscription, 300+ models, plus the Tool Gateway:",
           "    web search, image generation, TTS, browser automation",
-          "    — all routed through your Nous Portal sub.", None,
+          "    — all routed through your Neural Studio Portal sub.", None,
           "  Sign up: https://portal.nousresearch.com/manage-subscription", None)
 
     def _on_error(exc: Exception) -> None:
@@ -104,23 +104,23 @@ def _imported_model_label(config: dict) -> str:
 
 def _keep_imported_model(config: dict, imported_from: str) -> bool:
     """After an import that brought a model, ask whether to keep it (the default) or switch to
-    Nous Portal; True keeps it."""
+    Neural Studio Portal; True keeps it."""
     from kova_cli.setup import _info, print_header, prompt_choice
     label = _imported_model_label(config) if imported_from else ""
     if not label:
         return False
     print_header("Model & Provider", gap=True)
     _info(f"Settings were imported from {imported_from}.")
-    return prompt_choice(f"Keep your imported model ({label}) or switch to Nous Portal?", [
+    return prompt_choice(f"Keep your imported model ({label}) or switch to Neural Studio Portal?", [
         f"Keep {label}",
-        "Switch to Nous Portal — free OAuth login, 300+ models plus the Tool Gateway",
+        "Switch to Neural Studio Portal — free OAuth login, 300+ models plus the Tool Gateway",
     ], 0, description=f"  Settings were imported from {imported_from}.") == 0
 
 
 def _quick_setup_nous_portal(config: dict) -> None:
-    """Quick Setup's Nous Portal step: OAuth login + model selection (provider set to "nous" by the save)."""
+    """Quick Setup's Neural Studio Portal step: OAuth login + model selection (provider set to "nous" by the save)."""
     from kova_cli.setup import _info, print_header, print_info, print_warning
-    print_header("Nous Portal", gap=True)
+    print_header("Neural Studio Portal", gap=True)
     _info("One subscription, 300+ models, plus the Tool Gateway:",
           "  web search, image generation, TTS, browser automation.",
           "Sign up: https://portal.nousresearch.com/manage-subscription", None)
@@ -133,20 +133,20 @@ def _quick_setup_nous_portal(config: dict) -> None:
             print_info(line)
 
     _run_nous_flow(config, context="quick setup", cancel_exc=(KeyboardInterrupt, EOFError),
-                   cancel_lines=(None, "Nous Portal setup cancelled."), print_error=_on_error)
+                   cancel_lines=(None, "Neural Studio Portal setup cancelled."), print_error=_on_error)
     # The wizard's later save_config(config) must not clobber the login/model save.
     _reload_config_into(config)
 
 
 def _run_first_time_quick_setup(config: dict, kova_home, is_existing: bool, imported_from: str = ""):
-    """Streamlined first-time setup via Nous Portal: OAuth, model, terminal & messaging;
+    """Streamlined first-time setup via Neural Studio Portal: OAuth, model, terminal & messaging;
     everything else gets defaults. A model brought by an agent import (*imported_from* names the
-    agents) is offered first and kept by default, which skips the Nous Portal step."""
+    agents) is offered first and kept by default, which skips the Neural Studio Portal step."""
     from kova_cli.setup import (
         _apply_default_agent_settings, _info, print_info, _print_setup_summary, print_success,
         prompt_choice, save_config, setup_gateway, setup_terminal_backend
     )
-    # Step 1: the imported model, or Nous Portal.
+    # Step 1: the imported model, or Neural Studio Portal.
     if not _keep_imported_model(config, imported_from):
         _quick_setup_nous_portal(config)
 

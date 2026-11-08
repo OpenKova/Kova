@@ -44,7 +44,7 @@ def _sticky_key(session_id: str | None) -> str | None:
     return _cache_scope_from_session_id(get_affinity_scope() or get_conversation_context() or session_id)
 
 
-# OpenAI speed tiers. Nous Portal serves them as distinct slugs (``-fast``/``-flex``); OpenRouter
+# OpenAI speed tiers. Neural Studio Portal serves them as distinct slugs (``-fast``/``-flex``); OpenRouter
 # serves them as ENDPOINTS of the base model (tags ``openai/fast``, ``openai/flex``) and silently
 # routes an unknown suffix to the standard tier at standard price. So the picker carries the Nous
 # slugs for both providers, and here the wire model becomes the base slug with ``provider.only``

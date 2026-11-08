@@ -65,7 +65,7 @@ export const enCatalog: CatalogTranslations = {
   slideOf: (index: number, count: number) => `${index} of ${count}`,
   tierLabels: { official: 'Official', verified: 'Verified', community: 'Community' },
   tiers: {
-    official: { title: 'Official Plugins', blurb: 'Built and maintained by Nous Research.' },
+    official: { title: 'Official Plugins', blurb: 'Built and maintained by Neural Studio.' },
     verified: { title: 'Verified Plugins', blurb: 'From the company behind the integration, verified by Nous.' }
   },
   moreToExplore: 'More to explore',

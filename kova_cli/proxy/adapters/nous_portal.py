@@ -1,4 +1,4 @@
-"""Nous Portal upstream adapter."""
+"""Neural Studio Portal upstream adapter."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ _ALLOWED_PATHS: frozenset[str] = frozenset({"/chat/completions", "/completions",
 
 
 class NousPortalAdapter(UpstreamAdapter):
-    """Proxy upstream for the Nous Portal inference API."""
+    """Proxy upstream for the Neural Studio Portal inference API."""
 
     def __init__(self) -> None:
         # In-process serialization; cross-process refresh/persistence is resolve_nous_runtime_credentials().
@@ -43,7 +43,7 @@ class NousPortalAdapter(UpstreamAdapter):
 
     @property
     def display_name(self) -> str:
-        return "Nous Portal"
+        return "Neural Studio Portal"
 
     @property
     def allowed_paths(self) -> frozenset[str]:
@@ -71,7 +71,7 @@ class NousPortalAdapter(UpstreamAdapter):
         with self._lock:
             state = self._read_state()
             if state is None:
-                raise RuntimeError("Not logged into Nous Portal. Run `kova auth add nous` first.")
+                raise RuntimeError("Not logged into Neural Studio Portal. Run `kova auth add nous` first.")
             try:
                 # Every proxied request queues on self._lock: a free-tier browser challenge is
                 # announced and raised, never waited on while holding it.
@@ -83,11 +83,11 @@ class NousPortalAdapter(UpstreamAdapter):
                 if isinstance(exc, AuthError) and _is_terminal_nous_refresh_error(exc):
                     _quarantine_nous_oauth_state(state, exc, reason="proxy_refresh_failure")
                     self._save_state(state, quarantine_error=exc, quarantine_reason="proxy_refresh_failure")
-                raise RuntimeError(f"Failed to refresh Nous Portal credentials: {exc}") from exc
+                raise RuntimeError(f"Failed to refresh Neural Studio Portal credentials: {exc}") from exc
             runtime_key = refreshed.get("api_key")
             if not runtime_key:
                 raise RuntimeError(
-                    "Nous Portal refresh did not return a usable inference JWT. "
+                    "Neural Studio Portal refresh did not return a usable inference JWT. "
                     "Try `kova auth add nous` to re-authenticate."
                 )
             # The returned base_url already honors the NOUS_INFERENCE_BASE_URL override (documented

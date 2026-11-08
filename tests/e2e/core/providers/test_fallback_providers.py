@@ -11,7 +11,7 @@ Proven here:
   the FULL conversation (system prompt, turn 1's prompt and answer, turn 2's prompt) and is
   reported as the model that served the turn;
 * a primary whose credentials cannot be resolved walks ``fallback_providers`` at
-  resolution time: a Nous Portal OAuth refresh answered with 5xx (an ``AuthError``) does,
+  resolution time: a Neural Studio Portal OAuth refresh answered with 5xx (an ``AuthError``) does,
   and one that cannot connect at all (an outage: connection refused) must too (#120608).
 """
 
@@ -108,7 +108,7 @@ def test_persistent_primary_503_is_answered_by_fallback_with_full_conversation(t
     assert len(answers) == 1, db_messages(h, run.session_id)
 
 
-# Nous Portal credential-resolution outage (#120608) ------------------------------------
+# Neural Studio Portal credential-resolution outage (#120608) ------------------------------------
 
 
 def _jwt(claims: dict) -> str:

@@ -861,7 +861,7 @@ export interface ModelCapabilities {
   reasoning: boolean
   can_disable_reasoning?: boolean | null
 }
-/** ``kova_cli/inventory.py::_apply_pricing`` — formatted $/Mtok strings (``""`` unknown, ``"free"``); the sale fields are Nous Portal-only. */
+/** ``kova_cli/inventory.py::_apply_pricing`` — formatted $/Mtok strings (``""`` unknown, ``"free"``); the sale fields are Neural Studio Portal-only. */
 export interface ModelPricing {
   input: string
   output: string

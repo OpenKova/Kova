@@ -1,5 +1,5 @@
 """First-time Quick Setup after an agent import: a model the import brought is kept by default
-instead of being replaced by the Nous Portal login/model step."""
+instead of being replaced by the Neural Studio Portal login/model step."""
 
 from argparse import Namespace
 from unittest.mock import patch
@@ -38,7 +38,7 @@ def test_quick_setup_keeps_imported_model_unless_user_switches(switch, nous_runs
         # Enter on every menu (the mode menu's default is Quick Setup), except the keep/switch
         # question when the test switches.
         questions.append(question)
-        if switch and "switch to Nous Portal" in question:
+        if switch and "switch to Neural Studio Portal" in question:
             return 1
         return default
 

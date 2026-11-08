@@ -731,7 +731,7 @@ def recover_after_classification(
             "messages with image parts found; surfacing original error."
         )
 
-    # Route rejecting a reasoning disable: a reasoning-mandatory route (Nous Portal / OpenRouter,
+    # Route rejecting a reasoning disable: a reasoning-mandatory route (Neural Studio Portal / OpenRouter,
     # e.g. GLM-5.3) 400s on ``reasoning: {enabled: false}``; a chat-only OpenAI-compatible relay
     # 400s on the ``reasoning_effort: none`` the title/continuation disable projects (#114460).
     # The catalog guard in the provider profile normally swallows the first, but a process that
@@ -914,18 +914,18 @@ def _print_nonretryable_auth_guidance(
         else:  # nous
             _vlines(
                 agent,
-                "   💡 Nous Portal OAuth token was rejected (HTTP 401). Your token may be",
+                "   💡 Neural Studio Portal OAuth token was rejected (HTTP 401). Your token may be",
                 "      expired, revoked, or your account may be out of credits. To fix:",
                 "      1. Re-authenticate: hermes portal",
                 "      2. Check your portal account: https://portal.nousresearch.com",
             )
-            # ``:free`` is OpenRouter slug syntax; Nous Portal will reject the model
+            # ``:free`` is OpenRouter slug syntax; Neural Studio Portal will reject the model
             # name even after a successful re-auth.
             if isinstance(model, str) and model.endswith(":free"):
                 _vlines(
                     agent,
                     f"      ⚠️  Note: `{model}` looks like an OpenRouter slug (`:free` suffix).",
-                    "         Nous Portal won't recognize that model name. Either switch to a",
+                    "         Neural Studio Portal won't recognize that model name. Either switch to a",
                     f"         Nous catalog model, or run `/model openrouter:{model}` to use OpenRouter.",
                 )
         return
@@ -1982,7 +1982,7 @@ def route_classified_error(
         if agent._try_activate_fallback(reason=classified.reason):
             return _fallback_break()
 
-    # Nous Portal: a genuine account-level 429 is recorded to a shared file so ALL
+    # Neural Studio Portal: a genuine account-level 429 is recorded to a shared file so ALL
     # sessions back off; is_genuine_nous_rate_limit excludes upstream 429s.
     if (
         is_rate_limited

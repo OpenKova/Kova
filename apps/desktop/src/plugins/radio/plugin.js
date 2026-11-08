@@ -461,7 +461,7 @@ async function artistRequest(path, signal, ctx) {
     ctx.storage.set('local.artistRequestAt', Date.now())
     const response = await fetch(`https://musicbrainz.org/ws/2/${path}`, {
       signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]), credentials: 'omit',
-      headers: { 'User-Agent': 'KovaRadio/1.0 (https://github.com/NousResearch/kova-agent)' }
+      headers: { 'User-Agent': 'KovaRadio/1.0 (https://github.com/NeuralStudio/kova-agent)' }
     })
     if (!response.ok) throw new Error(`Artist lookup: HTTP ${response.status}`)
     return response.json()

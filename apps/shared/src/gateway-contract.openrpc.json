@@ -25426,7 +25426,7 @@
       },
       "ModelPricing": {
         "additionalProperties": false,
-        "description": "``kova_cli/inventory.py::_apply_pricing`` \u2014 formatted $/Mtok strings (``\"\"`` unknown,\n``\"free\"``); the sale fields are Nous Portal-only.",
+        "description": "``kova_cli/inventory.py::_apply_pricing`` \u2014 formatted $/Mtok strings (``\"\"`` unknown,\n``\"free\"``); the sale fields are Neural Studio Portal-only.",
         "properties": {
           "input": {
             "title": "Input",

@@ -6,7 +6,7 @@ description: >
   Email gateway adapter for Kova Agent. Polls an IMAP mailbox for inbound
   messages and replies over SMTP, relaying email threads to and from the
   Kova agent.
-author: NousResearch
+author: NeuralStudio
 requires_env:
   - name: EMAIL_ADDRESS
     description: "Email account address"

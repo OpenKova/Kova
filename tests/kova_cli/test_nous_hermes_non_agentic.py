@@ -5,7 +5,7 @@ Prior to this check, the warning fired on any model whose name contained
 local Modelfiles such as ``hermes-brain:qwen3-14b-ctx16k`` — a tool-capable
 Qwen3 wrapper that happens to live under the "hermes" tag namespace.
 
-``is_nous_hermes_non_agentic`` should only match the actual Nous Research
+``is_nous_hermes_non_agentic`` should only match the actual Neural Studio
 Kova-3 / Kova-4 chat family.
 """
 
@@ -23,8 +23,8 @@ from kova_cli.model_switch import (
 @pytest.mark.parametrize(
     "model_name",
     [
-        "NousResearch/Kova-3-Llama-3.1-70B",
-        "NousResearch/Kova-3-Llama-3.1-405B",
+        "NeuralStudio/Kova-3-Llama-3.1-70B",
+        "NeuralStudio/Kova-3-Llama-3.1-405B",
         "hermes-3",
         "Kova-3",
         "hermes-4",
@@ -32,7 +32,7 @@ from kova_cli.model_switch import (
         "hermes_4_70b",
         "openrouter/hermes3:70b",
         "openrouter/nousresearch/hermes-4-405b",
-        "NousResearch/Kova3",
+        "NeuralStudio/Kova3",
         "hermes-3.1",
     ],
 )

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, ExternalLink, Link2 } from "lucide-react";
 import * as QRCode from "qrcode";
-import { Badge } from "@nous-research/ui/ui/components/badge";
-import { Button } from "@nous-research/ui/ui/components/button";
-import { Spinner } from "@nous-research/ui/ui/components/spinner";
+import { Badge } from "@neural-studio/ui/ui/components/badge";
+import { Button } from "@neural-studio/ui/ui/components/button";
+import { Spinner } from "@neural-studio/ui/ui/components/spinner";
 import { api } from "@/lib/api";
 import type { MessagingPlatform, RelayLinkCode, RelayLinkedAccount } from "@/lib/api";
 import { errorMessage } from "@/lib/api-error";
@@ -173,7 +173,7 @@ export function RelayLinkPanel({
         <Badge tone="secondary">Team Gateway</Badge>
         <span className="text-xs text-muted-foreground">
           {portalUrl
-            ? `${platform.name} reaches this agent through the shared Kova bot. This agent's accounts are linked from Nous Portal.`
+            ? `${platform.name} reaches this agent through the shared Kova bot. This agent's accounts are linked from Neural Studio Portal.`
             : `${platform.name} reaches this agent through the shared Kova bot. Link your ${platform.name} account to it; no bot token needed.`}
         </span>
       </div>
@@ -200,7 +200,7 @@ export function RelayLinkPanel({
           onClick={() => window.open(portalUrl, "_blank", "noopener,noreferrer")}
           prefix={<ExternalLink className="h-4 w-4" />}
         >
-          Link accounts in Nous Portal
+          Link accounts in Neural Studio Portal
         </Button>
       ) : link ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

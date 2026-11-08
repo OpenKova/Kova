@@ -128,7 +128,7 @@ export const slashCmdSessionEn = {
   subscription: {
     billingUnreachable: 'Could not reach the billing service — check your connection, then retry.',
     manageUrlFailed: 'Could not build manage URL — is your portal configured?',
-    notLoggedIn: 'Not logged into Nous Portal — run /portal to log in, then /subscription.',
+    notLoggedIn: 'Not logged into Neural Studio Portal — run /portal to log in, then /subscription.',
     openBrowserFailedManage: (url: string) =>
       `Could not open browser — visit your subscription page manually at ${url}`,
     openBrowserFailedPortal: (url: string) => `Could not open browser — visit ${url} to finish.`,
@@ -188,7 +188,7 @@ export const slashCmdSessionEn = {
       upgradeCapExceeded:
         '🔴 Daily plan-change limit reached (5 per org) — try again tomorrow, or manage this on the portal.'
     },
-    notLoggedIn: '💳 Not logged into Nous Portal — run /portal to log in, then /topup.',
+    notLoggedIn: '💳 Not logged into Neural Studio Portal — run /portal to log in, then /topup.',
     openingPortal: (url: string) => `Opening portal: ${url}`,
     validate: {
       invalid: 'Enter a dollar amount, e.g. 100 (max 2 decimal places).',

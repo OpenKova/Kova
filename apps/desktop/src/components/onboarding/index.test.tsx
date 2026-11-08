@@ -48,14 +48,14 @@ afterEach(() => {
 })
 
 describe('onboarding Picker', () => {
-  it('features Nous Portal and hides other providers behind a disclosure', () => {
-    setProviders([makeOAuthProvider('anthropic', 'Anthropic Claude'), makeOAuthProvider('nous', 'Nous Portal')])
+  it('features Neural Studio Portal and hides other providers behind a disclosure', () => {
+    setProviders([makeOAuthProvider('anthropic', 'Anthropic Claude'), makeOAuthProvider('nous', 'Neural Studio Portal')])
     render(<Picker ctx={ctx} />)
 
-    expect(screen.getByText('Nous Portal')).toBeTruthy()
+    expect(screen.getByText('Neural Studio Portal')).toBeTruthy()
     expect(screen.getByText('Recommended')).toBeTruthy()
     // Fireworks stays behind the disclosure with the other alternatives; only
-    // Nous Portal is visible before the user expands the list.
+    // Neural Studio Portal is visible before the user expands the list.
     expect(screen.queryByText('Fireworks AI')).toBeNull()
     expect(screen.queryByText('Anthropic Account')).toBeNull()
 
@@ -66,7 +66,7 @@ describe('onboarding Picker', () => {
     expect(screen.getByRole('button', { name: 'Collapse' })).toBeTruthy()
   })
 
-  it('shows every provider directly when Nous Portal is absent', () => {
+  it('shows every provider directly when Neural Studio Portal is absent', () => {
     setProviders([
       makeOAuthProvider('anthropic', 'Anthropic Claude'),
       makeOAuthProvider('openai-codex', 'OpenAI Codex / ChatGPT')
@@ -81,7 +81,7 @@ describe('onboarding Picker', () => {
   })
 
   it('offers "choose later" on first run and persists the skip', () => {
-    setProviders([makeOAuthProvider('nous', 'Nous Portal')])
+    setProviders([makeOAuthProvider('nous', 'Neural Studio Portal')])
     render(<Picker ctx={ctx} />)
 
     const skip = screen.getByRole('button', { name: "I'll choose a provider later" })
@@ -92,13 +92,13 @@ describe('onboarding Picker', () => {
     expect(window.localStorage.getItem('hermes-onboarding-skipped-v1')).toBe('1')
   })
 
-  it('keeps Nous Portal on top of the key form when the provider list failed to load', () => {
+  it('keeps Neural Studio Portal on top of the key form when the provider list failed to load', () => {
     // A failed/empty OAuth list drops the picker onto the key form with no way back.
     setProviders([])
     $desktopOnboarding.set({ ...$desktopOnboarding.get(), mode: 'apikey' })
     render(<Picker ctx={ctx} />)
 
-    expect(screen.getByText('Nous Portal')).toBeTruthy()
+    expect(screen.getByText('Neural Studio Portal')).toBeTruthy()
     expect(screen.getByText('Recommended')).toBeTruthy()
     expect(screen.getByText('Fireworks AI')).toBeTruthy()
     cleanup()
@@ -106,11 +106,11 @@ describe('onboarding Picker', () => {
     // The custom-endpoint form is a deliberate destination: no Nous row there.
     $desktopOnboarding.set({ ...$desktopOnboarding.get(), localEndpoint: true })
     render(<Picker ctx={ctx} />)
-    expect(screen.queryByText('Nous Portal')).toBeNull()
+    expect(screen.queryByText('Neural Studio Portal')).toBeNull()
   })
 
   it('hides "choose later" in manual (add-provider) mode', () => {
-    setProviders([makeOAuthProvider('nous', 'Nous Portal')])
+    setProviders([makeOAuthProvider('nous', 'Neural Studio Portal')])
     $desktopOnboarding.set({ ...$desktopOnboarding.get(), manual: true })
     render(<Picker ctx={ctx} />)
 

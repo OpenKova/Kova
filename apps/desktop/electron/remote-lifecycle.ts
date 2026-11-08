@@ -204,7 +204,7 @@ async function locateKova(ssh, remoteKovaPath) {
     //   - version checking: `<python> --version` printed "Python x.y.z" instead of
     //     the Kova version, and
     //   - capability probing: `<python> serve --help` failed entirely.
-    // See https://github.com/NousResearch/kova-agent/issues/74411
+    // See https://github.com/NeuralStudio/kova-agent/issues/74411
     return candidate
   }
 

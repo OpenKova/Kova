@@ -25,7 +25,7 @@ import {
   type UpdateTarget
 } from '@/store/updates'
 
-const RELEASE_NOTES_URL = 'https://github.com/NousResearch/kova-agent/releases'
+const RELEASE_NOTES_URL = 'https://github.com/NeuralStudio/kova-agent/releases'
 const INSTALLER_URL = 'https://kova-agent.nousresearch.com/'
 
 export type UpdateStatusTone = 'idle' | 'available' | 'error' | 'unsupported'

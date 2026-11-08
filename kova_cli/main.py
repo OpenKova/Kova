@@ -1754,7 +1754,7 @@ cmd_dump = _forward_command("cmd_dump", "kova_cli.dump", "run_dump", doc='Dump s
 cmd_debug = _forward_command("cmd_debug", "kova_cli.debug", "run_debug", doc='Debug tools (share report, etc.).')
 cmd_skin = _forward_command("cmd_skin", "kova_cli.skin_cmd", "skin_command", doc='Skin management (list / use / set).')
 cmd_import = _forward_command("cmd_import", "kova_cli.backup", "run_import", forward_return=True, doc='Restore a Kova backup from a zip file.')
-cmd_dashboard_register = _forward_command("cmd_dashboard_register", "kova_cli.dashboard_register", "cmd_dashboard_register", doc='Register a self-hosted dashboard OAuth client with Nous Portal.')
+cmd_dashboard_register = _forward_command("cmd_dashboard_register", "kova_cli.dashboard_register", "cmd_dashboard_register", doc='Register a self-hosted dashboard OAuth client with Neural Studio Portal.')
 cmd_webapp = _forward_command("cmd_webapp", "kova_cli.webapp_launcher", "cmd_webapp", forward_return=True, doc='Open the browser-hosted Desktop the gateway serves.')
 cmd_gateway_enroll = _forward_command("cmd_gateway_enroll", "kova_cli.gateway_enroll", "cmd_gateway_enroll", doc='Enroll a self-hosted gateway with a relay connector.')
 cmd_prompt_size = _forward_command("cmd_prompt_size", "kova_cli.prompt_size", "cmd_prompt_size", doc='Show a byte/char breakdown of the system prompt + tool schemas.')
@@ -1858,7 +1858,7 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
             if exc.code == "no_provider_configured":
                 # The picker that is about to open IS the fix; a warning that says
                 # "run `kova model`" from inside `kova model` is circular.
-                print("No provider is set up yet — pick one below. (Nous Portal works without an API key.)")
+                print("No provider is set up yet — pick one below. (Neural Studio Portal works without an API key.)")
             elif effective_provider == "auto":
                 print(f"Warning: {format_auth_error(exc)} Falling back to auto provider detection.")
             active = None  # no provider yet; default to first in list

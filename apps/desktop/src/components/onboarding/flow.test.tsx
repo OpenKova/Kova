@@ -14,7 +14,7 @@ vi.mock('@/kova', async importOriginal => ({
   getGlobalModelOptions: async () => ({
     providers: [
       { free_tier: false, models: ['gpt-5.6-terra'], name: 'OpenAI OAuth (ChatGPT)', slug: 'openai' },
-      { models: ['deepseek/deepseek-v4-flash-0731'], name: 'Nous Portal', slug: 'nous' }
+      { models: ['deepseek/deepseek-v4-flash-0731'], name: 'Neural Studio Portal', slug: 'nous' }
     ]
   })
 }))
@@ -104,7 +104,7 @@ describe('ConfirmingModelPanel model pick', () => {
     await screen.findByText('Pro')
 
     // The user signed in with OpenAI OAuth; the picker offers a deepseek
-    // model that only Nous Portal serves.
+    // model that only Neural Studio Portal serves.
     fireEvent.click(screen.getByRole('button', { name: 'Change' }))
     fireEvent.click(await screen.findByRole('button', { name: 'pick-nous-model' }))
 
@@ -121,7 +121,7 @@ describe('ConfirmingModelPanel model pick', () => {
 
     if (flow.status === 'confirming_model') {
       expect(flow.providerSlug).toBe('nous')
-      expect(flow.label).toBe('Nous Portal')
+      expect(flow.label).toBe('Neural Studio Portal')
     }
   })
 })

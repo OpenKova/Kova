@@ -311,7 +311,7 @@ def test_benched_credential_prints_cooldown_instead_of_wizard(monkeypatch, capsy
     shell.requested_provider = "nous"
 
     def _raise(**kwargs):
-        raise AuthError("Kova is not logged into Nous Portal.", provider="nous",
+        raise AuthError("Kova is not logged into Neural Studio Portal.", provider="nous",
                         code="nous_auth_missing", relogin_required=True)
 
     monkeypatch.setattr("kova_cli.runtime_provider.resolve_runtime_provider", _raise)
@@ -327,7 +327,7 @@ def test_benched_credential_prints_cooldown_instead_of_wizard(monkeypatch, capsy
     assert headline.endswith(t("cli.startup.credential_cooling_down", provider="nous",
                          cause=t("cli.startup.cooldown_cause_rate_limit"), minutes=1))
     assert t("cli.startup.cooldown_cause_token_refresh") not in out
-    assert "not logged into Nous Portal" in out
+    assert "not logged into Neural Studio Portal" in out
     assert "re-authenticate" not in out and "hermes model" not in out
 
 
@@ -346,7 +346,7 @@ def test_auth_json_only_login_explains_instead_of_wizard(monkeypatch, capsys, tm
         monkeypatch.delenv(key, raising=False)
 
     def _nous_fail():
-        raise AuthError("Kova is not logged into Nous Portal.", provider="nous",
+        raise AuthError("Kova is not logged into Neural Studio Portal.", provider="nous",
                         code="nous_auth_missing", relogin_required=True)
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **kw: "nous")
@@ -363,7 +363,7 @@ def test_auth_json_only_login_explains_instead_of_wizard(monkeypatch, capsys, tm
 
     shell._maybe_offer_first_run_setup()
     out = capsys.readouterr().out
-    assert "not logged into Nous Portal" in out
+    assert "not logged into Neural Studio Portal" in out
     assert t("cli.startup.first_run_no_provider") not in out
 
     offered = []

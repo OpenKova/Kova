@@ -1,4 +1,4 @@
-"""Tests for agent/nous_rate_guard.py — cross-session Nous Portal rate limit guard."""
+"""Tests for agent/nous_rate_guard.py — cross-session Neural Studio Portal rate limit guard."""
 
 import json
 import os
@@ -179,7 +179,7 @@ class TestAuxiliaryClientIntegration:
 class TestIsGenuineNousRateLimit:
     """Tell a real account-level 429 apart from an upstream-capacity 429.
 
-    Nous Portal multiplexes upstreams (DeepSeek, Kimi, MiMo, Kova).
+    Neural Studio Portal multiplexes upstreams (DeepSeek, Kimi, MiMo, Kova).
     A 429 from an upstream out of capacity should NOT trip the
     cross-session breaker; a real user-quota 429 should.
     """
@@ -307,7 +307,7 @@ class TestWelcomeRouteCopy:
         assert statuses == [f"⏳ {expected}"]
         assert expected in verdict.result["final_response"]
         assert "/login" in expected
-        assert "Nous Portal" not in expected
+        assert "Neural Studio Portal" not in expected
         assert buffered == [f"⏳ {expected} Trying fallback..."]
 
 

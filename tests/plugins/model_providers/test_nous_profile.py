@@ -1,4 +1,4 @@
-"""Unit tests for the Nous Portal profile's reasoning wiring.
+"""Unit tests for the Neural Studio Portal profile's reasoning wiring.
 
 The Portal honors ``reasoning: {enabled: false}`` — it is the only wire shape
 that does, and ``extra_body.thinking`` is not forwarded upstream. The profile

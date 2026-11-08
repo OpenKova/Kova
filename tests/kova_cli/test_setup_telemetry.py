@@ -135,7 +135,7 @@ def test_chat_offer_asks_an_undecided_profile_once(monkeypatch):
     consent.offer_consent_before_chat(argparse.Namespace())
 
     assert len(asked) == 1
-    assert asked[0][1] == ["Share with Nous", "No thanks"]
+    assert asked[0][1] == ["Share with Neural Studio", "No thanks"]
     assert consent.consent_state(read_raw_config()) == {"enabled": True, "send": True, "decided": True, "reask": False}
 
 

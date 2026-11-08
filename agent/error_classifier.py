@@ -538,7 +538,7 @@ _V_ROLE_ALTERNATION = _v(_R.role_alternation, **_ABORT_FALLBACK)
 # other provider can fix that output, so falling back only replays the same broken turn 4-5 times
 # (20-60s per occurrence, #12770). Abort this call; the loop's argument repair handles the retry.
 _V_MALFORMED_TOOL_ARGS = _v(_R.format_error, retryable=False, should_fallback=False)
-# A reasoning-mandatory route answering ``reasoning: {enabled: false}`` (Nous Portal + OpenRouter wording).
+# A reasoning-mandatory route answering ``reasoning: {enabled: false}`` (Neural Studio Portal + OpenRouter wording).
 _REASONING_MANDATORY_PATTERN = "reasoning is mandatory"
 
 # Generic markers a provider 400 puts next to the offending parameter name. Bedrock Converse
@@ -610,7 +610,7 @@ def is_reasoning_level_rejection(error_msg: str) -> bool:
 
 def is_reasoning_required_rejection(error_msg: str) -> bool:
     """Provider 400 saying the model's reasoning cannot be switched OFF ("Reasoning is mandatory for
-    this endpoint and cannot be disabled", the Nous Portal on gpt-6-astra) — or refusing the OFF
+    this endpoint and cannot be disabled", the Neural Studio Portal on gpt-6-astra) — or refusing the OFF
     *level* because the endpoint's closed set starts at ``minimal``
     (``is_reasoning_level_rejection``). The opposite of ``is_reasoning_field_rejection``: the field is
     understood, the *disable* is refused, so the right reaction is to step the effort up to the
@@ -1293,7 +1293,7 @@ def _classify_400(c: _Ctx) -> Verdict:
         "conflicting authenticated continuation identities" in msg
     ):
         return _V_INVALID_ENCRYPTED
-    # Route rejecting a reasoning disable: a reasoning-mandatory route (GLM-5.3 on Nous Portal /
+    # Route rejecting a reasoning disable: a reasoning-mandatory route (GLM-5.3 on Neural Studio Portal /
     # OpenRouter), a chat-only relay that does not accept ``reasoning_effort: none`` at all
     # (#114460), or an endpoint whose closed level set starts above the disable ("must be one of:
     # 'minimal', …" — Alibaba token-plan). Deterministic for the request shape, but the only bad

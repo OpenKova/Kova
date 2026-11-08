@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@nanostores/react": "1.1.0",
-    "@nous-research/ui": "0.19.1",
+    "@neural-studio/ui": "0.19.1",
     "@tailwindcss/typography": "0.5.20",
     "@tailwindcss/vite": "4.3.3",
     "@tauri-apps/api": "2.12.2",

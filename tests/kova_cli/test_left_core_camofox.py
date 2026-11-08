@@ -17,11 +17,11 @@ from kova_cli.config_defaults import DEFAULT_CONFIG
 
 _CATALOG_ENTRY = """\
 name: camofox
-repo: https://github.com/NousResearch/hermes-official-plugins
+repo: https://github.com/NeuralStudio/hermes-official-plugins
 sha: 0123456789abcdef0123456789abcdef01234567
 subdir: camofox
 description: Camofox anti-detection browser backend (fixture).
-maintainer: NousResearch
+maintainer: NeuralStudio
 tier: official
 category: tools
 capabilities:

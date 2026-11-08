@@ -95,7 +95,7 @@ export function SharedMetricsConsentBanner() {
         </a>
       </span>
       <button type="button" disabled={saving} className={choice} onClick={() => answer(true, true)}>
-        {t.app.sharedMetricsShare ?? "Share with Nous"}
+        {t.app.sharedMetricsShare ?? "Share with Neural Studio"}
       </button>
       <button type="button" disabled={saving} className={choice} onClick={() => answer(false, false)}>
         {t.app.sharedMetricsOff ?? "No thanks"}

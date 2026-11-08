@@ -285,13 +285,13 @@ def _web_feature(web_cfg: dict[str, object], tool_enabled: bool, managed: bool, 
 
 
 def managed_image_partner(config: dict[str, object]) -> Optional[str]:
-    """Partner the image request is dispatched to (``"FAL"``, ``"Krea"`` or ``"Nous Portal"``);
+    """Partner the image request is dispatched to (``"FAL"``, ``"Krea"`` or ``"Neural Studio Portal"``);
     ``None`` when a direct vendor owns it. Reads the stored values the way the runtime dispatcher
     does, so the label and the route cannot disagree."""
     from tools.image_generation_managed import FAL, KREA, PORTAL, managed_route
 
     section = _section(config, "image_gen")
-    return {FAL: "FAL", KREA: "Krea", PORTAL: "Nous Portal"}.get(
+    return {FAL: "FAL", KREA: "Krea", PORTAL: "Neural Studio Portal"}.get(
         managed_route(section.get("provider"), section.get("model")))
 
 
@@ -630,7 +630,7 @@ def prompt_enable_tool_gateway(config: dict[str, object], *, force_fresh: bool =
     return changed
 
 
-# Inline Nous Portal login for the Tool Gateway picker (`kova tools`)
+# Inline Neural Studio Portal login for the Tool Gateway picker (`kova tools`)
 
 
 def ensure_nous_portal_access(*, capability: str = "the Nous Tool Gateway", coverage_category: Optional[str] = None) -> bool:
@@ -669,21 +669,21 @@ def _confirm(prompt: str) -> Optional[bool]:
 
 
 def _run_nous_portal_login_only(*, capability: str) -> bool:
-    """Run the Nous Portal device-code OAuth and persist credentials only (no model selection, no
+    """Run the Neural Studio Portal device-code OAuth and persist credentials only (no model selection, no
     provider switch, no Tool Gateway bulk prompt). ``False`` if the user declined or the flow failed."""
     try:
         from kova_cli import auth
     except Exception as exc:  # pragma: no cover - defensive
-        print(f"  Could not start Nous Portal login: {exc}")
+        print(f"  Could not start Neural Studio Portal login: {exc}")
         return False
     print()
-    print(f"  {capability} requires a Nous Portal login.")
-    proceed = _confirm("  Log in to Nous Portal now? [Y/n]: ")
+    print(f"  {capability} requires a Neural Studio Portal login.")
+    proceed = _confirm("  Log in to Neural Studio Portal now? [Y/n]: ")
     if proceed is None:
         print()
         return False
     if not proceed:
-        print("  Skipped Nous Portal login.")
+        print("  Skipped Neural Studio Portal login.")
         return False
     try:
         # Snapshot active_provider so a tool-config login never silently switches inference to Nous.
@@ -712,7 +712,7 @@ def _run_nous_portal_login_only(*, capability: str) -> bool:
         handoff = drain()  # a replaced free tier hands its apps over once both saves land
         auth._sync_nous_pool_from_auth_store()
         settle_after_upgrade(auth_state)  # a config left on the free tier's route moves to the account
-        print("  Nous Portal login successful.")
+        print("  Neural Studio Portal login successful.")
         for line in (line for view in handoff for line in result_lines(view)):
             print(f"  {line}")
         return True
@@ -723,5 +723,5 @@ def _run_nous_portal_login_only(*, capability: str) -> bool:
         # _nous_device_code_login raises SystemExit on subscription_required (guidance already printed).
         return False
     except Exception as exc:
-        print(f"  Nous Portal login failed: {exc}")
+        print(f"  Neural Studio Portal login failed: {exc}")
         return False

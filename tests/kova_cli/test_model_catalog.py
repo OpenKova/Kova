@@ -43,7 +43,7 @@ def _valid_manifest() -> dict:
                 ],
             },
             "nous": {
-                "metadata": {"display_name": "Nous Portal"},
+                "metadata": {"display_name": "Neural Studio Portal"},
                 "models": [
                     {"id": "anthropic/claude-opus-4.7"},
                     {"id": "moonshotai/kimi-k2.6"},
@@ -248,7 +248,7 @@ class TestFallbackChain:
 
     PRIMARY = "https://kova-agent.nousresearch.com/docs/api/model-catalog.json"
     FALLBACK = (
-        "https://raw.githubusercontent.com/NousResearch/kova-agent"
+        "https://raw.githubusercontent.com/NeuralStudio/kova-agent"
         "/main/website/static/api/model-catalog.json"
     )
 

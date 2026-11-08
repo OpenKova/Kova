@@ -1,7 +1,7 @@
-"""Cross-session rate limit guard for Nous Portal.
+"""Cross-session rate limit guard for Neural Studio Portal.
 
 Writes rate limit state to a shared file so all sessions (CLI, gateway, cron,
-auxiliary) can check whether Nous Portal is currently rate-limited before making
+auxiliary) can check whether Neural Studio Portal is currently rate-limited before making
 requests. Without it each 429 fans out into up to 9 calls per turn (3 SDK
 retries x 3 Kova retries), all counted against RPH.
 """
@@ -62,7 +62,7 @@ def record_nous_rate_limit(
     default_cooldown: float = 300.0,
     anonymous: bool = False,
 ) -> None:
-    """Record that Nous Portal is rate-limited in the shared state file.
+    """Record that Neural Studio Portal is rate-limited in the shared state file.
 
     Reset time comes from ``error_context["reset_at"]`` (the 429 body's own wait), then headers, then
     ``default_cooldown``. The body wins: a welcome-tier refusal says when to retry (410 s), while the
@@ -126,7 +126,7 @@ def _is_exhausted(remaining: Optional[int], reset: Optional[float]) -> bool:
 def is_genuine_nous_rate_limit(
     *, headers: Optional[Mapping[str, str]] = None, last_known_state: Optional[Any] = None,
 ) -> bool:
-    """Decide whether a 429 from Nous Portal is a real account rate limit.
+    """Decide whether a 429 from Neural Studio Portal is a real account rate limit.
 
     Nous multiplexes upstream providers behind one key, so a 429 may be one
     upstream model out of capacity (clears in seconds) rather than our quota;

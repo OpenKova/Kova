@@ -178,10 +178,10 @@ def _rename(args) -> int:
     except GatewayUnavailable as exc:
         if exc.code == "connection_not_found":
             _fail("That account no longer exists.")
-        _fail("This Nous Portal cannot rename connector accounts yet.")
+        _fail("This Neural Studio Portal cannot rename connector accounts yet.")
     except ToolGatewayError as exc:
         if exc.status == 405:
-            _fail("This Nous Portal cannot rename connector accounts yet.")
+            _fail("This Neural Studio Portal cannot rename connector accounts yet.")
         raise
     print(f"Renamed {app} account {args.name} to {new}.")
     return 0

@@ -107,10 +107,10 @@ def _managed_fal_billing_error(exc: BaseException, what: str) -> Optional[str]:
     details = error.get("details") if isinstance(error.get("details"), dict) else {}
     upstream = details.get("upstreamPayload") if isinstance(details.get("upstreamPayload"), dict) else {}
     code = upstream.get("code") or details.get("chargeIntentErrorCode") or "billing_error"
-    detail = upstream.get("error") or "Nous Portal rejected the charge authorization"
+    detail = upstream.get("error") or "Neural Studio Portal rejected the charge authorization"
     return (
         f"{error.get('message') or 'Charge authorization failed'} (BILLING_ERROR; {code}: {detail}). "
-        "This is a Nous Portal billing configuration issue, not a missing local API key. "
+        "This is a Neural Studio Portal billing configuration issue, not a missing local API key. "
         f"The managed route cannot run this {what} until Nous enables its billing meter; "
         "a direct FAL_KEY is an optional bypass."
     )

@@ -3021,8 +3021,8 @@ export const frOverrides = {
       qrAlt: (platform: string) => `Code QR du bot ${platform} partagé`,
       managed: 'Géré par Team Gateway',
       managedNote: (platform: string) => `Team Gateway assure la messagerie sur cette instance : le gateway désactive donc la connexion directe ${platform} à chaque démarrage. Pour l’utiliser en plus du relais, définissez GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true dans l’environnement du gateway (une connexion directe empêche l’instance de descendre à zéro et peut livrer les messages deux fois).`,
-      managedIntro: 'Les comptes de cet agent se lient depuis Nous Portal.',
-      openPortal: 'Lier des comptes dans Nous Portal',
+      managedIntro: 'Les comptes de cet agent se lient depuis Neural Studio Portal.',
+      openPortal: 'Lier des comptes dans Neural Studio Portal',
       noNewAccount: (platform: string) => `Le code n’est plus actif et aucun nouveau compte n’est apparu. Si votre compte ${platform} n’est pas listé, obtenez un nouveau code et réessayez.`
     },
     telegramQr: {

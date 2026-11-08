@@ -1,5 +1,5 @@
 """Solstice sign-in: browser PKCE with a loopback redirect, token exchange and refresh brokered by the
-Nous portal (NAS), which holds the confidential client secret. Kova keeps its own PKCE verifier and
+Neural Studio Portal (NAS), which holds the confidential client secret. Kova keeps its own PKCE verifier and
 the user's tokens; NAS never sees a prompt.
 
 The generic ``kova_cli.auth_oauth_pkce_plugin`` flow runs the browser leg, the credential-pool row
@@ -23,7 +23,7 @@ def _err(message: str, code: str, *, relogin: bool = False):
 
 
 def _nas_base_url() -> str:
-    """The Nous portal the user is signed into (``KOVA_PORTAL_BASE_URL`` override first)."""
+    """The Neural Studio Portal the user is signed into (``KOVA_PORTAL_BASE_URL`` override first)."""
     from kova_cli.auth import _nous_portal_base_url, get_provider_auth_state
     return _nous_portal_base_url(get_provider_auth_state("nous") or {})
 
@@ -35,18 +35,18 @@ def _nas_request(method: str, path: str, *, json: Mapping[str, Any] | None = Non
     try:
         token = resolve_nous_access_token()
     except Exception as exc:
-        raise _err("sign in to Nous Portal first (`kova auth add nous`).", "solstice_nous_login_required",
+        raise _err("sign in to Neural Studio Portal first (`kova auth add nous`).", "solstice_nous_login_required",
                    relogin=True) from exc
     try:
         response = httpx.request(method, _nas_base_url() + path, json=json, timeout=_TIMEOUT_SECONDS,
                                  headers={"Accept": "application/json", "Authorization": f"Bearer {token}"},
                                  verify=_default_verify())
     except Exception as exc:
-        raise _err(f"Nous portal request failed: {type(exc).__name__}", "solstice_broker_unreachable") from exc
+        raise _err(f"Neural Studio Portal request failed: {type(exc).__name__}", "solstice_broker_unreachable") from exc
     if response.status_code == 404:
         raise _err("not available on this Nous account yet.", "solstice_not_configured")
     if response.status_code >= 400:
-        raise _err(f"Nous portal returned HTTP {response.status_code}.", "solstice_broker_failed")
+        raise _err(f"Neural Studio Portal returned HTTP {response.status_code}.", "solstice_broker_failed")
     return response.json()
 
 
@@ -55,7 +55,7 @@ def discover_client() -> dict[str, str]:
     payload = _nas_request("GET", _CONFIG_PATH)
     missing = [k for k in ("client_id", "authorize_url", "scope") if not str(payload.get(k) or "").strip()]
     if missing:
-        raise _err(f"Nous portal config is missing {', '.join(missing)}.", "solstice_config_invalid")
+        raise _err(f"Neural Studio Portal config is missing {', '.join(missing)}.", "solstice_config_invalid")
     return {k: str(payload[k]).strip() for k in ("client_id", "authorize_url", "scope")}
 
 

@@ -2,7 +2,7 @@
 
 Every surface reads and writes the same two keys in the profile's config.yaml:
 ``telemetry.shared_metrics.enabled`` (collect) and ``.send`` (upload daily). The offer has two
-answers, and each sets both keys: "Share with Nous" turns both on, "No thanks" turns both off. The
+answers, and each sets both keys: "Share with Neural Studio" turns both on, "No thanks" turns both off. The
 question counts as answered once either key is written explicitly; the shipped defaults are not an
 answer. Every answer also writes ``offer_version``. A "No thanks" without it predates the type-ahead
 fix (an Enter pressed during startup could save it unseen), so that profile is asked once more, with
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # (label, enabled, send): the offer's two answers, in the order every surface shows them.
 OFFER_CHOICES = (
-    ("Share with Nous", True, True),
+    ("Share with Neural Studio", True, True),
     ("No thanks", False, False),
 )
 _NO_THANKS = len(OFFER_CHOICES) - 1

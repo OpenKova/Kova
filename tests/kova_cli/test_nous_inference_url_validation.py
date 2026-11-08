@@ -1,4 +1,4 @@
-"""Regression tests for Nous Portal inference_base_url host-allowlist validation.
+"""Regression tests for Neural Studio Portal inference_base_url host-allowlist validation.
 
 A poisoned ``inference_base_url`` from a Portal refresh response (network
 MITM, malicious response injection) would otherwise be persisted to

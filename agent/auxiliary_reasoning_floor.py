@@ -4,7 +4,7 @@ Aux lanes that want speed over thought (title generation: ``max_tokens=64``, JSO
 provider's thinking-off encoding — top-level ``reasoning_effort: "none"`` on the custom profile,
 ``extra_body.reasoning: {"enabled": false}`` on OpenRouter-shaped relays, ``_reasoning_config`` on the
 Anthropic Messages adapters. Some endpoints understand the field but refuse the disable ("Reasoning is
-mandatory for this endpoint and cannot be disabled" — the Nous Portal on gpt-6-astra); before this
+mandatory for this endpoint and cannot be disabled" — the Neural Studio Portal on gpt-6-astra); before this
 module every title call there 400'd and the session stayed untitled.
 
 The recovery is a *step up*, not a strip: the same request goes out again at the lowest effort every
@@ -83,7 +83,7 @@ _NOUS_PROVIDERS = {"nous", "nous-portal", "nousresearch"}
 
 
 def _catalog_marks_mandatory(provider: Optional[str], base_url: Optional[str], model: Optional[str]) -> bool:
-    """True when the route's ``/v1/models`` catalog (OpenRouter, Nous Portal) flags *model*
+    """True when the route's ``/v1/models`` catalog (OpenRouter, Neural Studio Portal) flags *model*
     ``reasoning.mandatory``. Cache-only — memory, then the disk mirror — so it never blocks; a cold
     catalog is warmed in the background, and the mirror it writes answers every later call and process.
     Without this an aux-only OpenRouter route (nothing else warms that catalog) paid the 400 in every

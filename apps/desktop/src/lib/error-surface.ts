@@ -103,7 +103,7 @@ export interface ErrorSurface {
    *  the fix is signing in again (expired/revoked grant); `api_key` means a
    *  key needs replacing. Absent from older backends. */
   authKind?: 'api_key' | 'oauth'
-  /** Auth layer only: display name of the failing provider ("Nous Portal"). */
+  /** Auth layer only: display name of the failing provider ("Neural Studio Portal"). */
   providerLabel?: string
   /** Auth layer, api_key only: the env var holding the rejected key
    *  (OPENAI_API_KEY). Deep-links Settings → Keys to that row. Absent from

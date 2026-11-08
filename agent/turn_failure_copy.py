@@ -111,7 +111,7 @@ def failed_turn_notice(turn_messages: Any) -> str:
 
 
 def provider_label_for(provider: Any) -> str:
-    """Human-friendly provider name for chat copy (``"OpenRouter"``, ``"Nous Portal"``…)."""
+    """Human-friendly provider name for chat copy (``"OpenRouter"``, ``"Neural Studio Portal"``…)."""
     from kova_cli.models import provider_label
 
     return provider_label(str(provider or ""))

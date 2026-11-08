@@ -490,7 +490,7 @@ class TestManagedPortalRouting:
 
         monkeypatch.setattr(image_tool, "_read_configured_image_provider", lambda: "nous")
         monkeypatch.setattr(image_tool, "_read_configured_image_model", lambda: "openai/gpt-5.4-image-2")
-        fake_provider = MagicMock(display_name="Nous Portal")
+        fake_provider = MagicMock(display_name="Neural Studio Portal")
         fake_provider.generate.return_value = {"success": True, "image": "/tmp/x.png"}
         self._fake_registry(monkeypatch, fake_provider)
 

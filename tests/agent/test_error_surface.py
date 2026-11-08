@@ -57,7 +57,7 @@ def test_auth_surface_names_oauth_vs_api_key_recovery():
     carries the kind + display label so the client never guesses from the slug."""
     oauth = build_error_surface_from_result(_failed_result("auth"), provider="nous")
     assert oauth["auth_kind"] == "oauth"
-    assert oauth["provider_label"] == "Nous Portal"
+    assert oauth["provider_label"] == "Neural Studio Portal"
 
     key = build_error_surface_from_result(_failed_result("auth"), provider="openrouter")
     assert key["auth_kind"] == "api_key"

@@ -462,7 +462,7 @@ export function BootFailureOverlay() {
       {
         key: 'discord',
         label: copy.cloudDownDiscord,
-        onClick: () => openExternalLink('https://discord.gg/NousResearch'),
+        onClick: () => openExternalLink('https://discord.gg/NeuralStudio'),
         variant: 'ghost'
       },
       { ...settingsAction, variant: 'ghost' }

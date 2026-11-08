@@ -1018,7 +1018,7 @@ DEFAULT_CONFIG = {
         # leaves disconnected sessions ``ended_at IS NULL`` forever — phantom "active" rows in /resume and
         # dashboards. See #65194.
         "startup_orphan_sweep": True,
-        # OAuth gate (engaged when --host is set and --insecure is not), read by the Nous Portal
+        # OAuth gate (engaged when --host is set and --insecure is not), read by the Neural Studio Portal
         # plugin. Env KOVA_DASHBOARD_OAUTH_CLIENT_ID / KOVA_DASHBOARD_PORTAL_URL win when
         # non-empty. Empty client_id = no provider; empty portal_url = production.
         "oauth": {
@@ -1805,7 +1805,7 @@ DEFAULT_CONFIG = {
         # provider falls back to the built-in so cron never loses its trigger.
         "provider": "",
         # Chronos settings; consulted only when provider == "chronos". All non-secret — the agent
-        # holds NO scheduler credentials (provision reuses the Nous Portal token).
+        # holds NO scheduler credentials (provision reuses the Neural Studio Portal token).
         "chronos": {
             # NAS/portal base URL that arms/cancels one-shots and mints the inbound fire JWT (used
             # as the expected issuer).
@@ -2017,7 +2017,7 @@ DEFAULT_CONFIG = {
         "max_size_mb": 5,      # max size per log file before rotation
         "backup_count": 3,     # rotated backups to keep
     },
-    # Remote model-catalog manifest: curated OpenRouter / Nous Portal model lists fetched from this
+    # Remote model-catalog manifest: curated OpenRouter / Neural Studio Portal model lists fetched from this
     # URL (falls back to the in-repo snapshot on network failure), so picker lists update without a
     # release. Default URL is served by the docs-site GitHub Pages deploy.
     "model_catalog": {
@@ -2669,7 +2669,7 @@ DEFAULT_CONFIG = {
         # Portal upstream serving the model is one where native is known clean. Native is the
         # better wire but on the OpenRouter-served path it re-writes the previous turn's cache on
         # 14-20% of consecutive calls in concurrent tool loops (measured 2026-09-06;
-        # NousResearch/api#227), so chat is the default until that is fixed.
+        # NeuralStudio/api#227), so chat is the default until that is fixed.
         "anthropic_wire": "chat",
         # Nous free tier: with no other provider configured, Kova sets up a free Nous identity on
         # first use (inference on nous/welcome + connectors) and offers `/login` (terminal:
@@ -2713,7 +2713,7 @@ from kova_cli.config_defaults_env import OptionalEnvVars, _base_url, _env, _msg,
 # tools=[...] lists the model tools the key unlocks. Provider entries: config_provider_env (on first read).
 OPTIONAL_ENV_VARS = OptionalEnvVars({
     # ── Provider (handled in provider selection, not shown in checklists) ──
-    "NOUS_BASE_URL": _base_url("Nous Portal"),
+    "NOUS_BASE_URL": _base_url("Neural Studio Portal"),
     "KOVA_ANON_API_SECRET": _env(
         "Shared secret for the Nous free-tier sign-up endpoints while they are in their gated "
         "integration phase (not needed once the gate is removed)",

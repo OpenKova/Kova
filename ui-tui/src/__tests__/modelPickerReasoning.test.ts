@@ -7,7 +7,7 @@ import { applyLocale, messages, resetLocale } from '../i18n/runtime.js'
 
 const provider = (capabilities?: ModelOptionProvider['capabilities']): ModelOptionProvider => ({
   capabilities,
-  name: 'Nous Portal',
+  name: 'Neural Studio Portal',
   slug: 'nous'
 })
 

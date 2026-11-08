@@ -119,7 +119,7 @@ Multiple credentials per provider form a pool that rotates automatically and ski
 kova desktop / gui        Native desktop app
 kova dashboard            Web admin panel + embedded chat (--stop / --status)
 kova proxy                OpenAI-compatible local proxy backed by an OAuth provider
-kova portal               Quick setup / sign in via Nous Portal
+kova portal               Quick setup / sign in via Neural Studio Portal
 kova kanban <verb>        Multi-agent work-queue board
 kova project              Named multi-folder workspaces (see references/projects-and-folders.md)
 kova skin list|use|set    Switch/tweak skins (see references/themes.md)

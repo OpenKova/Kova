@@ -187,7 +187,7 @@ _ai_gateway_catalog_cache: list[tuple[str, str]] | None = None
 
 
 # ---------------------------------------------------------------------------
-# Nous Portal free-model helpers — the Portal models endpoint is the source of truth for what is
+# Neural Studio Portal free-model helpers — the Portal models endpoint is the source of truth for what is
 # offered (free or paid); we surface it as-is, no local allowlist filtering.
 # ---------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ def get_cached_nous_free_tier() -> Optional[bool]:
 
 
 def check_nous_free_tier(*, force_fresh: bool = False, cached_only: bool = False) -> bool:
-    """True only when the Nous Portal user is KNOWN to be free-tier (unknown/error → False so this
+    """True only when the Neural Studio Portal user is KNOWN to be free-tier (unknown/error → False so this
     never blocks users). Cached ``_FREE_TIER_CACHE_TTL`` seconds so an upgrade shows within minutes.
     ``cached_only`` returns the live cached answer or the fail-open ``False`` without contacting Portal."""
     now = time.monotonic()
@@ -341,7 +341,7 @@ def check_nous_free_tier(*, force_fresh: bool = False, cached_only: bool = False
 
 
 # ---------------------------------------------------------------------------
-# Nous Portal recommended models — curated paid/free suggestions plus dedicated compaction (aux)
+# Neural Studio Portal recommended models — curated paid/free suggestions plus dedicated compaction (aux)
 # and vision picks, TTL-cached per process. Fields read: {paid,free}RecommendedModels:
 # [{modelName}], {paid,free}Recommended{Compaction,Vision}Model: {modelName} | null
 # ---------------------------------------------------------------------------
@@ -600,7 +600,7 @@ def _openrouter_model_is_free(pricing: Any) -> bool:
 
 def _openrouter_model_supports_tools(item: Any) -> bool:
     """True when ``supported_parameters`` advertises ``tools`` (kova-agent is tool-calling-first).
-    Permissive when the field is absent/malformed: some OpenRouter-compatible gateways (Nous Portal,
+    Permissive when the field is absent/malformed: some OpenRouter-compatible gateways (Neural Studio Portal,
     private mirrors) don't populate it, and the picker must not silently empty for them.
 
     Ported from Kilo-Org/kilocode#9068.
@@ -609,7 +609,7 @@ def _openrouter_model_supports_tools(item: Any) -> bool:
     return "tools" in params if isinstance(params, list) else True
 
 
-# Reasoning-capability cache slots, one set per catalog (OpenRouter, Nous Portal). The logic
+# Reasoning-capability cache slots, one set per catalog (OpenRouter, Neural Studio Portal). The logic
 # lives in models_reasoning_caps and reads/writes these by name so tests can reset them here.
 # ``*_cache``: model id → parsed caps for the process lifetime; ``*_failed_at``: monotonic time
 # of the last failed fetch (60s re-fetch suppression); the flags are once-per-process guards.
@@ -726,7 +726,7 @@ def model_ids(*, force_refresh: bool = False) -> list[str]:
 
 
 def get_curated_nous_model_ids() -> list[str]:
-    """Curated Nous Portal model ids: the remote catalog manifest, else the in-repo
+    """Curated Neural Studio Portal model ids: the remote catalog manifest, else the in-repo
     ``_PROVIDER_MODELS["nous"]`` snapshot. Always a list."""
     try:
         from kova_cli.model_catalog import get_curated_nous_models

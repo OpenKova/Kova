@@ -62,7 +62,7 @@ export const esBoot = {
       cloudDownDescription:
         'El agente en la nube administrado por Nous al que se conecta este gateway devuelve un error de servidor. No se puede reiniciar desde aquí: revisa su estado, cambia al gateway local o pide ayuda.',
       cloudDownHint:
-        'Los botones de abajo abren el Nous Portal (estado y controles de la instancia) y nuestro Discord para obtener ayuda.',
+        'Los botones de abajo abren el Neural Studio Portal (estado y controles de la instancia) y nuestro Discord para obtener ayuda.',
       cloudDownCheckPortal: 'Ver el estado en el Portal',
       cloudDownDiscord: 'Pedir ayuda en Discord',
       hideRecentLogs: 'Ocultar registros recientes',

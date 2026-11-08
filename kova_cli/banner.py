@@ -187,13 +187,13 @@ def _compute_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]
     return {"upstream": upstream, "local": local, "ahead": max(ahead, 0)}
 
 
-_RELEASE_URL_BASE = "https://github.com/NousResearch/kova-agent/releases/tag"
+_RELEASE_URL_BASE = "https://github.com/NeuralStudio/kova-agent/releases/tag"
 
 
 def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
     """Return ``(tag, release_url)`` for the latest local git tag, or None (a miss is cached too).
 
-    Release URL always points at the canonical NousResearch/kova-agent repo (forks get no link).
+    Release URL always points at the canonical NeuralStudio/kova-agent repo (forks get no link).
     """
     def _compute():
         rd = repo_dir or _resolve_repo_dir()
@@ -607,7 +607,7 @@ def _banner_left_lines(model: str, cwd: str, session_id, context_length, provide
     marker = context_marker or ("pinned" if context_pinned else "")
     pin = f" ({marker})" if marker else ""
     ctx_str = _dim_sep(f"{_format_context_length(context_length)} context{pin}") if context_length else ""
-    nous_str = _dim_sep("Nous Research")
+    nous_str = _dim_sep("Neural Studio")
     if (provider or "").strip().lower() == "moa":
         # MoA virtual provider: ``model`` is a preset name; show it with its aggregator.
         agg_label = _quiet(lambda: _moa_aggregator_label(model), "")

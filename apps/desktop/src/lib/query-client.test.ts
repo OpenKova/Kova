@@ -62,7 +62,7 @@ const warm: ModelOptionsResult = {
   providers: [
     {
       models: ['example/model-a', 'example/model-free:free'],
-      name: 'Nous Portal',
+      name: 'Neural Studio Portal',
       slug: 'nous',
       unavailable_models: [],
       usage_levels: { 'example/model-a': 'top_tier', 'example/model-free:free': 'free' }
@@ -75,7 +75,7 @@ const pending: ModelOptionsResult = {
     {
       free_tier_pending: true,
       models: ['example/model-a', 'example/model-free:free'],
-      name: 'Nous Portal',
+      name: 'Neural Studio Portal',
       slug: 'nous',
       unavailable_models: ['example/model-a', 'example/model-free:free']
     }

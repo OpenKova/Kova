@@ -84,7 +84,7 @@ def build_catalog() -> dict:
             },
             "nous": {
                 "metadata": {
-                    "display_name": "Nous Portal",
+                    "display_name": "Neural Studio Portal",
                     "note": (
                         'The entry labeled "default": true is the model Kova '
                         "silently lands on when the user never picked one."

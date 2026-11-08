@@ -1774,7 +1774,7 @@ def anthropic_prompt_cache_policy(
     from agent.anthropic_endpoints import _model_name_is_kimi_family
     is_kimi = _model_name_is_kimi_family(eff_model) or "moonshot" in model_lower
     is_openrouter = base_url_host_matches(eff_base_url, "openrouter.ai")
-    # Nous Portal proxies to OpenRouter; treat as OpenRouter-equivalent for cache layout.
+    # Neural Studio Portal proxies to OpenRouter; treat as OpenRouter-equivalent for cache layout.
     is_nous_portal = base_url_host_matches(eff_base_url, "nousresearch.com")
     is_anthropic_wire = eff_api_mode == "anthropic_messages"
     is_native_anthropic = is_anthropic_wire and (
@@ -1820,7 +1820,7 @@ def anthropic_prompt_cache_policy(
     # anthropic_messages branch (inner-block markers) or it serves 0% cache hits.
     if (is_openrouter or is_nous_portal) and (is_claude or is_kimi) and not is_anthropic_wire:
         return True, False
-    # Nous Portal Qwen takes the envelope path too; the alibaba-family check below only matches
+    # Neural Studio Portal Qwen takes the envelope path too; the alibaba-family check below only matches
     # provider=opencode/alibaba and would leave Portal traffic uncached.
     if is_nous_portal and "qwen" in model_lower:
         return True, False
@@ -2115,7 +2115,7 @@ def _resolve_switch_destination(agent, new_model, new_provider, base_url, api_mo
     from kova_cli.providers import determine_api_mode, is_actual_route
     from agent.native_compaction import resolve_native_compaction_capabilities
     from kova_cli.models import opencode_provider_family
-    # Pass model so dual-wire providers (Nous Portal anthropic/* -> Messages) resolve correctly.
+    # Pass model so dual-wire providers (Neural Studio Portal anthropic/* -> Messages) resolve correctly.
     if not api_mode:
         api_mode = determine_api_mode(new_provider, base_url, model=new_model)
     if not base_url and new_norm == "openai":

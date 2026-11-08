@@ -920,7 +920,7 @@ def _no_auth_provider_message(host: str) -> str:
         "    (hash with: python -c \"from "
         "plugins.dashboard_auth.basic import hash_password; "
         "print(hash_password('your-password'))\")\n"
-        "  • OAuth: run `kova dashboard register` (Nous Portal) or "
+        "  • OAuth: run `kova dashboard register` (Neural Studio Portal) or "
         "install a DashboardAuthProvider plugin.\n"
         "  • Deployment token: provision KOVA_DASHBOARD_SESSION_TOKEN "
         "(a literal token, or 'file:<path>' naming a secret-manager-decrypted "

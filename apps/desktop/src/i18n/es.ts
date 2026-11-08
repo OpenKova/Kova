@@ -528,7 +528,7 @@ export const esOverrides = {
     handoffLead: 'Continúa la conversación en:',
     links: {
       github: 'Issues de GitHub',
-      portal: 'Soporte de Nous Portal',
+      portal: 'Soporte de Neural Studio Portal',
       discord: 'Discord'
     }
   },
@@ -3002,8 +3002,8 @@ export const esOverrides = {
       qrAlt: (platform: string) => `Código QR del bot compartido de ${platform}`,
       managed: 'Gestionado por Team Gateway',
       managedNote: (platform: string) => `Team Gateway gestiona la mensajería en esta instancia, así que el gateway desactiva la conexión directa de ${platform} en cada inicio. Para usarla junto al relay, define GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true en el entorno del gateway (una conexión directa impide que la instancia escale a cero y puede entregar mensajes dos veces).`,
-      managedIntro: 'Las cuentas de este agente se vinculan desde Nous Portal.',
-      openPortal: 'Vincular cuentas en Nous Portal',
+      managedIntro: 'Las cuentas de este agente se vinculan desde Neural Studio Portal.',
+      openPortal: 'Vincular cuentas en Neural Studio Portal',
       noNewAccount: (platform: string) => `El código ya no está activo y no apareció ninguna cuenta nueva. Si tu cuenta de ${platform} no aparece, obtén un código nuevo e inténtalo otra vez.`
     },
     telegramQr: {

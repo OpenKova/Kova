@@ -303,13 +303,13 @@ TOOL_CATEGORIES = {
         # picks the gateway at run time (tools/image_generation_managed.py).
         "providers": [
             _row("Nous Subscription", "subscription",
-                 "Managed image generation (FAL, Krea 3 and Krea 2, Nous Portal models) billed to your subscription", **_NOUS,
+                 "Managed image generation (FAL, Krea 3 and Krea 2, Neural Studio Portal models) billed to your subscription", **_NOUS,
                  managed_nous_feature="image_gen", override_env_vars=["FAL_KEY"], imagegen_backend="nous"),
         ],
     },
     "video_gen": {
         "name": "Video Generation", "icon": "🎬",
-        # Mirrors image_gen: managed FAL video billed via the Nous Portal. Plugin-backed rows (FAL BYOK, xAI, …)
+        # Mirrors image_gen: managed FAL video billed via the Neural Studio Portal. Plugin-backed rows (FAL BYOK, xAI, …)
         # are injected at runtime by ``_plugin_video_gen_providers()`` in ``_visible_providers``. Picking this row
         # sets video_gen.provider = "fal" + use_gateway so the FAL plugin routes through the managed queue gateway.
         "providers": [

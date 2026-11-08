@@ -178,7 +178,7 @@ export const zhOverrides = {
       cloudDownTitle: 'Nous Cloud 代理已宕机',
       cloudDownDescription:
         '此网关连接的 Nous 托管云代理正在返回服务器错误。无法在此处重启——请检查其状态、切换到本地网关或获取支持。',
-      cloudDownHint: '使用下方按钮打开 Nous Portal（查看实例状态与操作）或加入 Discord 获取支持。',
+      cloudDownHint: '使用下方按钮打开 Neural Studio Portal（查看实例状态与操作）或加入 Discord 获取支持。',
       cloudDownCheckPortal: '查看 Portal 状态',
       cloudDownDiscord: '在 Discord 获取帮助',
       hideRecentLogs: '隐藏最近日志',
@@ -304,7 +304,7 @@ export const zhOverrides = {
     handoffLead: '在以下位置继续讨论:',
     links: {
       github: 'GitHub Issues',
-      portal: 'Nous Portal 支持',
+      portal: 'Neural Studio Portal 支持',
       discord: 'Discord'
     }
   },
@@ -1927,13 +1927,13 @@ export const zhOverrides = {
       activeBackend: '当前后端',
       activeBackendHint: '这是你当前使用的后端',
       useBackend: '使用此后端',
-      nousIncluded: '包含在 Nous 订阅中；登录 Nous Portal 即可激活。',
-      nousAuthNeededTitle: '登录 Nous Portal',
-      nousAuthNeededMessage: provider => `已保存 ${provider}，但在登录 Nous Portal 之前不会激活。`,
+      nousIncluded: '包含在 Nous 订阅中；登录 Neural Studio Portal 即可激活。',
+      nousAuthNeededTitle: '登录 Neural Studio Portal',
+      nousAuthNeededMessage: provider => `已保存 ${provider}，但在登录 Neural Studio Portal 之前不会激活。`,
       nousAuthSignIn: '登录',
-      nousAuthDoneTitle: '已连接 Nous Portal',
+      nousAuthDoneTitle: '已连接 Neural Studio Portal',
       nousAuthDoneMessage: '订阅后端现已激活。',
-      nousAuthFailed: 'Nous Portal 登录未完成',
+      nousAuthFailed: 'Neural Studio Portal 登录未完成',
       noApiKeyRequired: '不需要 API 密钥。',
       postSetupHint: step => `此后端需要一次性安装 (${step})。将在此机器上执行，可能需要几分钟。`,
       postSetupInstalledHint: '已安装。仅在出现问题时才需要重新运行安装。',
@@ -2539,8 +2539,8 @@ export const zhOverrides = {
       qrAlt: (platform: string) => `共享 ${platform} 机器人的二维码`,
       managed: '由 Team Gateway 管理',
       managedNote: (platform: string) => `此实例的消息由 Team Gateway 承载，因此网关每次启动都会关闭 ${platform} 的直连。若要与中继同时使用，请在网关环境中设置 GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true（直连会使实例无法缩容到零，并可能重复投递消息）。`,
-      managedIntro: '此代理的账号在 Nous Portal 中关联。',
-      openPortal: '在 Nous Portal 中关联账号',
+      managedIntro: '此代理的账号在 Neural Studio Portal 中关联。',
+      openPortal: '在 Neural Studio Portal 中关联账号',
       noNewAccount: (platform: string) => `该代码已失效，且没有出现新账号。如果你的 ${platform} 账号不在列表中，请获取新代码后重试。`
     },
     telegramQr: {

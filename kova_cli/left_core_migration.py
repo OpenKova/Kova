@@ -201,7 +201,7 @@ def _core_platforms_except(platform: str, *others: str) -> tuple[str, ...]:
 # platform's default composite carried them. A third-party plugin platform core never knew stays uncovered.
 _YUANBAO_OFF_PLATFORMS = _core_platforms_except("yuanbao", "homeassistant")
 
-_YUANBAO_NOTICE = ("Yuanbao is now a Kova Labs plugin: built by Nous Research, not supported, and likely not "
+_YUANBAO_NOTICE = ("Yuanbao is now a Kova Labs plugin: built by Neural Studio, not supported, and likely not "
                    "maintained going forward. Fixes from the community are welcome.")
 
 

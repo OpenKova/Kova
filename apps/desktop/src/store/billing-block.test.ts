@@ -47,7 +47,7 @@ test('clearBillingBlock with no arg clears any active block', () => {
 })
 
 test('runBillingRecovery routes Nous to in-app Settings, never an external link', () => {
-  runBillingRecovery(makeBlock({ is_nous: true, provider: 'nous', provider_label: 'Nous Portal' }))
+  runBillingRecovery(makeBlock({ is_nous: true, provider: 'nous', provider_label: 'Neural Studio Portal' }))
   expect($billingSettingsRequest.get()).toBe(1)
   expect(openExternalLink).not.toHaveBeenCalled()
 })

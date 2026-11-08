@@ -84,7 +84,7 @@ _ROUTE_RULES = (
 
 def anthropic_thinking_route(base_url: Any, model: Any) -> str:
     """Which thinking-replay contract an Anthropic Messages request follows: ``kimi`` (replay as-is),
-    ``deepseek`` (unsigned only), ``native`` (Anthropic-signed blocks: the direct API, Nous Portal,
+    ``deepseek`` (unsigned only), ``native`` (Anthropic-signed blocks: the direct API, Neural Studio Portal,
     Bedrock, Vertex AI, Azure AI Foundry), ``minimax`` (its own signed blocks, returned unchanged on
     every turn as its docs require) or ``third_party`` (an unknown relay that cannot verify Anthropic
     signatures: strip all). The converter, accounting and signature-rejection state share this."""

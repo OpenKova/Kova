@@ -663,7 +663,7 @@ def _run_full_setup(config: dict, kova_home, *, is_existing: bool, imported_from
 
 # First-time mode picker: (menu label, setup_quick runner name) — None falls through to Full Setup.
 _FIRST_TIME_MODES = (
-    ("Quick Setup (Nous Portal) — free OAuth login, no API keys, model + tools (recommended)",
+    ("Quick Setup (Neural Studio Portal) — free OAuth login, no API keys, model + tools (recommended)",
      "_run_first_time_quick_setup"),
     ("Full setup — configure every provider, tool & option yourself (bring your own keys)", None),
     ("Blank Slate — everything off except the bare minimum; opt in to each capability", "_run_blank_slate_setup"),
@@ -696,7 +696,7 @@ def _run_setup_wizard_impl(args):
     if getattr(args, 'non_interactive', False) or not is_interactive_stdin():
         print_noninteractive_setup_guidance("Running in a non-interactive environment (no TTY detected).")
         return
-    if getattr(args, "portal", False):  # one-shot Nous Portal setup; skips the rest
+    if getattr(args, "portal", False):  # one-shot Neural Studio Portal setup; skips the rest
         _run_portal_one_shot(config)
         return
     section = getattr(args, "section", None)

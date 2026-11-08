@@ -510,7 +510,7 @@ def _merge_nous_portal_messages_extra_body(agent, anthropic_kwargs: dict, api_me
             anthropic_kwargs.setdefault("extra_body", {}).update(nous_profile.build_extra_body(
                 session_id=getattr(agent, "session_id", None), data_use=data_use_requirement(api_messages)))
     except Exception as exc:
-        logger.debug("Nous Portal extra_body merge failed: %s", exc)
+        logger.debug("Neural Studio Portal extra_body merge failed: %s", exc)
     return anthropic_kwargs
 
 
@@ -2930,7 +2930,7 @@ class _StreamingCall(StreamingWaitMonitor):
             body = _provider_error_body(
                 {"code": _err_type or "provider_in_stream_error", "message": str(_err_msg or chunk)}, _status)
             raise ProviderStreamError(status_code=_status, body=body, raw_text=f"{_err_type}: {_err_msg}")
-        # Nous Portal usage frames (choices=[] + lastOne=true, no [DONE]) are a
+        # Neural Studio Portal usage frames (choices=[] + lastOne=true, no [DONE]) are a
         # clean terminal, not a drop; relabelled upstreams send 1 / "true".
         # See #90848.
         last_one = getattr(chunk, "lastOne", None)

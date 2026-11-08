@@ -67,7 +67,7 @@ def is_nous_inference_route(provider: str, base_url: str) -> bool:
 
 
 def _nous_billing_url() -> Optional[str]:
-    """Best-effort Nous portal billing URL (text-surface fallback; Nous prefers the in-app flow)."""
+    """Best-effort Neural Studio Portal billing URL (text-surface fallback; Nous prefers the in-app flow)."""
     try:
         from kova_cli.nous_account import nous_portal_billing_url
         return nous_portal_billing_url(None)
@@ -91,6 +91,6 @@ def build_billing_block(*, provider: str, base_url: str, model: str, message: st
     slug = (provider or "").strip().lower()
     model = (model or "").strip()
     if is_nous_inference_route(slug, base_url):
-        return BillingBlock(slug or "nous", "Nous Portal", model, _nous_billing_url(), True, message or "")
+        return BillingBlock(slug or "nous", "Neural Studio Portal", model, _nous_billing_url(), True, message or "")
     label, url = _resolve_provider_link(slug, base_url)
     return BillingBlock(slug, label, model, url, False, message or "")

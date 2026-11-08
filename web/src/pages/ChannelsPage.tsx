@@ -16,15 +16,15 @@ import {
   X,
 } from "lucide-react";
 import * as QRCode from "qrcode";
-import { Badge } from "@nous-research/ui/ui/components/badge";
-import { Button } from "@nous-research/ui/ui/components/button";
-import { Card, CardContent } from "@nous-research/ui/ui/components/card";
-import { Input } from "@nous-research/ui/ui/components/input";
-import { Label } from "@nous-research/ui/ui/components/label";
-import { Spinner } from "@nous-research/ui/ui/components/spinner";
-import { Switch } from "@nous-research/ui/ui/components/switch";
-import { Toast } from "@nous-research/ui/ui/components/toast";
-import { useToast } from "@nous-research/ui/hooks/use-toast";
+import { Badge } from "@neural-studio/ui/ui/components/badge";
+import { Button } from "@neural-studio/ui/ui/components/button";
+import { Card, CardContent } from "@neural-studio/ui/ui/components/card";
+import { Input } from "@neural-studio/ui/ui/components/input";
+import { Label } from "@neural-studio/ui/ui/components/label";
+import { Spinner } from "@neural-studio/ui/ui/components/spinner";
+import { Switch } from "@neural-studio/ui/ui/components/switch";
+import { Toast } from "@neural-studio/ui/ui/components/toast";
+import { useToast } from "@neural-studio/ui/hooks/use-toast";
 import { api } from "@/lib/api";
 import type {
   MessagingPlatform,

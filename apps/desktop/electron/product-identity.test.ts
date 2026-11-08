@@ -290,9 +290,9 @@ test('nonstable builds cannot claim the official Store package', async (): Promi
 test('store carries the Partner Center MSIX identity and no other variant does', async (): Promise<void> => {
   const store: ProductIdentity = await identityForVariant('store')
   assert.deepEqual(store.storeMsix, {
-    identityName: 'NousResearchInc.KovaAgent',
+    identityName: 'NeuralStudioInc.KovaAgent',
     publisher: 'CN=EE6D86E4-606F-4E38-B940-AD7248C9D519',
-    publisherDisplayName: 'Nous Research Inc.'
+    publisherDisplayName: 'Neural Studio'
   })
 
   for (const v of [undefined, 'bundled', 'light'] as const) {
