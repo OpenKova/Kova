@@ -136,10 +136,10 @@ def held_for_newer_hermes(result: CheckResult) -> Optional[str]:
     such an update, so listings name it as waiting on a Kova update instead of offering it."""
     if not result.min_hermes:
         return None
-    from kova_cli.plugins_manifest import requires_hermes_error, running_hermes_version
-    if not requires_hermes_error({"requires_hermes": result.min_hermes}):
+    from kova_cli.plugins_manifest import requires_kova_error, running_kova_version
+    if not requires_kova_error({"requires_hermes": result.min_hermes}):
         return None
-    return f"needs Kova {result.min_hermes}; this is {running_hermes_version()}"
+    return f"needs Kova {result.min_hermes}; this is {running_kova_version()}"
 
 
 def check_provenanced(

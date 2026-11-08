@@ -143,7 +143,7 @@ def _tick_admitted(
                 # load_config()). Still run the post-tick MCP orphan sweep: main intentionally sweeps on
                 # idle ticks so orphaned stdio children from crashed jobs are reaped even when nothing is
                 # due.
-                _sched.logger.info("%s - No jobs due", _sched._hermes_now().strftime('%H:%M:%S'))
+                _sched.logger.info("%s - No jobs due", _sched._kova_now().strftime('%H:%M:%S'))
             store_health.recheck_idle()
             _sched._sweep_mcp_orphans()
             return 0
@@ -155,7 +155,7 @@ def _tick_admitted(
             return 0
 
         if verbose:
-            _sched.logger.info("%s - %s job(s) due", _sched._hermes_now().strftime('%H:%M:%S'), len(due_jobs))
+            _sched.logger.info("%s - %s job(s) due", _sched._kova_now().strftime('%H:%M:%S'), len(due_jobs))
 
         # Advance next_run_at for recurring jobs FIRST, under the lock, before any execution
         # (at-most-once). Re-advancing running jobs keeps the grace window alive; mark_job_run

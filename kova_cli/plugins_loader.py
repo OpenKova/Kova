@@ -253,9 +253,9 @@ def hermes_fit_error(manifest: Any) -> Optional[str]:
     requirement on ``kova-agent``. PM's build leaves such a plugin out by the same gate
     (``pm.workspace.kova_fit_error``), so it is skipped here rather than imported without its
     dependencies, and loads again once Kova fits."""
-    from kova_cli.plugins_manifest import requires_hermes_error
+    from kova_cli.plugins_manifest import requires_kova_error
 
-    reason = requires_hermes_error(manifest)
+    reason = requires_kova_error(manifest)
     path = getattr(manifest, "path", None)
     if reason or not path or not Path(path).is_dir():
         return reason

@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 from agent.proxy_bypass import is_loopback_host
 from kova_cli.route_identity import normalize_route_base_url
 from kova_cli.urllib_security import open_credentialed_url
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 from kova_cli.models_catalog_static import (
     CuratedFallbackModels,
     CANONICAL_PROVIDERS,
@@ -2341,9 +2341,9 @@ def probe_api_models(
             return _probe_result(
                 None, normalized.rstrip("/") + "/models", normalized,
                 alternate_base if alternate_base != normalized else None)
-    headers: dict[str, str] = {"User-Agent": hermes_user_agent()}
+    headers: dict[str, str] = {"User-Agent": kova_user_agent()}
     if urllib.parse.urlparse(normalized).hostname == "generativelanguage.googleapis.com":
-        headers["X-Goog-Api-Client"] = hermes_user_agent("kova-agent")
+        headers["X-Goog-Api-Client"] = kova_user_agent("kova-agent")
     if api_key and api_mode == "anthropic_messages":
         headers["x-api-key"] = api_key
         headers["anthropic-version"] = "2023-06-01"
@@ -2443,7 +2443,7 @@ def _fetch_deepinfra_catalog(
         if last_fail is not None and (time.monotonic() - last_fail) < _DEEPINFRA_CATALOG_NEG_TTL:
             return None
 
-    headers: dict[str, str] = {"User-Agent": hermes_user_agent()}
+    headers: dict[str, str] = {"User-Agent": kova_user_agent()}
     api_key = _deepinfra_env("DEEPINFRA_API_KEY")
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -2518,7 +2518,7 @@ def _fetch_ai_gateway_models(timeout: float = 5.0) -> Optional[list[str]]:
         from kova_constants import AI_GATEWAY_BASE_URL
         base_url = AI_GATEWAY_BASE_URL
 
-    headers = {"Authorization": f"Bearer {api_key}", "User-Agent": hermes_user_agent()}
+    headers = {"Authorization": f"Bearer {api_key}", "User-Agent": kova_user_agent()}
     try:
         url = base_url.rstrip("/") + "/models"
         data = _get_json(url, timeout=timeout, headers=headers)

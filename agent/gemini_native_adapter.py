@@ -26,11 +26,11 @@ from agent.gemini_schema import prepare_gemini_tool_parameters, sanitize_gemini_
 
 logger = logging.getLogger(__name__)
 
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 
 
 def _api_client() -> str:
-    return hermes_user_agent("kova-agent")  # client context per Gemini's partner-integration guidance
+    return kova_user_agent("kova-agent")  # client context per Gemini's partner-integration guidance
 
 DEFAULT_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 # A Vertex AI express-mode base, when the user configures one explicitly: aiplatform serves the

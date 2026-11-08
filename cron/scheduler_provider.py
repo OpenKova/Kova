@@ -318,12 +318,12 @@ def fire_overdue_jobs(
         return 0
 
     from cron.jobs import (
-        ONESHOT_GRACE_SECONDS, _elapsed_seconds, _ensure_aware, _hermes_now,
+        ONESHOT_GRACE_SECONDS, _elapsed_seconds, _ensure_aware, _kova_now,
         is_job_runnable, load_jobs,
     )
 
     if now is None:
-        now = _hermes_now()
+        now = _kova_now()
 
     fired = 0
     for job in load_jobs():

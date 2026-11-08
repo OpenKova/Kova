@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
 from kova_constants import get_kova_home
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 
 # Optional test override. Production resolves the path at transaction time so multiplexed profile
 # ticks (set_kova_home_override) cannot leak one profile's notepad rows into the import-time home
@@ -80,7 +80,7 @@ def set_note(job_id: str, key: str, value: str) -> dict[str, Any]:
     """Upsert one key. Raises ValueError when a size cap would be exceeded."""
     job_id, key, value = str(job_id), str(key), str(value)
     _validate(job_id, key, value)
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         row = conn.execute(
             """SELECT COALESCE(SUM(LENGTH(CAST(key AS BLOB))

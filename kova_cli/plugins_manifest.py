@@ -35,7 +35,7 @@ _KNOWN_MANIFEST_FIELDS: set[str] = {
     "pip_dependencies", "provides_browser_providers", "provides_web_providers",
     "manifest_version", "api_version", "requires_plugins", "python_dependencies", "config_schema",
     "license", "homepage", "tags", "capabilities", "emits", "listens", "hermes", "depends",
-    "requires_hermes", "python_runtime", "provides_locales", "requires_auth", "oauth", "config_keys",
+    "requires_kova", "requires_hermes", "python_runtime", "provides_locales", "requires_auth", "oauth", "config_keys",
 }
 
 # Highest manifest schema version this Kova understands.
@@ -379,8 +379,16 @@ class PluginManifest:
     # for a flat plugin, ``image_gen/openai`` for a category plugin. Empty -> name.
     key: str = ""
     # Kova version requirement (``">=0.19"``, comma-separated clauses allowed). Unsatisfied plugins are
-    # recorded with an error and skipped before import — see ``requires_hermes_error``.
-    requires_hermes: str = ""
+    # recorded with an error and skipped before import — see ``requires_kova_error``.
+    requires_kova: str = ""
+
+    @property
+    def requires_hermes(self) -> str:  # legacy field alias
+        return self.requires_kova
+
+    @requires_hermes.setter
+    def requires_hermes(self, value: str) -> None:
+        self.requires_kova = value
     portable: bool = False
     # ``plugin-data/<data_namespace>`` for a portable plugin; its skills are named after the plugin
     # itself (``<name>:<skill>``), like every native plugin's.
@@ -454,16 +462,19 @@ def parse_provides_locales(raw: Any, key: str = "") -> tuple[list[str], dict[str
     return ids, metadata
 
 
-# ── requires_hermes version gate ─────────────────────────────────────────────
+# ── requires_kova version gate ─────────────────────────────────────────────
 _VERSION_COMPARATOR_RE = re.compile(r"^\s*(>=|<=|==|!=|>|<)\s*(.+?)\s*$")
 
 
-def running_hermes_version() -> str:
+def running_kova_version() -> str:
     """Base release version of the Kova code that is running."""
     from kova_cli.version_info import get_version_info
 
     return get_version_info().base_version
 
+
+
+running_hermes_version = running_kova_version  # legacy alias
 
 _VERSION_SEGMENT_RE = re.compile(r"^\d+")
 
@@ -499,16 +510,19 @@ def version_satisfies(spec: str, current: str) -> bool:
     return True
 
 
-def requires_hermes_error(manifest: PluginManifest | Mapping[str, Any]) -> Optional[str]:
+def requires_kova_error(manifest: PluginManifest | Mapping[str, Any]) -> Optional[str]:
     """Load-blocking reason when the manifest's ``requires_hermes`` rejects the running version."""
-    spec = manifest.get("requires_hermes", "") if isinstance(manifest, Mapping) else manifest.requires_hermes
+    spec = (manifest.get("requires_kova") or manifest.get("requires_hermes", "")) if isinstance(manifest, Mapping) else manifest.requires_kova
     if not spec:
         return None
-    current = running_hermes_version()
+    current = running_kova_version()
     if version_satisfies(spec, current):
         return None
-    return f"requires hermes {spec}, running {current}"
+    return f"requires kova {spec}, running {current}"
 
+
+
+requires_hermes_error = requires_kova_error  # legacy alias
 
 def portable_plugin_manifest(child: Path, source: str, prefix: str) -> PluginManifest:
     """Build the manifest for a portable Agent Plugin directory (``plugin.json``); diagnostics warn."""
@@ -575,7 +589,7 @@ def parse_manifest_file(
             # ``hooks:`` is the spelling the bundled manifests carried for months; external copies of it
             # must keep declaring the same thing (#108371).
             provides_hooks=data.get("provides_hooks", data.get("hooks", [])), source=source, path=str(plugin_dir),
-            kind=kind, key=key, requires_hermes=str(data.get("requires_hermes") or "").strip(),
+            kind=kind, key=key, requires_kova=str(data.get("requires_kova") or data.get("requires_hermes") or "").strip(),
             capabilities=_parse_declared_capabilities(data.get("capabilities"), name),
             **_parse_manifest_v2_fields(data, key), emits=data.get("emits") or [],
             listens=data.get("listens") or [],

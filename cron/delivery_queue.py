@@ -23,7 +23,7 @@ from agent.deadline import poll_until
 from agent.redact import redact_sensitive_text
 from cron.executions import _owner_is_live, _process_start_time
 from kova_constants import get_kova_home
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ def enqueue(
                 json.dumps(job, ensure_ascii=False, sort_keys=True),
                 str(content),
                 int(bool(for_failure)),
-                _hermes_now().isoformat(),
+                _kova_now().isoformat(),
             ),
         )
         row = conn.execute(
@@ -268,7 +268,7 @@ def _finish(execution_id: str, *, error: Optional[str], suppressed: bool = False
                  AND owner_process_id=? AND owner_pid=?""",
             (
                 status,
-                _hermes_now().isoformat(),
+                _kova_now().isoformat(),
                 safe_error,
                 execution_id,
                 _PROCESS_ID,
@@ -309,7 +309,7 @@ def recover_abandoned() -> int:
                 """UPDATE deliveries SET status='unknown', finished_at=?, error=?
                    WHERE execution_id=? AND status='delivering'""",
                 (
-                    _hermes_now().isoformat(),
+                    _kova_now().isoformat(),
                     error,
                     row["execution_id"],
                 ),
@@ -366,7 +366,7 @@ def _terminalize_wait_timeout(execution_id: str) -> str:
     a message the drain will still send.  Only a row caught mid-send is
     uncertain and gets fenced ``unknown``.
     """
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     uncertain_error = (
         "timed out while gateway delivery was in progress; outcome is unknown and "
         "was not retried"

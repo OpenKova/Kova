@@ -936,9 +936,9 @@ def cron_resume(args) -> int:
         return 1
     if not run_at and not run_now:
         return _job_action("resume", args.job_id, "Resumed")
-    from cron.jobs import AmbiguousJobReference, _hermes_now, rearm_oneshot
+    from cron.jobs import AmbiguousJobReference, _kova_now, rearm_oneshot
     try:
-        job = rearm_oneshot(args.job_id, _hermes_now().isoformat() if run_now else run_at)
+        job = rearm_oneshot(args.job_id, _kova_now().isoformat() if run_now else run_at)
     except (AmbiguousJobReference, ValueError) as exc:
         print(color(f"Failed to re-arm job: {exc}", Colors.RED))
         return 1

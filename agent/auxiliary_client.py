@@ -938,12 +938,12 @@ def build_nvidia_nim_headers(base_url: str | None) -> dict:
 
 
 # Vercel AI Gateway attribution (HTTP-Referer → referrerUrl, X-Title → appName).
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 
 
 def _ai_gateway_headers() -> dict[str, str]:
     return {"HTTP-Referer": "https://kova-agent.nousresearch.com", "X-Title": "Kova Agent",
-            "User-Agent": hermes_user_agent("KovaAgent")}
+            "User-Agent": kova_user_agent("KovaAgent")}
 
 # Neural Studio Portal attribution tags, built per call. They come from agent.portal_tags so the client=
 # marker tracks the canonical base version — never inline a literal here.

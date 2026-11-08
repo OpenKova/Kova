@@ -43,7 +43,7 @@ from urllib.parse import urlparse
 import httpx
 
 from agent.web_search_provider import WebSearchProvider
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def _headers() -> dict[str, str]:
     return {
         "HTTP-Referer": "https://kova-agent.nousresearch.com",
         "X-Title": "Kova Agent",
-        "User-Agent": hermes_user_agent("KovaAgent"),
+        "User-Agent": kova_user_agent("KovaAgent"),
         "X-Pplx-Integration": "kova-agent",
     }
 

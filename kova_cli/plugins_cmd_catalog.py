@@ -293,15 +293,15 @@ def _refuse_unsupported_catalog_platform(entry: PluginCatalogEntry) -> None:
         )
 
 
-def catalog_hermes_error(entry: PluginCatalogEntry) -> Optional[str]:
+def catalog_kova_error(entry: PluginCatalogEntry) -> Optional[str]:
     """``<name> needs Kova <spec>; this is <version>.`` when the entry's ``requires_hermes`` rejects the
     running Kova, else ``None``. The verdict IS the plugin.yaml gate's
-    (:func:`~kova_cli.plugins_manifest.requires_hermes_error`): same version source, same comparison, so
+    (:func:`~kova_cli.plugins_manifest.requires_kova_error`): same version source, same comparison, so
     a dev checkout or canary build is judged the same by both, and an unknown version never blocks."""
-    from kova_cli.plugins_manifest import requires_hermes_error, running_hermes_version
-    if not requires_hermes_error({"requires_hermes": entry.requires_hermes}):
+    from kova_cli.plugins_manifest import requires_kova_error, running_kova_version
+    if not requires_kova_error({"requires_hermes": entry.requires_hermes}):
         return None
-    return f"{entry.name} needs Kova {entry.requires_hermes}; this is {running_hermes_version()}."
+    return f"{entry.name} needs Kova {entry.requires_hermes}; this is {running_kova_version()}."
 
 
 def refuse_incompatible_catalog_entry(entry: PluginCatalogEntry) -> None:
@@ -310,7 +310,7 @@ def refuse_incompatible_catalog_entry(entry: PluginCatalogEntry) -> None:
     from kova_cli.config import recommended_update_command
     from kova_cli.plugins_cmd import PluginOperationError
     _refuse_unsupported_catalog_platform(entry)
-    reason = catalog_hermes_error(entry)
+    reason = catalog_kova_error(entry)
     if reason:
         raise PluginOperationError(f"{reason} Update Kova (`{recommended_update_command()}`) and install again.",
                                    failure_class="incompatible")
@@ -668,7 +668,7 @@ def repin_catalog_plugin(
     refuse_if_installed_removed(catalog_name, target)
     if at_catalog_pin(sidecar, entry.sha):
         return RepinResult(entry.sha, False, target.name, [])
-    held = catalog_hermes_error(entry)
+    held = catalog_kova_error(entry)
     if held:
         # The pin moved past what this Kova can run: keep the installed tree, name the way forward.
         from kova_cli.config import recommended_update_command
@@ -813,7 +813,7 @@ def _render_entries(entries: list[PluginCatalogEntry], console) -> None:
     for e in sorted(entries, key=lambda e: (e.category, rank.get(e.tier, len(rank)), e.name)):
         tier = f"[{style.get(e.tier, 'magenta')}]{e.tier}[/{style.get(e.tier, 'magenta')}]"
         desc = e.description if len(e.description) <= 60 else e.description[:57] + "..."
-        name = e.name + (f"\n[yellow]needs Kova {e.requires_hermes}[/yellow]" if catalog_hermes_error(e) else "")
+        name = e.name + (f"\n[yellow]needs Kova {e.requires_kova}[/yellow]" if catalog_kova_error(e) else "")
         table.add_row(name, e.category, tier, desc, pin_label(e), _capability_counts(e))
     console.print()
     console.print(table)
@@ -827,7 +827,7 @@ def cmd_search(term: str = "", *, json_output: bool = False) -> None:
     matches = filter_entries(load_catalog_live(), term)
     if json_output:
         print(json.dumps({"query": term, "results": [
-            {**e.to_dict(), "needs_newer_hermes": catalog_hermes_error(e)} for e in matches]}, indent=2))
+            {**e.to_dict(), "needs_newer_hermes": catalog_kova_error(e)} for e in matches]}, indent=2))
         return
     console = _console()
     if not matches:
@@ -868,7 +868,7 @@ def cmd_info(name: str) -> None:
         console.print(f"[red bold]✗ REMOVED from catalog: {removed.reason or 'no reason recorded'}"
                       f"{f' ({removed.date})' if removed.date else ''}[/red bold]")
         console.print()
-    held = catalog_hermes_error(entry)
+    held = catalog_kova_error(entry)
     if held:
         from kova_cli.config import recommended_update_command
         console.print(f"[yellow]⚠ {held} Update Kova (`{recommended_update_command()}`) to install it.[/yellow]")

@@ -7,7 +7,7 @@ chat_completions reasoning translations (GLM-5.2, Kimi K2, DeepSeek, Ox Alpha).
 from typing import Any
 
 from agent import reasoning_effort as re_
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 from providers import register_provider
 from providers.base import LazyHeaders, ProviderProfile
 from datetime import UTC
@@ -17,7 +17,7 @@ from datetime import UTC
 _ATTRIBUTION_HEADERS = {
     "HTTP-Referer": "https://kova-agent.nousresearch.com",
     "X-Title": "Kova Agent",
-    "User-Agent": lambda: hermes_user_agent("KovaAgent"),
+    "User-Agent": lambda: kova_user_agent("KovaAgent"),
 }
 
 

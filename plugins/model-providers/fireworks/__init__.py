@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 from providers import register_provider
 from providers.base import LazyHeaders, ProviderProfile
 
@@ -36,7 +36,7 @@ fireworks = FireworksProfile(
     default_headers=LazyHeaders({
         "HTTP-Referer": "https://kova-agent.nousresearch.com",
         "X-Title": "Kova Agent",
-        "User-Agent": lambda: hermes_user_agent("KovaAgent"),
+        "User-Agent": lambda: kova_user_agent("KovaAgent"),
     }),
     default_aux_model="accounts/fireworks/models/glm-5p2",
     # Picker safety net when the live catalog fetch fails.

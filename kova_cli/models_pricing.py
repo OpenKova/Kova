@@ -239,7 +239,7 @@ def fetch_models_with_pricing(
     ``pricing.original`` rates through as a nested ``original`` dict for sale chrome."""
     from kova_cli.chat_catalog import catalog_item_is_generation
     from kova_cli.models import _openrouter_model_supports_tools
-    from kova_cli.version_info import hermes_user_agent
+    from kova_cli.version_info import kova_user_agent
     url_root = (base_url or "").rstrip("/")
     cache_key = url_root + _pricing_auth_fingerprint(api_key)
     if not force_refresh:
@@ -248,7 +248,7 @@ def fetch_models_with_pricing(
             return cached
 
     url = url_root + "/v1/models"
-    headers = {"Accept": "application/json", "User-Agent": hermes_user_agent()}
+    headers = {"Accept": "application/json", "User-Agent": kova_user_agent()}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     payload = _get_json(url, headers, timeout)
@@ -465,7 +465,7 @@ def _fetch_kilocode_pricing(timeout: float = 8.0, *, force_refresh: bool = False
     The gateway's ``-1`` rate sentinel means "varies" (auto-router models); no price is shown
     rather than a fabricated one, so such rows are skipped.
     """
-    from kova_cli.version_info import hermes_user_agent
+    from kova_cli.version_info import kova_user_agent
 
     cache_key = _kilo_pricing_scope()
     if not cache_key:
@@ -475,7 +475,7 @@ def _fetch_kilocode_pricing(timeout: float = 8.0, *, force_refresh: bool = False
         if cached is not None:
             return cached
 
-    headers = {"Accept": "application/json", "User-Agent": hermes_user_agent()}
+    headers = {"Accept": "application/json", "User-Agent": kova_user_agent()}
     api_key = os.getenv("KILOCODE_API_KEY", "").strip()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -691,7 +691,7 @@ def _fireworks_pricing_from_models_dev(*, force_refresh: bool = False) -> dict[s
 def _fetch_novita_pricing(timeout: float = 8.0, *, force_refresh: bool = False) -> dict[str, dict[str, str]]:
     """NovitaAI /v1/models pricing (per-million prices in units of 0.0001 USD → per-token strings),
     cached on the resolved base URL so menu renders don't re-hit the network."""
-    from kova_cli.version_info import hermes_user_agent
+    from kova_cli.version_info import kova_user_agent
     api_key = os.getenv("NOVITA_API_KEY", "").strip()
     if not api_key:
         return {}
@@ -702,7 +702,7 @@ def _fetch_novita_pricing(timeout: float = 8.0, *, force_refresh: bool = False) 
         if cached is not None:
             return cached
 
-    headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": hermes_user_agent()}
+    headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": kova_user_agent()}
     payload = _get_json(cache_key + "/models", headers, timeout)
     if payload is None:
         return _cache_catalog(cache_key, {})

@@ -18,7 +18,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from kova_cli.version_info import hermes_user_agent
+from kova_cli.version_info import kova_user_agent
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -125,7 +125,7 @@ def _cache_path() -> Path:
 def _fetch_manifest(url: str, timeout: float) -> dict[str, Any] | None:
     """HTTP GET the manifest URL and return a validated dict, or None on failure."""
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": hermes_user_agent()})
+        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": kova_user_agent()})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode())
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:

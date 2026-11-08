@@ -45,7 +45,7 @@ from kova_cli.config import (
     load_config, load_config_readonly)
 from kova_cli.config_backend import ConfigBackendUnavailable
 from kova_cli.fallback_config import get_fallback_chain, scoped_fallback_chain
-from kova_time import now as _hermes_now, safe_strftime
+from kova_time import now as _kova_now, safe_strftime
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
     enter_non_dispatcher_owned_context, exit_non_dispatcher_owned_context)
@@ -350,7 +350,7 @@ def _repeat_alert_withheld(incident: dict) -> bool:
         last = _ensure_aware(datetime.fromisoformat(str(alerted_at)))
     except (TypeError, ValueError):
         return False
-    return _elapsed_seconds(_hermes_now(), last) < hours * 3600
+    return _elapsed_seconds(_kova_now(), last) < hours * 3600
 
 
 def _upsert_incident_for_failure(
@@ -943,7 +943,7 @@ def _record_forced_release(job_id: str, name: str, age_seconds: float, allowance
         "name": name,
         "age_seconds": round(age_seconds, 1),
         "allowance_seconds": round(allowance_seconds, 1),
-        "at": _hermes_now().isoformat()}
+        "at": _kova_now().isoformat()}
     with _running_lock:
         _forced_releases.append(entry)
         del _forced_releases[:-_FORCED_RELEASE_HISTORY]
@@ -1529,7 +1529,7 @@ def _run_no_agent_job(
         logger.exception("Job '%s': script execution raised unexpectedly", job_id)
         ok, output = False, f"Script execution failed: {exc}"
 
-    now_iso = _hermes_now().strftime("%Y-%m-%d %H:%M:%S")
+    now_iso = _kova_now().strftime("%Y-%m-%d %H:%M:%S")
     header = _job_doc_header(job_name, job_id, now_iso, "no_agent (script)")
 
     if not ok:
@@ -1566,7 +1566,7 @@ def _apply_monitor_gate(
     if not job_has_monitor(job):
         return None, extra_prompt, None
     _mon = check_monitor(job)
-    _mon_now = _hermes_now().strftime("%Y-%m-%d %H:%M:%S")
+    _mon_now = _kova_now().strftime("%Y-%m-%d %H:%M:%S")
     header = _job_doc_header(job_name, job_id, _mon_now, "monitor")
     if not _mon.ok:
         # Source failure is an ERROR, never a change: alert so a broken monitor can't silently
@@ -1725,7 +1725,7 @@ def _blocked_config_result(job_id: str, job_name: str, _pf_reason: str) -> tuple
     blocked_doc = (
         f"# Cron Job: {job_name}\n\n"
         f"**Job ID:** {job_id}\n"
-        f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"**Run Time:** {_kova_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         f"**Status:** BLOCKED (configuration)\n\n"
         "The pre-run configuration check found a problem, so the agent did not run "
         "(nothing was charged).\n\n"
@@ -2145,7 +2145,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
         # Title the cron session from the job (name -> id) and PERSIST it BEFORE end_session()/close() tear
         # the connection down, so the close can never run over an in-flight title write (#50536).
         _title_base = " ".join(job_name.split())[:60].strip() or f"cron {job_id}"
-        _cron_title = f"{_title_base} · {safe_strftime(_hermes_now(), '%b %d %H:%M')}"
+        _cron_title = f"{_title_base} · {safe_strftime(_kova_now(), '%b %d %H:%M')}"
         if not _set_cron_session_title(_session_db, _final_cron_session_id, _cron_title):
             _set_cron_session_title(_session_db, _final_cron_session_id, f"cron {job_id}")
     except (Exception, KeyboardInterrupt) as e:
@@ -2221,7 +2221,7 @@ def _run_doc_header(job: dict, title: str, job_id: str, prompt: str, *, prompt_s
     return (
         f"# Cron Job: {title}\n\n"
         f"**Job ID:** {job_id}\n"
-        f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"**Run Time:** {_kova_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         f"**Schedule:** {job.get('schedule_display', 'N/A')}\n\n"
         f"{prompt_stamp}{_PROMPT_HEADING}{prompt}{_PROMPT_SEPARATOR}"
     )
@@ -2284,7 +2284,7 @@ def _prepare_job_prompt(
             silent_doc = (
                 f"# Cron Job: {job_name}\n\n"
                 f"**Job ID:** {job_id}\n"
-                f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                f"**Run Time:** {_kova_now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
                 "Script gate returned `wakeAgent=false` — agent skipped.\n"
             )
             return (True, silent_doc, SILENT_MARKER, None), None
@@ -2302,7 +2302,7 @@ def _prepare_job_prompt(
         blocked_doc = (
             f"# Cron Job: {job_name}\n\n"
             f"**Job ID:** {job_id}\n"
-            f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"**Run Time:** {_kova_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"**Status:** BLOCKED\n\n"
             "The assembled prompt (user prompt + loaded skill content) tripped "
             "the cron injection scanner and the agent was NOT run.\n\n"
@@ -2575,7 +2575,7 @@ def run_job(
     from run_agent import AIAgent
 
     _cron_session_id = (owner_execution[1] if owner_execution is not None else
-                        f"cron_{job_id}_{_hermes_now().strftime('%Y%m%d_%H%M%S')}")
+                        f"cron_{job_id}_{_kova_now().strftime('%Y%m%d_%H%M%S')}")
     logger.info("Running job '%s' (ID: %s)", job_name, job_id)
     logger.info("Prompt: %s", prompt[:100])
 

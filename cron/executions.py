@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
 from kova_constants import get_kova_home
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 from cron.constants import CLAIM_TTL_INACTIVITY_HEADROOM
 from kova_cli.observability.shared_metrics_gateway import record_cron_finish
 
@@ -207,7 +207,7 @@ def _live_owner_stale_after_seconds() -> Optional[float]:
 
 def _claim_age_seconds(claimed_at: str) -> float:
     """Seconds since ``claimed_at`` (NOT NULL, always the aware ISO string from kova_time.now)."""
-    return (_hermes_now() - datetime.fromisoformat(claimed_at)).total_seconds()
+    return (_kova_now() - datetime.fromisoformat(claimed_at)).total_seconds()
 
 
 def _stale_age_seconds(claimed_at: str, progress_at: Optional[str]) -> float:
@@ -223,7 +223,7 @@ def _stale_age_seconds(claimed_at: str, progress_at: Optional[str]) -> float:
 def touch_execution_progress(execution_id: str) -> bool:
     """Stamp ``progress_at`` on a running attempt this process owns. Returns False when the row
     is no longer ours or no longer running (the caller treats that as informational only)."""
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         cur = conn.execute(
             """UPDATE executions SET progress_at=?
@@ -251,7 +251,7 @@ def create_execution(
     """Persist a claimed attempt before executor/provider dispatch."""
     from cron.occurrences import scheduled_instant as canonical_instant
 
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     execution_id = uuid.uuid4().hex
     pid = os.getpid()
     with _transaction() as conn:
@@ -308,7 +308,7 @@ def adopt_claimed_execution(execution_id: str) -> Optional[dict[str, Any]]:
     """
     pid = os.getpid()
     process_started_at = _process_start_time(pid)
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         cur = conn.execute(
             """UPDATE executions
@@ -327,7 +327,7 @@ def adopt_claimed_execution(execution_id: str) -> Optional[dict[str, Any]]:
 
 def mark_execution_running(execution_id: str) -> Optional[dict[str, Any]]:
     """Transition one claimed attempt to running exactly once."""
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         cur = conn.execute(
             """UPDATE executions
@@ -353,7 +353,7 @@ def finish_execution(
     Only the owning process may finish its attempt; receipt recovery for a departed owner
     settles through ``recover_receipted_execution``.
     """
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     status = "cancelled" if cancelled else ("completed" if success else "failed")
     detail = None if success else (str(error) if error else "unknown failure")
     with _transaction() as conn:
@@ -385,7 +385,7 @@ def record_missed_occurrences(
 
     if count < 1:
         return None
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     execution_id = uuid.uuid4().hex
     pid = os.getpid()
     with _transaction() as conn:
@@ -409,7 +409,7 @@ def recover_receipted_execution(execution_id, job_id, *, success, error=None, de
     Terminal verdicts stay immutable. A live firer still owns its bookkeeping
     (``execution_owner_live``).
     """
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         row = _recoverable_row(conn, execution_id, job_id)
         if row is None or _row_owner_live(row):
@@ -490,7 +490,7 @@ def recover_interrupted_executions() -> int:
     """Mark abandoned attempts unknown without scheduling retries: rows whose owner is provably
     dead, plus rows whose live owner holds a claim older than the derived stale bound (the
     process is not killed)."""
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     changed = 0
     recovered: list[dict[str, Any]] = []
     # Derived on the first live-owned row only: the bound reads config, and the idle gateway
@@ -581,7 +581,7 @@ def terminalize_dead_owner(execution_id: str, *, reason: str) -> bool:
     this process, inside the handoff adoption grace, or owned by a live process: a
     worker that is still running must never be terminalized out from under itself.
     """
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         row = conn.execute(
             """SELECT id, status, process_id, pid, process_started_at,
@@ -622,7 +622,7 @@ def give_up_execution(execution_id: str, *, reason: str) -> bool:
     ``unknown`` now, owner-fenced to this process, instead of leaving it ``running`` until a
     restart's dead-owner sweep. Receipt recovery never acts for a same-process running row, so
     the owner's later terminal receipt can settle it only once it is marked given up."""
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         cur = conn.execute(
             """UPDATE executions SET status='unknown', finished_at=?, error=?,

@@ -28,7 +28,7 @@ def _today_for_prompt() -> str:
         # via kova_time.now(). The compaction summary is a mid-conversation message that is NOT part of
         # the cached prefix, so a date here never affects prompt-cache stability. Resolved defensively — a
         # clock failure must never block compaction.
-        from kova_time import now as _hermes_now
-        return _hermes_now().strftime("%Y-%m-%d")
+        from kova_time import now as _kova_now
+        return _kova_now().strftime("%Y-%m-%d")
     except Exception:  # pragma: no cover - clock resolution is best-effort
         return ""

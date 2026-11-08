@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from kova_constants import get_kova_home
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def _load_raw() -> dict[str, Any]:
 
 def _save_raw(suggestions: list[dict[str, Any]]) -> None:
     _ensure_dir()
-    payload = {"suggestions": suggestions, "updated_at": _hermes_now().isoformat()}
+    payload = {"suggestions": suggestions, "updated_at": _kova_now().isoformat()}
     atomic_json_write(_current_suggestions_file(), payload, mode=0o600)
 
 
@@ -122,7 +122,7 @@ def add_suggestion(
             "job_spec": job_spec,
             "dedup_key": dedup_key.strip(),
             "status": _STATUS_PENDING,
-            "created_at": _hermes_now().isoformat(),
+            "created_at": _kova_now().isoformat(),
         }
         suggestions.append(record)
         _save_raw(suggestions)
@@ -152,7 +152,7 @@ def _set_status(suggestion_id: str, status: str) -> bool:
         for s in suggestions:
             if s.get("id") == suggestion_id:
                 s["status"] = status
-                s["resolved_at"] = _hermes_now().isoformat()
+                s["resolved_at"] = _kova_now().isoformat()
                 _save_raw(suggestions)
                 return True
         return False

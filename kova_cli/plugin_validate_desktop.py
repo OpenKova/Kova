@@ -53,7 +53,7 @@ _FORBIDDEN: tuple[tuple[str, re.Pattern[str]], ...] = (
 # names, in shapes no refusal regex can tell from a plugin styling SDK components it rendered itself.
 _REVIEW: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("raw bridge window.kovaDesktop",
-     re.compile(r"\b(?:window|globalThis|self)\s*(?:\?\.|\.)\s*hermesDesktop\b")),
+     re.compile(r"\b(?:window|globalThis|self)\s*(?:\?\.|\.)\s*(?:kovaDesktop|hermesDesktop)\b")),
     ("app markup selector",
      re.compile(r"\[data-(?:slot|tour|sidebar|testid|tree-[\w-]+|pane-host|titlebar-cluster)\b")),
 )

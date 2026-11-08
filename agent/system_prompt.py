@@ -502,9 +502,9 @@ def _timestamp_line(agent: Any) -> str:
     """Date-only so the prompt is byte-stable for the day; zone + offset so
     tools needn't guess EST vs EDT. Long-lived sessions get an "as of" line on
     rebuild days (the cache prefix is already invalidated at that boundary)."""
-    from kova_time import get_timezone as _hermes_tz, now as _hermes_now, safe_strftime
-    now = _hermes_now()
-    _bits = _zone_bits(now, _hermes_tz())
+    from kova_time import get_timezone as _kova_tz, now as _kova_now, safe_strftime
+    now = _kova_now()
+    _bits = _zone_bits(now, _kova_tz())
     _zone_suffix = f" ({', '.join(_bits)})" if _bits else ""
     _start = _session_start_like(agent, now)
     timestamp_line = f"Conversation started: {safe_strftime(_start, '%A, %B %d, %Y')}{_zone_suffix}"

@@ -22,7 +22,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 from cron import executions as _executions
 from kova_constants import get_kova_home
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 
 # Optional test override (mirrors ``cron.executions.EXECUTIONS_FILE``).
 EXECUTIONS_FILE: Optional[Path] = None
@@ -166,7 +166,7 @@ def upsert_incident(
     sig = _error_signature(job_id, error)
     stored_error = _redact_error(error)
     incident_id = _incident_id(job_id, sig)
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     failure_type = failure_type or _classify_failure_type(error)
     output_file = str(output_file) if output_file is not None else None
 
@@ -204,7 +204,7 @@ def set_incident_state(incident_id: str, state: str) -> bool:
     cooldown reminder (see ``cron.scheduler._upsert_incident_for_failure``) restarts its window."""
     if state not in INCIDENT_STATES:
         return False
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         row = conn.execute(
             "SELECT state FROM cron_incidents WHERE id=?", (incident_id,)
@@ -247,7 +247,7 @@ def close_incidents_for_recovered_job(job_id: str) -> int:
     one install). ``resolved`` is distinct from the operator's ``closed`` on purpose: a repeat of the
     same error re-opens a resolved incident and alerts again (see ``upsert_incident``), whereas
     ``closed`` keeps that signature silent."""
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
     with _transaction() as conn:
         cursor = conn.execute(
             """UPDATE cron_incidents SET state='resolved', closed_at=?

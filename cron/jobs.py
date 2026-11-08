@@ -43,7 +43,7 @@ from typing import Optional, Dict, List, Any, Callable, Set, Tuple, Union, Colle
 
 logger = logging.getLogger(__name__)
 
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 from kova_time import get_timezone
 from kova_cli.observability.shared_metrics_gateway import record_cron_missed
 from utils import atomic_replace, atomic_write_text, fsync_directory, mkstemp_beside
@@ -825,7 +825,7 @@ def parse_schedule(schedule: str) -> dict[str, Any]:
             # never become due and recurring jobs fire at the wrong time. Using the configured zone makes
             # "20:07" mean 20:07 on the same clock the scheduler checks against (#51021).
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=_hermes_now().tzinfo)
+                dt = dt.replace(tzinfo=_kova_now().tzinfo)
             return {
                 "kind": "once",
                 "run_at": dt.isoformat(),
@@ -843,7 +843,7 @@ def parse_schedule(schedule: str) -> dict[str, Any]:
         except ValueError:
             raise ValueError(
                 f"Invalid duration '{duration_str}' after 'in '. Use e.g. 'in 30m', 'in 2h'.")
-        now = _hermes_now()
+        now = _kova_now()
         # Durations measure elapsed time, not wall-clock hours across a DST transition.
         run_at = (now.astimezone(UTC) + timedelta(minutes=minutes)).astimezone(now.tzinfo)
         return {"kind": "once", "run_at": run_at.isoformat(), "display": f"once in {duration_str}"}
@@ -868,7 +868,7 @@ def _ensure_aware(dt: datetime, target_tz: Optional[Any] = None) -> datetime:
     The due scan passes the JOB's pinned zone here: every downstream cron predicate compares wall
     clocks, so normalizing a pinned job's instant into the profile zone makes a due occurrence
     look still-in-the-future and the repair path re-anchors past it (job lost, never fired)."""
-    target_tz = target_tz or _hermes_now().tzinfo
+    target_tz = target_tz or _kova_now().tzinfo
     if dt.tzinfo is None:
         return dt.replace(tzinfo=datetime.now().astimezone().tzinfo).astimezone(target_tz)
     return dt.astimezone(target_tz)
@@ -1048,7 +1048,7 @@ def _schedule_cadence_seconds(schedule: dict[str, Any]) -> Optional[float]:
     if expr in _cron_cadence_cache:
         return _cron_cadence_cache[expr]
     try:
-        it = croniter(expr, _hermes_now())
+        it = croniter(expr, _kova_now())
         first = it.get_next(datetime)
         gap = (it.get_next(datetime) - first).total_seconds()
         result = gap if gap > 0 else None
@@ -1083,7 +1083,7 @@ def _record_persisted_error_recovery(job: dict[str, Any], previous_next_run: str
         "job_id": job.get("id"),
         "name": job.get("name") or job.get("id"),
         "previous_next_run_at": previous_next_run,
-        "rearmed_at": _hermes_now().isoformat(),
+        "rearmed_at": _kova_now().isoformat(),
     }
     _persisted_error_recoveries += 1
     _append_telemetry_record(
@@ -1173,7 +1173,7 @@ def _record_timezone_migration_catchup(
         "expr": (job.get("schedule") or {}).get("expr"),
         "stored_next_run_at": raw_next_run_dt.isoformat(),
         "normalized_next_run_at": next_run_dt.isoformat(),
-        "fired_at": _hermes_now().isoformat(),
+        "fired_at": _kova_now().isoformat(),
     }
     _timezone_migration_catchups += 1
     _append_telemetry_record(
@@ -1196,7 +1196,7 @@ def compute_next_run(
     *timezone* is the job's pinned IANA zone (a job record or a bare zone name); None inherits
     the profile's configured zone. Every caller that advances a job's ``next_run_at`` must pass
     it, or a pinned job is computed in the wrong zone and jumps a slot."""
-    now = _hermes_now()
+    now = _kova_now()
     if not isinstance(schedule, dict):
         return None
     kind = schedule.get("kind")
@@ -1559,7 +1559,7 @@ def _stage_jobs_payload(jobs_file: Path, jobs: list[dict[str, Any]]) -> str:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(
-                {"jobs": jobs, "updated_at": _hermes_now().isoformat()},
+                {"jobs": jobs, "updated_at": _kova_now().isoformat()},
                 f, indent=2, ensure_ascii=False)
             f.flush()
             os.fsync(f.fileno())
@@ -1864,7 +1864,7 @@ def create_job(
     if deliver is None:
         deliver = "origin" if origin else "local"
     job_id = uuid.uuid4().hex[:12]
-    now = _hermes_now().isoformat()
+    now = _kova_now().isoformat()
 
     raw = locals()
     f = {key: norm(raw[key]) for key, norm in _CREATE_FIELD_NORMALIZERS.items()}
@@ -2179,7 +2179,7 @@ def pause_job(job_id: str, reason: Optional[str] = None) -> Optional[dict[str, A
     return update_job(job["id"], {
         "enabled": False,
         "state": "paused",
-        "paused_at": _hermes_now().isoformat(),
+        "paused_at": _kova_now().isoformat(),
         "paused_reason": reason,
     })
 
@@ -2201,7 +2201,7 @@ def resume_job(job_id: str) -> Optional[dict[str, Any]]:
     if (
         job["schedule"].get("kind") in {"cron", "interval"}
         and stored_dt is not None
-        and _instant_at_or_before(stored_dt, _hermes_now())
+        and _instant_at_or_before(stored_dt, _kova_now())
     ):
         next_run_at = stored_next
         logger.info(
@@ -2236,7 +2236,7 @@ def trigger_job(job_id: str, extra_prompt: Optional[str] = None) -> Optional[dic
             f"Cannot run: job '{name}' is {job.get('state')} (terminal). "
             f"Create a new occurrence with 'kova cron resume {name} "
             "--run-now' or '--at <ISO-8601>'.")
-    manual_run_at = _hermes_now().isoformat()
+    manual_run_at = _kova_now().isoformat()
     return update_job(job["id"], {
         "enabled": True,
         "state": "scheduled",
@@ -2284,7 +2284,7 @@ def rearm_oneshot(job_id: str, run_at: Any) -> Optional[dict[str, Any]]:
         raise _oneshot_past_grace_error(parsed_schedule.get("run_at") or run_at)
 
     def apply(jobs, _i, job):
-        now = _hermes_now()
+        now = _kova_now()
         if _claim_is_live(job.get("run_claim"), now, _oneshot_run_claim_ttl_seconds()):
             raise ValueError("Cannot re-arm one-shot over a live run claim.")
         if _claim_is_live(job.get("fire_claim"), now, FIRE_CLAIM_TTL_SECONDS):
@@ -2383,7 +2383,7 @@ def note_fire_forward_failure(job_id: str, detail: str) -> bool:
     clears it."""
     def apply(jobs, _i, job):
         job["last_fire_error"] = {
-            "at": _hermes_now().isoformat(), "detail": str(detail or "")[:500]}
+            "at": _kova_now().isoformat(), "detail": str(detail or "")[:500]}
         save_jobs(jobs)
         return True
 
@@ -2527,7 +2527,7 @@ def mark_job_run(
                     "mark_job_run: job_id %s fire claim owner changed; discarding stale completion",
                     job_id)
                 return False
-        now = _hermes_now().isoformat()
+        now = _kova_now().isoformat()
         extra = extra_fire.is_extra(job)  # read before the outcome clears the claim
         held = extra_fire.held_markers(job) if extra else {}
         _record_run_outcome(job, success, error, delivery_error, status, now)
@@ -2626,7 +2626,7 @@ def _refresh_claim(jobs: list[dict[str, Any]], claim: Any, expected_owner: str) 
     """Compare-and-refresh a claim's ``at`` stamp; False unless *expected_owner* still holds it."""
     if not isinstance(claim, dict) or claim.get("by") != expected_owner:
         return False
-    claim["at"] = _hermes_now().isoformat()
+    claim["at"] = _kova_now().isoformat()
     save_jobs(jobs)
     return True
 
@@ -2678,7 +2678,7 @@ def advance_next_runs(job_ids) -> int:
         return 0
     with _jobs_lock():
         jobs = load_jobs()
-        now = _hermes_now().isoformat()
+        now = _kova_now().isoformat()
         advanced = 0
         for job in jobs:
             if (
@@ -2740,7 +2740,7 @@ def claim_job_for_fire(
         # (Trigger-now on a paused job) bypasses the gate and atomically resumes the job below.
         if not force and not is_job_runnable(job):
             return False
-        now = _hermes_now()
+        now = _kova_now()
         if _claim_is_live(job.get("fire_claim"), now, claim_ttl_seconds):
             return False  # someone holds a fresh claim
         from cron.occurrences import completed_occurrence, scheduled_instant
@@ -3269,7 +3269,7 @@ def _evaluate_due_job(job: dict[str, Any], scan: _DueScan, run_claim_ttl: float)
 def _get_due_jobs_locked() -> list[dict[str, Any]]:
     """Inner implementation of get_due_jobs(); must be called with _jobs_lock held."""
     raw_jobs = load_jobs()
-    scan = _DueScan(raw_jobs, _hermes_now())
+    scan = _DueScan(raw_jobs, _kova_now())
     scan.needs_save = _normalize_due_scan_records(raw_jobs)
     jobs = [_apply_skill_fields(j) for j in copy.deepcopy(raw_jobs)]
     # One-shot run-claim TTL, resolved once per scan (see _oneshot_run_claim_ttl_seconds).
@@ -3356,7 +3356,7 @@ def save_job_output(job_id: str, output: str):
     job_output_dir = _job_output_dir(job_id)
     _ensure_cron_dir(job_output_dir)
     _secure_dir(job_output_dir)
-    output_file = job_output_dir / f"{_hermes_now().strftime('%Y-%m-%d_%H-%M-%S')}.md"
+    output_file = job_output_dir / f"{_kova_now().strftime('%Y-%m-%d_%H-%M-%S')}.md"
     atomic_write_text(output_file, output, tmp_prefix=".output_", mode=0o600)
     _secure_file(output_file)
     # Bound per-job output growth so long-running deploys don't fill the disk (#52383).

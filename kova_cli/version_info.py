@@ -312,7 +312,7 @@ def get_version_info() -> VersionInfo:
     return info
 
 
-def hermes_user_agent(product: str = "hermes-cli") -> str:
+def kova_user_agent(product: str = "kova-cli") -> str:
     """``<product>/<base version>`` for an outbound request.
 
     Call it where the request is built, never at module level: a source checkout resolves the
@@ -320,6 +320,9 @@ def hermes_user_agent(product: str = "hermes-cli") -> str:
     it ever sent the request.
     """
     return f"{product}/{get_version_info().base_version}"
+
+
+hermes_user_agent = kova_user_agent  # legacy alias
 
 
 def get_code_identity(refresh: bool = False) -> dict:
