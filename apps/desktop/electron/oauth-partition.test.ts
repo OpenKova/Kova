@@ -5,7 +5,7 @@ import { LEGACY_OAUTH_PARTITION, resolveOauthPartition } from './oauth-partition
 // #92183 — two basic-auth (cookie-flow) gateways registered in the v2
 // connections registry must not share one cookie jar. Chromium cookie jars
 // ignore the port, so two gateways on the same VPN host (different ports)
-// evict each other's `hermes_session*` cookies when they ride the single
+// evict each other's `kova_session*` cookies when they ride the single
 // shared `persist:kova-remote-oauth` partition — and, worse, gateway A's
 // cookie is silently PRESENTED to gateway B on every request. The resolver
 // under test keys the jar on the registry connection's identity instead.

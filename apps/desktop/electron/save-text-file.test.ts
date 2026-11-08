@@ -46,7 +46,7 @@ describe('saveTextFileAs (Electron-side /save write)', () => {
     expect(result).toEqual({ saved: true, path: target })
     expect(fs.readFileSync(target, 'utf8')).toBe('# hello')
     // The renderer's suggestion never picks the directory.
-    expect(seen!.defaultPath).toBe(path.join(dir, 'hermes_session_x.md'))
+    expect(seen!.defaultPath).toBe(path.join(dir, 'kova_session_x.md'))
     expect(seen!.filters).toEqual([{ name: 'Markdown', extensions: ['md'] }])
   })
 

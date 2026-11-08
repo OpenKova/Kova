@@ -294,4 +294,4 @@ def render_session_for_save(session: dict[str, Any], fmt: str) -> str:
 def default_save_filename(session_id: str, fmt: str) -> str:
     """Default filename for a /save export of the given session."""
     safe_id = "".join(ch for ch in str(session_id) if ch.isalnum() or ch in ("-", "_")) or "session"
-    return f"hermes_session_{safe_id}.{fmt}"
+    return f"kova_session_{safe_id}.{fmt}"

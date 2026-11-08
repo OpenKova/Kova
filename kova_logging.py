@@ -268,7 +268,7 @@ def _install_session_record_factory() -> None:
     Idempotent via a marker attribute.
     """
     current_factory = logging.getLogRecordFactory()
-    if getattr(current_factory, "_hermes_session_injector", False):
+    if getattr(current_factory, "_kova_session_injector", False):
         return
 
     def _session_record_factory(*args, **kwargs):
@@ -283,7 +283,7 @@ def _install_session_record_factory() -> None:
         except Exception:
             record.kova_home = ""  # type: ignore[attr-defined]
         return record
-    _session_record_factory._hermes_session_injector = True  # type: ignore[attr-defined]
+    _session_record_factory._kova_session_injector = True  # type: ignore[attr-defined]
     logging.setLogRecordFactory(_session_record_factory)
 
 

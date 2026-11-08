@@ -492,7 +492,7 @@ def _export_flat(kind, args, collect):
     if sessions is not None:
         from kova_cli.session_export import default_save_filename
         name = (default_save_filename(sessions[0].get("id", ""), args.format) if len(sessions) == 1
-                else f"hermes_sessions.{args.format}")
+                else f"kova_sessions.{args.format}")
         args.output = _output_file_in_dir(args.output, name)
         _write_output(args.output, *render(args, sessions))
 

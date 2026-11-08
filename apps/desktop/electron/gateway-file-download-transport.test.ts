@@ -97,7 +97,7 @@ interface AuthCase {
 }
 
 const authCases: AuthCase[] = [
-  { name: 'token', options: {}, header: 'x-hermes-session-token', value: 'session-token' },
+  { name: 'token', options: {}, header: 'x-kova-session-token', value: 'session-token' },
   { name: 'bearer', options: { bearer: 'native-token' }, header: 'authorization', value: 'Bearer native-token' }
 ]
 
@@ -108,7 +108,7 @@ test.each(authCases)(
 
     const baseUrl: string = await serve((request: http.IncomingMessage, response: http.ServerResponse): void => {
       expect(request.headers[header]).toBe(value)
-      expect(request.headers[header === 'authorization' ? 'x-hermes-session-token' : 'authorization']).toBeUndefined()
+      expect(request.headers[header === 'authorization' ? 'x-kova-session-token' : 'authorization']).toBeUndefined()
       response.writeHead(200, { 'Content-Disposition': 'attachment; filename="server.bin"' })
       response.flushHeaders()
       responseReady.resolve(response)

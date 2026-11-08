@@ -171,7 +171,7 @@ def _verify_access_token(
 
 #: The header Kova Desktop's "Session token" connection presents its token in, and the provider
 #: that alone may verify it there: the deployment session token (``KOVA_DASHBOARD_SESSION_TOKEN``).
-_SESSION_TOKEN_HEADER = "x-hermes-session-token"
+_SESSION_TOKEN_HEADER = "x-kova-session-token"
 _SESSION_TOKEN_PROVIDER = "session-token"
 
 

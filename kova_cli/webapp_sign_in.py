@@ -2,7 +2,7 @@
 
 On the gateway's Webapp (``app.state.ui_surface == "webapp"``) with the sign-in gate engaged, every
 successful cookie login (a password login or an OAuth callback) also sets the cookie
-``hermes_webapp_signin_<gateway>``: the hex HMAC-SHA256 of ``"webapp-sign-in"`` keyed with the browser
+``kova_webapp_signin_<gateway>``: the hex HMAC-SHA256 of ``"webapp-sign-in"`` keyed with the browser
 session token the gateway serves (``web_server._SESSION_TOKEN``, kept in the gateway home by ``gateway.webapp_listener``). The gate treats
 a cookie session without a matching value as signed out. Replacing that token (``kova webapp
 --sign-out``, or the CLI replacing the stored token while no gateway runs) therefore signs every browser
@@ -61,7 +61,7 @@ _records: dict[Optional[Path], dict[str, int]] = {}
 
 
 def binding(token: str) -> str:
-    """The ``hermes_webapp_signin`` value for browser session token *token*."""
+    """The ``kova_webapp_signin`` value for browser session token *token*."""
     return hmac.new(token.encode(), _MESSAGE, hashlib.sha256).hexdigest()
 
 
@@ -171,7 +171,7 @@ def _home(request: Request) -> Optional[Path]:
 
 
 def cookie_gateway(request: Request) -> str:
-    """The suffix the gateway's Webapp gives every sign-in cookie it sets (``hermes_session_at_<it>``
+    """The suffix the gateway's Webapp gives every sign-in cookie it sets (``kova_session_at_<it>``
     and the rest, ``kova_cli.dashboard_auth.cookies``): cookies are not scoped to a port. ``""`` off
     the Webapp, where the standalone dashboard keeps main's names."""
     return _gateway(request) if getattr(request.app.state, "ui_surface", None) == "webapp" else ""

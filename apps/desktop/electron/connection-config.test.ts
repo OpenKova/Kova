@@ -1256,23 +1256,23 @@ test('resolveAuthMode: ignores unknown values, defaults to token', () => {
 // --- cookiesHaveSession ---
 
 test('cookiesHaveSession detects the bare access-token cookie', () => {
-  assert.equal(cookiesHaveSession([{ name: 'hermes_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: 'kova_session_at', value: 'x' }]), true)
 })
 
 test('cookiesHaveSession detects the __Host- and __Secure- prefixed variants', () => {
-  assert.equal(cookiesHaveSession([{ name: '__Host-hermes_session_at', value: 'x' }]), true)
-  assert.equal(cookiesHaveSession([{ name: '__Secure-hermes_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: '__Host-kova_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: '__Secure-kova_session_at', value: 'x' }]), true)
 })
 
 test('cookiesHaveSession is false for an empty value', () => {
-  assert.equal(cookiesHaveSession([{ name: 'hermes_session_at', value: '' }]), false)
+  assert.equal(cookiesHaveSession([{ name: 'kova_session_at', value: '' }]), false)
 })
 
 test('cookiesHaveSession ignores unrelated cookies (AT-only by design)', () => {
   // cookiesHaveSession is deliberately access-token-only — a lone RT cookie
   // is NOT an access token, so this returns false. Connectivity callers must
   // use cookiesHaveLiveSession instead (see below).
-  assert.equal(cookiesHaveSession([{ name: 'hermes_session_rt', value: 'x' }]), false)
+  assert.equal(cookiesHaveSession([{ name: 'kova_session_rt', value: 'x' }]), false)
   assert.equal(cookiesHaveSession([{ name: 'other', value: 'x' }]), false)
 })
 
@@ -1284,50 +1284,50 @@ test('cookiesHaveSession handles non-arrays', () => {
 
 test('a gateway Webapp signs in with cookies named for its gateway, and they count as a session', () => {
   // Cookies are not scoped to a port, so the gateway's Webapp names its login cookies
-  // hermes_session_at_<gateway> and hermes_session_rt_<gateway>; the dashboard keeps the bare names.
+  // kova_session_at_<gateway> and kova_session_rt_<gateway>; the dashboard keeps the bare names.
   const gateway = '0123456789abcdef'
-  assert.equal(cookiesHaveSession([{ name: `hermes_session_at_${gateway}`, value: 'x' }]), true)
-  assert.equal(cookiesHaveSession([{ name: `__Host-hermes_session_at_${gateway}`, value: 'x' }]), true)
-  assert.equal(cookiesHaveSession([{ name: `hermes_session_rt_${gateway}`, value: 'x' }]), false)
-  assert.equal(cookiesHaveLiveSession([{ name: `__Secure-hermes_session_rt_${gateway}`, value: 'x' }]), true)
-  assert.equal(cookiesHaveSession([{ name: 'hermes_session_at_other', value: 'x' }]), false)
-  assert.equal(cookiesHaveLiveSession([{ name: `hermes_webapp_signin_${gateway}`, value: 'x' }]), false)
+  assert.equal(cookiesHaveSession([{ name: `kova_session_at_${gateway}`, value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: `__Host-kova_session_at_${gateway}`, value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: `kova_session_rt_${gateway}`, value: 'x' }]), false)
+  assert.equal(cookiesHaveLiveSession([{ name: `__Secure-kova_session_rt_${gateway}`, value: 'x' }]), true)
+  assert.equal(cookiesHaveSession([{ name: 'kova_session_at_other', value: 'x' }]), false)
+  assert.equal(cookiesHaveLiveSession([{ name: `kova_webapp_signin_${gateway}`, value: 'x' }]), false)
 })
 
 // --- cookiesHaveLiveSession (AT or RT — the connectivity check) ---
 
 test('cookiesHaveLiveSession is true for a live access-token cookie', () => {
-  assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_at', value: 'x' }]), true)
-  assert.equal(cookiesHaveLiveSession([{ name: '__Host-hermes_session_at', value: 'x' }]), true)
-  assert.equal(cookiesHaveLiveSession([{ name: '__Secure-hermes_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: 'kova_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: '__Host-kova_session_at', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: '__Secure-kova_session_at', value: 'x' }]), true)
 })
 
 test('cookiesHaveLiveSession is true for an RT cookie even with NO access-token cookie', () => {
   // This is the bug-fix case: the AT cookie has lapsed (dropped from the jar)
   // but the 24h RT cookie is still alive. The session is still connectable —
   // the gateway rotates a fresh AT from the RT on the next request.
-  assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_rt', value: 'x' }]), true)
-  assert.equal(cookiesHaveLiveSession([{ name: '__Host-hermes_session_rt', value: 'x' }]), true)
-  assert.equal(cookiesHaveLiveSession([{ name: '__Secure-hermes_session_rt', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: 'kova_session_rt', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: '__Host-kova_session_rt', value: 'x' }]), true)
+  assert.equal(cookiesHaveLiveSession([{ name: '__Secure-kova_session_rt', value: 'x' }]), true)
 })
 
 test('cookiesHaveLiveSession is true when both AT and RT are present', () => {
   assert.equal(
     cookiesHaveLiveSession([
-      { name: 'hermes_session_at', value: 'a' },
-      { name: 'hermes_session_rt', value: 'r' }
+      { name: 'kova_session_at', value: 'a' },
+      { name: 'kova_session_rt', value: 'r' }
     ]),
     true
   )
 })
 
 test('cookiesHaveLiveSession is false for empty values', () => {
-  assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_at', value: '' }]), false)
-  assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_rt', value: '' }]), false)
+  assert.equal(cookiesHaveLiveSession([{ name: 'kova_session_at', value: '' }]), false)
+  assert.equal(cookiesHaveLiveSession([{ name: 'kova_session_rt', value: '' }]), false)
   assert.equal(
     cookiesHaveLiveSession([
-      { name: 'hermes_session_at', value: '' },
-      { name: 'hermes_session_rt', value: '' }
+      { name: 'kova_session_at', value: '' },
+      { name: 'kova_session_rt', value: '' }
     ]),
     false
   )

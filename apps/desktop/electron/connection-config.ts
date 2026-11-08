@@ -24,10 +24,10 @@
 // kova_cli/dashboard_auth/cookies.py.
 //
 // Two cookies are in play (see that module):
-//   - hermes_session_at: the OAuth access token. Short-lived (~15 min); its
+//   - kova_session_at: the OAuth access token. Short-lived (~15 min); its
 //     Max-Age tracks the access-token TTL, so the cookie jar drops it the
 //     instant the AT expires.
-//   - hermes_session_rt: the OAuth refresh token. Long-lived (24h rotating,
+//   - kova_session_rt: the OAuth refresh token. Long-lived (24h rotating,
 //     reuse-detected — Portal NAS #293 / kova #37247). When the AT cookie
 //     has lapsed but the RT cookie is still present, the gateway middleware
 //     transparently rotates a fresh AT on the next authenticated request
@@ -38,9 +38,9 @@ import { readStatusCode } from './api-transport'
 import { sharesHostBackend } from './host-backend-singleton'
 import { profileCollectionRoute, profileRouteSuffix } from './profile-routes'
 
-const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
-const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
-// A gateway's Webapp follows each name with its gateway (`hermes_session_at_<16 hex digits>`), since
+const AT_COOKIE_VARIANTS = ['__Host-kova_session_at', '__Secure-kova_session_at', 'kova_session_at']
+const RT_COOKIE_VARIANTS = ['__Host-kova_session_rt', '__Secure-kova_session_rt', 'kova_session_rt']
+// A gateway's Webapp follows each name with its gateway (`kova_session_at_<16 hex digits>`), since
 // cookies are not scoped to a port; the dashboard keeps the bare names.
 const GATEWAY_COOKIE_SUFFIX = /_[0-9a-f]{16}$/
 
@@ -350,7 +350,7 @@ const FORBIDDEN_REMOTE_HEADER_NAMES = new Set([
   'trailer',
   'transfer-encoding',
   'upgrade',
-  'x-hermes-session-token'
+  'x-kova-session-token'
 ])
 
 /**

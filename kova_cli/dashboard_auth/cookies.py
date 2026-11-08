@@ -1,16 +1,16 @@
 """Cookie helpers for dashboard auth.
 
-All HttpOnly, ``SameSite=Lax`` unless noted, Path = proxy prefix or /: ``hermes_session_at``
-(access token; Max-Age = token TTL), ``hermes_session_rt`` (rotating refresh token; written only
-when the provider returned one, always cleared on logout/expiry), ``hermes_session_provider``
-(non-secret routing hint so an RT is not handed to the wrong provider), ``hermes_session_pkce``
+All HttpOnly, ``SameSite=Lax`` unless noted, Path = proxy prefix or /: ``kova_session_at``
+(access token; Max-Age = token TTL), ``kova_session_rt`` (rotating refresh token; written only
+when the provider returned one, always cleared on logout/expiry), ``kova_session_provider``
+(non-secret routing hint so an RT is not handed to the wrong provider), ``kova_session_pkce``
 (PKCE state + CSRF nonce + provider hint, 10 min; ``SameSite=None; Secure`` over HTTPS because it
 is set on the /auth/login 302 and must survive the cross-site redirect chain — Chromium drops Lax
 cookies set on such a 302, crbug 40508226), ``hermes_sso_attempt`` (auto-SSO loop guard, 60 s),
-``hermes_webapp_signin`` (the gateway Webapp's sign-in binding, ``kova_cli.webapp_sign_in``; set only
+``kova_webapp_signin`` (the gateway Webapp's sign-in binding, ``kova_cli.webapp_sign_in``; set only
 by a login on the Webapp, Max-Age as the refresh token's).
 Cookies are not scoped to a port, so on the gateway's Webapp every one of these names is followed by
-``_<gateway>`` (``hermes_session_at_<gateway>``, ``<gateway>`` from a digest of the gateway's home,
+``_<gateway>`` (``kova_session_at_<gateway>``, ``<gateway>`` from a digest of the gateway's home,
 ``webapp_sign_in.cookie_gateway``): two gateways' Webapps on one hostname keep their own logins, and
 neither reads or clears the names the standalone dashboard uses.
 ``Secure`` only when ``request.url.scheme`` is https. Cookie-prefix hardening per
@@ -31,13 +31,13 @@ from urllib.parse import unquote
 from fastapi import Request
 from fastapi.responses import Response
 
-SESSION_AT_COOKIE = "hermes_session_at"
-SESSION_RT_COOKIE = "hermes_session_rt"
-SESSION_PROVIDER_COOKIE = "hermes_session_provider"
-PKCE_COOKIE = "hermes_session_pkce"
+SESSION_AT_COOKIE = "kova_session_at"
+SESSION_RT_COOKIE = "kova_session_rt"
+SESSION_PROVIDER_COOKIE = "kova_session_provider"
+PKCE_COOKIE = "kova_session_pkce"
 SSO_ATTEMPT_COOKIE = "hermes_sso_attempt"
 #: The Webapp's sign-in binding (``kova_cli.webapp_sign_in``); set beside the session cookies.
-WEBAPP_SIGNIN_COOKIE = "hermes_webapp_signin"
+WEBAPP_SIGNIN_COOKIE = "kova_webapp_signin"
 
 # Name variants a reader may have to try; most strict first.
 _NAME_VARIANTS = ("__Host-", "__Secure-", "")

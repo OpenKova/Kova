@@ -6843,7 +6843,7 @@ function safeFrameOrigin(frame: { origin?: string } | null | undefined): string 
 // Neural Studio) instead of a static session token. The auth model is
 // fundamentally different from the token path:
 //
-//   * REST is authed by HttpOnly session cookies (``hermes_session_at``),
+//   * REST is authed by HttpOnly session cookies (``kova_session_at``),
 //     established by a browser redirect round-trip (/login → IDP →
 //     /auth/callback sets cookies). We cannot read the HttpOnly cookie value
 //     in JS — instead we let an Electron BrowserWindow complete the round
@@ -6855,8 +6855,8 @@ function safeFrameOrigin(frame: { origin?: string } | null | undefined): string 
 //     path is unconditionally rejected by gated gateways.
 //   * Neural Studio Portal now issues a 24h ROTATING, reuse-detected refresh token
 //     alongside the ~15-min access token (Portal NAS #293 / kova #37247).
-//     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
-//     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
+//     Both are set as HttpOnly cookies (``kova_session_at`` ~15 min,
+//     ``kova_session_rt`` 24h). When the AT cookie lapses but the RT cookie
 //     is still alive, the gateway middleware transparently rotates a fresh AT
 //     on the next authenticated request — so connectivity must NOT be gated on
 //     the AT cookie alone. We probe liveness by actually minting a ws-ticket
@@ -7169,7 +7169,7 @@ function openOauthLoginWindow(
 // authed REST against a gated gateway, including minting WS tickets.
 //
 // #61457: the partition's Chromium jar is not a reliable cookie source — it can
-// drop the `hermes_session*` cookies (Windows %3A profile folders, lazy
+// drop the `kova_session*` cookies (Windows %3A profile folders, lazy
 // hydration, flush races) and `useSessionCookies: true` then intermittently
 // omits the cookie → 401 `no_cookie` right after a successful sign-in. Two
 // mitigations, both keyed by the request's resolved OAuth partition + origin

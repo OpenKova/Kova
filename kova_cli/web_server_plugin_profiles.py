@@ -33,7 +33,7 @@ _log = logging.getLogger("kova_cli.web_server")
 
 # Valid for every served profile, so a profile's plugin code must never receive them.
 _GATEWAY_CREDENTIAL_HEADERS = frozenset({
-    "authorization", "cookie", "host", "x-kova-gateway-ticket", "x-hermes-session-token"})
+    "authorization", "cookie", "host", "x-kova-gateway-ticket", "x-kova-session-token"})
 # Every query credential the gateway accepts (``web_server_chat._ws_auth_ok``, ``_has_valid_query_token``,
 # the display bridge, the PTY reattach key) and the profile selector; compared after URL-decoding.
 _GATEWAY_QUERY_KEYS = frozenset({"token", "ticket", "internal", "display_ticket", "attach", "profile"})

@@ -88,7 +88,7 @@ def _redirect_uri(request: Request) -> str:
 def _provider_pkce_segments(cookie_payload: dict[str, str]) -> dict[str, str]:
     """Parse a provider's flat ``state=…;verifier=…`` PKCE string into a dict — the ONE place
     the flat form is parsed; :func:`set_pkce_cookie` encodes the dict."""
-    flat = cookie_payload.get("hermes_session_pkce", "")
+    flat = cookie_payload.get("kova_session_pkce", "")
     return dict(seg.split("=", 1) for seg in flat.split(";") if "=" in seg)
 
 

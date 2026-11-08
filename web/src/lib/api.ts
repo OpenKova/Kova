@@ -341,7 +341,7 @@ export async function buildWsAuthParam(): Promise<[string, string]> {
  * Auth, in both modes, exactly as ``fetchJSON`` does it:
  *  - loopback / ``--insecure``: attach the ``X-Kova-Session-Token`` header.
  *  - gated OAuth: no token header (it's absent by design); the
- *    ``hermes_session_at`` cookie rides along via ``credentials: 'include'``.
+ *    ``kova_session_at`` cookie rides along via ``credentials: 'include'``.
  *
  * Unlike ``fetchJSON`` this does NOT parse the body, does NOT throw on
  * non-2xx (the caller decides — a 404 on a download is meaningful), and
