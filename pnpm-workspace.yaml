@@ -33,6 +33,7 @@ minimumReleaseAge: 20160
 # minimumReleaseAgeExcludePrune stays off: it would run on every install and rewrite this tracked
 # file on users' machines.
 minimumReleaseAgeExclude:
+  - "@tauri-apps/plugin-shell@2.6.0"  # Rust tauri-plugin-shell resolves to 2.6.0 and the CLI requires exact minor match
   - pele@1.13.0  # the desktop diagram swap was parity-checked on it (math labels need 1.8.0+)
 
 overrides:
