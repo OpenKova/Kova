@@ -30,7 +30,7 @@ def _kova_home_path() -> Path:
     return _constants_path("get_kova_home")
 
 
-def _hermes_root_path() -> Path:
+def _kova_root_path() -> Path:
     """Kova root dir (parent of any profile, never per-profile)."""
     return _constants_path("get_default_kova_root")
 
@@ -41,7 +41,7 @@ def _hermes_dirs() -> list[Path]:
     Both are checked so credential stores at <root>/... stay guarded when
     running under a profile (KOVA_HOME = <root>/profiles/<name>).
     """
-    return list(dict.fromkeys(_resolve_each((_kova_home_path(), _hermes_root_path()))))
+    return list(dict.fromkeys(_resolve_each((_kova_home_path(), _kova_root_path()))))
 
 
 def _resolve_each(paths) -> list[Path]:
@@ -201,7 +201,7 @@ def build_write_denied_paths(home: str) -> set[str]:
     )
     paths = [
         *(os.path.join(home, *f) for f in home_files),
-        *(str(base / f) for f in hermes_files for base in (_kova_home_path(), _hermes_root_path())),
+        *(str(base / f) for f in hermes_files for base in (_kova_home_path(), _kova_root_path())),
         "/etc/sudoers", "/etc/passwd", "/etc/shadow",
     ]
     return {os.path.realpath(p) for p in paths}
@@ -440,7 +440,7 @@ def _resolve_active_profile_name() -> str:
     """Active profile name from KOVA_HOME: ``~/.kova`` -> ``"default"``,
     ``~/.kova/profiles/X`` -> ``"X"``; ``"default"`` on any resolution failure."""
     try:
-        parts = _kova_home_path().resolve().relative_to(_hermes_root_path().resolve() / "profiles").parts
+        parts = _kova_home_path().resolve().relative_to(_kova_root_path().resolve() / "profiles").parts
     except (OSError, RuntimeError, ValueError):
         return "default"
     return parts[0] if parts else "default"
