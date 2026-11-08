@@ -86,7 +86,7 @@ def _str_map(d: dict) -> dict[str, str]:
     return {str(k): str(v) for k, v in d.items()}
 
 
-def _translate_one_server(name: str, hermes_cfg: dict) -> tuple[Optional[dict], list[str]]:
+def _translate_one_server(name: str, kova_cfg: dict) -> tuple[Optional[dict], list[str]]:
     """Translate one Kova MCP server config to codex's inline-table dict.
 
     Returns ``(codex_entry, skipped_keys)``; ``codex_entry`` is None when the config is unusable.
@@ -94,37 +94,37 @@ def _translate_one_server(name: str, hermes_cfg: dict) -> tuple[Optional[dict], 
     informational only — codex auto-negotiates. ``enabled`` is emitted only when explicitly false
     (codex defaults to true).
     """
-    if not isinstance(hermes_cfg, dict):
+    if not isinstance(kova_cfg, dict):
         return None, []
     skipped: list[str] = []
     out: dict[str, Any] = {}
-    if hermes_cfg.get("command"):
-        if hermes_cfg.get("url"):
+    if kova_cfg.get("command"):
+        if kova_cfg.get("url"):
             skipped.append("url (both command and url set; preferring stdio)")
-        out["command"] = str(hermes_cfg["command"])
-        if hermes_cfg.get("args"):
-            out["args"] = [str(a) for a in hermes_cfg["args"]]
-        if hermes_cfg.get("env"):
-            out["env"] = _str_map(hermes_cfg["env"])
-        if hermes_cfg.get("cwd"):
-            out["cwd"] = str(hermes_cfg["cwd"])
-    elif hermes_cfg.get("url"):
-        out["url"] = str(hermes_cfg["url"])
-        if hermes_cfg.get("headers"):
-            out["http_headers"] = _str_map(hermes_cfg["headers"])
-        if hermes_cfg.get("transport") == "sse":
+        out["command"] = str(kova_cfg["command"])
+        if kova_cfg.get("args"):
+            out["args"] = [str(a) for a in kova_cfg["args"]]
+        if kova_cfg.get("env"):
+            out["env"] = _str_map(kova_cfg["env"])
+        if kova_cfg.get("cwd"):
+            out["cwd"] = str(kova_cfg["cwd"])
+    elif kova_cfg.get("url"):
+        out["url"] = str(kova_cfg["url"])
+        if kova_cfg.get("headers"):
+            out["http_headers"] = _str_map(kova_cfg["headers"])
+        if kova_cfg.get("transport") == "sse":
             skipped.append("transport=sse (codex auto-negotiates)")
     else:
         return None, ["no command or url field"]
     for hermes_key, codex_key, note in _TIMEOUT_KEYS:
-        if hermes_key in hermes_cfg:
+        if hermes_key in kova_cfg:
             try:
-                out[codex_key] = float(hermes_cfg[hermes_key])
+                out[codex_key] = float(kova_cfg[hermes_key])
             except (TypeError, ValueError):
                 skipped.append(note)
-    if hermes_cfg.get("enabled") is False:
+    if kova_cfg.get("enabled") is False:
         out["enabled"] = False
-    for key in hermes_cfg:
+    for key in kova_cfg:
         if key in _KEYS_DROPPED_WITH_WARNING:
             skipped.append(f"{key} (no codex equivalent)")
         elif key not in _KNOWN_KOVA_KEYS:

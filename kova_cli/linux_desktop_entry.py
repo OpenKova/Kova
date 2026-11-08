@@ -117,9 +117,9 @@ def resolve_exec_command(project_root: Optional[Path] = None) -> str:
 
     Prefer the real ``hermes`` launcher; fall back to ``<python> -m kova_cli.main desktop``.
     """
-    from kova_cli.relaunch import resolve_hermes_bin
+    from kova_cli.relaunch import resolve_kova_bin
 
-    bin_path = _resolve_hermes_bin_for_desktop_entry(resolve_hermes_bin, checkout_root=project_root)
+    bin_path = _resolve_kova_bin_for_desktop_entry(resolve_kova_bin, checkout_root=project_root)
     interpreter = _running_interpreter()
     if not _can_import_kova_cli(Path(interpreter)):
         # Persisting an interpreter that can't import the CLI writes a dead entry (the DE spawns
@@ -225,13 +225,13 @@ def _is_this_checkout_managed_cli(candidate: str, checkout_root: Path) -> bool:
     return path == generations or generations in path.parents
 
 
-def _resolve_hermes_bin_for_desktop_entry(
+def _resolve_kova_bin_for_desktop_entry(
     resolve_fn=None,
     checkout_root: Optional[Path] = None,
 ) -> Optional[str]:
     """Resolve the launcher binary for the persisted ``.desktop`` entry.
 
-    Wraps :func:`kova_cli.relaunch.resolve_hermes_bin` with one rule: an ``argv[0]`` inside this
+    Wraps :func:`kova_cli.relaunch.resolve_kova_bin` with one rule: an ``argv[0]`` inside this
     checkout is a launch-context artifact, not a durable installed launcher — persisting it makes
     the entry depend on how the previous launch happened (a bootstrap loop). Skip such candidates
     and fall through to PATH, then to the installer's known wrapper locations. A candidate that
@@ -242,7 +242,7 @@ def _resolve_hermes_bin_for_desktop_entry(
     See #90492.
     """
     if resolve_fn is None:
-        from kova_cli.relaunch import resolve_hermes_bin as resolve_fn
+        from kova_cli.relaunch import resolve_kova_bin as resolve_fn
 
     if checkout_root is None:
         checkout_root = _project_root()

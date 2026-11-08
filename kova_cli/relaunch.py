@@ -59,8 +59,8 @@ def _extract_inherited_flags(argv: Sequence[str]) -> list[str]:
     return flags
 
 
-def resolve_hermes_bin() -> Optional[str]:
-    """Kova entry point: ``sys.argv[0]`` if a real executable, else ``which hermes``, else ``None``
+def resolve_kova_bin() -> Optional[str]:
+    """Kova entry point: ``sys.argv[0]`` if a real executable, else ``which kova``, else ``None``
     (caller falls back to ``python -m kova_cli.main``).
 
     Python launchers are never returned: on Windows a ``.py`` can't be exec'd directly, and on
@@ -93,7 +93,7 @@ def resolve_hermes_bin() -> Optional[str]:
         abs_path = os.path.abspath(argv0)
         if os.access(abs_path, os.X_OK) and not _is_unsafe_python_launcher(abs_path):
             return abs_path
-    path_bin = shutil.which("hermes")
+    path_bin = shutil.which("kova")
     if path_bin and not _is_unsafe_python_launcher(path_bin):
         return path_bin
     return None
@@ -102,8 +102,8 @@ def resolve_hermes_bin() -> Optional[str]:
 def build_relaunch_argv(
     extra_args: Sequence[str], *, preserve_inherited: bool = True, original_argv: Optional[Sequence[str]] = None
 ) -> list[str]:
-    """Construct an argv list for replacing the current process with hermes."""
-    bin_path = resolve_hermes_bin()
+    """Construct an argv list for replacing the current process with kova."""
+    bin_path = resolve_kova_bin()
     argv = [bin_path] if bin_path else [sys.executable, "-m", "kova_cli.main"]
     src = list(original_argv) if original_argv is not None else list(sys.argv[1:])
     if preserve_inherited:
@@ -115,7 +115,7 @@ def build_relaunch_argv(
 def relaunch(
     extra_args: Sequence[str], *, preserve_inherited: bool = True, original_argv: Optional[Sequence[str]] = None
 ) -> None:
-    """Replace the current process with a fresh hermes invocation.
+    """Replace the current process with a fresh kova invocation.
 
     POSIX: ``os.execvp`` in place (same PID, no double-fork). Windows has no real exec — its
     ``execvp`` emulation only works for a real Win32 executable, so spawn + exit instead.
@@ -129,12 +129,12 @@ def relaunch(
         except KeyboardInterrupt:
             sys.exit(130)
         except OSError as exc:
-            # Raw ``[Errno 8] Exec format error`` is cryptic; usual causes are ``hermes`` not on
+            # Raw ``[Errno 8] Exec format error`` is cryptic; usual causes are ``kova`` not on
             # PATH yet (install hasn't propagated User PATH into this shell) or a stale shim.
             print(
                 f"\nKova relaunch failed: {exc}\n"
                 f"Command: {' '.join(new_argv)}\n"
-                f"Fix: open a new terminal so PATH picks up, then re-run hermes.",
+                f"Fix: open a new terminal so PATH picks up, then re-run kova.",
                 file=sys.stderr,
             )
             sys.exit(1)

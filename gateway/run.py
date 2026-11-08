@@ -2915,7 +2915,7 @@ def _get_channel_override(
     return None
 
 
-def _resolve_hermes_bin() -> Optional[list[str]]:
+def _resolve_kova_bin() -> Optional[list[str]]:
     """Kova update/restart argv: the running interpreter's ``python -m kova_cli.main``
     (exactly this install), else ``hermes`` on PATH, else None. The module argv must win: a
     PATH-first lookup lets an attacker-planted ``hermes`` shadow the running install when

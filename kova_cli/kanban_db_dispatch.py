@@ -2470,7 +2470,7 @@ def _module_hermes_argv() -> list[str]:
     return [sys.executable, "-m", "kova_cli.main"]
 
 
-def _absolute_hermes_path(path: str) -> str:
+def _absolute_kova_path(path: str) -> str:
     """Return an absolute filesystem path for a resolved Kova shim."""
     expanded = os.path.expanduser(path)
     return expanded if os.path.isabs(expanded) else os.path.abspath(expanded)
@@ -2519,13 +2519,13 @@ def _safe_which_no_cwd(command: str) -> Optional[str]:
     return None
 
 
-def _hermes_path_argv(path: str) -> list[str]:
+def _kova_path_argv(path: str) -> list[str]:
     """argv for a resolved Kova executable path. Windows batch shims
     (``.cmd``/``.bat``) are unsafe as argv[0] because the argument vector
     includes task-derived values; prefer the module form."""
     if _kb._IS_WINDOWS and _is_windows_batch_shim(path):
         return _module_hermes_argv()
-    return [_absolute_hermes_path(path)]
+    return [_absolute_kova_path(path)]
 
 
 def _resolve_hermes_argv() -> list[str]:
@@ -2537,7 +2537,7 @@ def _resolve_hermes_argv() -> list[str]:
     search, batch shims fall back to the module form) only when ``kova_cli``
     is not importable. The module argv must win over PATH: a PATH-first lookup
     lets an attacker-planted ``hermes`` shadow the running install (#111569).
-    Mirrors ``gateway.run._resolve_hermes_bin``; local because ``kova_cli``
+    Mirrors ``gateway.run._resolve_kova_bin``; local because ``kova_cli``
     sits below ``gateway`` in the dependency order.
     """
     import importlib.util
@@ -2546,10 +2546,10 @@ def _resolve_hermes_argv() -> list[str]:
     env_bin = os.environ.get("KOVA_BIN", "").strip()
     if env_bin:
         if _looks_like_path(env_bin):
-            return _hermes_path_argv(env_bin)
+            return _kova_path_argv(env_bin)
         resolved_env_bin = _safe_which_no_cwd(env_bin)
         if resolved_env_bin:
-            return _hermes_path_argv(resolved_env_bin)
+            return _kova_path_argv(resolved_env_bin)
         return _module_hermes_argv()
 
     try:
@@ -2560,7 +2560,7 @@ def _resolve_hermes_argv() -> list[str]:
 
     hermes_bin = _safe_which_no_cwd("hermes") if _kb._IS_WINDOWS else shutil.which("hermes")
     if hermes_bin:
-        return _hermes_path_argv(hermes_bin)
+        return _kova_path_argv(hermes_bin)
     return _module_hermes_argv()
 
 

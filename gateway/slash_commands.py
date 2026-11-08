@@ -125,7 +125,7 @@ def _restart_notify_payload(event: MessageEvent) -> dict:
     return data
 
 
-def _spawn_detached_update(hermes_cmd, output_path, exit_code_path) -> None:
+def _spawn_detached_update(kova_cmd, output_path, exit_code_path) -> None:
     """Spawn ``kova update --gateway`` detached so it survives the gateway restart it may trigger.
     setsid is portable (works where ``systemd-run --user`` lacks a D-Bus session); ``--gateway``
     enables file-based IPC so interactive prompts are forwarded; PYTHONUNBUFFERED lets the gateway
@@ -142,9 +142,9 @@ def _spawn_detached_update(hermes_cmd, output_path, exit_code_path) -> None:
             # detached-spawn: ok — /update runs `kova update`, which must outlive the gateway it restarts
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **windows_detach_popen_kwargs())
         return
-    hermes_cmd_str = " ".join(shlex.quote(part) for part in hermes_cmd)
+    kova_cmd_str = " ".join(shlex.quote(part) for part in kova_cmd)
     update_cmd = (
-        f"PYTHONUNBUFFERED=1 {hermes_cmd_str} update --gateway"
+        f"PYTHONUNBUFFERED=1 {kova_cmd_str} update --gateway"
         f" > {shlex.quote(str(output_path))} 2>&1; "
         # Avoid `status=$?`: `status` is read-only in zsh and this template is reused in
         # macOS/zsh operator wrappers, so keep it zsh-safe even though bash runs it here.
@@ -1319,7 +1319,7 @@ class GatewaySlashCommandsMixin(
         """Handle /update — spawn ``kova update`` detached (``setsid``) so it survives the gateway
         restart it may trigger; marker files let this or the next gateway process notify the user."""
         import json
-        from gateway.run import _kova_home, _resolve_hermes_bin
+        from gateway.run import _kova_home, _resolve_kova_bin
         from kova_cli.config import is_managed, format_managed_message
         # Block non-messaging platforms (API server, webhooks, ACP); plugin platforms with
         # allow_update_command=True are also allowed.
@@ -1357,8 +1357,8 @@ class GatewaySlashCommandsMixin(
 
         if not git_dir.exists():
             return t("gateway.update.not_git_repo")
-        hermes_cmd = _resolve_hermes_bin()
-        if not hermes_cmd:
+        kova_cmd = _resolve_kova_bin()
+        if not kova_cmd:
             return t("gateway.update.kova_cmd_not_found")
         pending_path = _kova_home / ".update_pending.json"
         output_path = _kova_home / ".update_output.txt"
@@ -1376,7 +1376,7 @@ class GatewaySlashCommandsMixin(
         _tmp_pending.replace(pending_path)
         exit_code_path.unlink(missing_ok=True)
         try:
-            _spawn_detached_update(hermes_cmd, output_path, exit_code_path)
+            _spawn_detached_update(kova_cmd, output_path, exit_code_path)
         except Exception as e:
             pending_path.unlink(missing_ok=True)
             exit_code_path.unlink(missing_ok=True)

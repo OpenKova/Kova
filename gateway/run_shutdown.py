@@ -1406,7 +1406,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         return watcher_env
 
     @staticmethod
-    def _spawn_windows_restart_watcher(hermes_cmd: list, current_pid: int, restart_after_s: float) -> None:
+    def _spawn_windows_restart_watcher(kova_cmd: list, current_pid: int, restart_after_s: float) -> None:
         """Spawn the detached Windows watcher (``python -c``), retrying once without job breakaway."""
         import subprocess
         from kova_cli._subprocess_compat import (
@@ -1428,7 +1428,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         # See #54220, #56747.
         from kova_cli._launchers import runtime_command
         watcher_argv = runtime_command(project_root,
-            [str(current_pid), str(restart_after_s), *hermes_cmd, "gateway", "restart"],
+            [str(current_pid), str(restart_after_s), *kova_cmd, "gateway", "restart"],
             code=_WINDOWS_RESTART_WATCHER)
         watcher_python = watcher_argv[0]
         popen_kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=watcher_env)
@@ -1454,11 +1454,11 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
                 )
 
     async def _launch_detached_restart_command(self) -> None:
-        from gateway.run import _resolve_hermes_bin
+        from gateway.run import _resolve_kova_bin
         import shutil
         import subprocess
-        hermes_cmd = _resolve_hermes_bin()
-        if not hermes_cmd:
+        kova_cmd = _resolve_kova_bin()
+        if not kova_cmd:
             logger.error("Could not locate hermes binary for detached /restart")
             return
         if self._detached_restart_helper_started:
@@ -1467,9 +1467,9 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         current_pid = os.getpid()
         restart_after_s = max(float(getattr(self, "_restart_drain_timeout", 0.0) or 0.0) + 5.0, 5.0)
         if sys.platform == "win32":
-            GatewayShutdownMixin._spawn_windows_restart_watcher(hermes_cmd, current_pid, restart_after_s)
+            GatewayShutdownMixin._spawn_windows_restart_watcher(kova_cmd, current_pid, restart_after_s)
             return
-        cmd = " ".join(shlex.quote(part) for part in hermes_cmd)
+        cmd = " ".join(shlex.quote(part) for part in kova_cmd)
         shell_cmd = (
             f"deadline=$(( $(date +%s) + {int(restart_after_s)} )); "
             f"while kill -0 {current_pid} 2>/dev/null && [ $(date +%s) -lt $deadline ]; do sleep 0.2; done; "

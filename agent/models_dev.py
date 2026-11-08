@@ -232,17 +232,17 @@ def _cfg_get(*keys: str, default: Any, config: Optional[dict[str, Any]] = None) 
         return default
 
 
-def _hermes_path(name: str) -> Path:
+def _kova_path(name: str) -> Path:
     from kova_constants import get_kova_home
     return get_kova_home() / name
 
 
 def _get_cache_path() -> Path:
-    return _hermes_path("models_dev_cache.json")
+    return _kova_path("models_dev_cache.json")
 
 
 def _get_etag_path() -> Path:
-    return _hermes_path("models_dev_cache.etag")
+    return _kova_path("models_dev_cache.etag")
 
 
 def _quietly(what: str, fn, default=None):
