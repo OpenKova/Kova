@@ -17,18 +17,18 @@ import type {
   MemoryProviderSetupResult,
   PluginsHubResponse,
 } from "@/lib/api";
-import { Button } from "@neural-studio/ui/ui/components/button";
-import { Badge } from "@neural-studio/ui/ui/components/badge";
-import { Select, SelectOption } from "@neural-studio/ui/ui/components/select";
-import { Switch } from "@neural-studio/ui/ui/components/switch";
-import { Spinner } from "@neural-studio/ui/ui/components/spinner";
-import { CommandBlock, CopyButton } from "@neural-studio/ui/ui/components/command-block";
-import { Card, CardContent, CardHeader, CardTitle } from "@neural-studio/ui/ui/components/card";
-import { ConfirmDialog } from "@neural-studio/ui/ui/components/confirm-dialog";
-import { Input } from "@neural-studio/ui/ui/components/input";
-import { Label } from "@neural-studio/ui/ui/components/label";
-import { useToast } from "@neural-studio/ui/hooks/use-toast";
-import { Toast } from "@neural-studio/ui/ui/components/toast";
+import { Button } from "@nous-research/ui/ui/components/button";
+import { Badge } from "@nous-research/ui/ui/components/badge";
+import { Select, SelectOption } from "@nous-research/ui/ui/components/select";
+import { Switch } from "@nous-research/ui/ui/components/switch";
+import { Spinner } from "@nous-research/ui/ui/components/spinner";
+import { CommandBlock, CopyButton } from "@nous-research/ui/ui/components/command-block";
+import { Card, CardContent, CardHeader, CardTitle } from "@nous-research/ui/ui/components/card";
+import { ConfirmDialog } from "@nous-research/ui/ui/components/confirm-dialog";
+import { Input } from "@nous-research/ui/ui/components/input";
+import { Label } from "@nous-research/ui/ui/components/label";
+import { useToast } from "@nous-research/ui/hooks/use-toast";
+import { Toast } from "@nous-research/ui/ui/components/toast";
 import { useI18n } from "@/i18n";
 import { en } from "@/i18n/en";
 import { PluginSlot } from "@/plugins";

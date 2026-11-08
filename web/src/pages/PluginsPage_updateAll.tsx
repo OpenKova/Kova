@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { Button } from "@neural-studio/ui/ui/components/button";
-import { Label } from "@neural-studio/ui/ui/components/label";
-import { Spinner } from "@neural-studio/ui/ui/components/spinner";
-import { Switch } from "@neural-studio/ui/ui/components/switch";
+import { Button } from "@nous-research/ui/ui/components/button";
+import { Label } from "@nous-research/ui/ui/components/label";
+import { Spinner } from "@nous-research/ui/ui/components/spinner";
+import { Switch } from "@nous-research/ui/ui/components/switch";
 import type { Translations } from "@/i18n/types";
 import { api, type AgentPluginsUpdateAllResponse, type PluginAutoUpdateState } from "@/lib/api";
 

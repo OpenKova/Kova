@@ -7,14 +7,14 @@ import type {
   ToolsetInfo,
   ToolsetProvider,
 } from "@/lib/api";
-import { useToast } from "@neural-studio/ui/hooks/use-toast";
-import { Button } from "@neural-studio/ui/ui/components/button";
-import { Input } from "@neural-studio/ui/ui/components/input";
-import { Label } from "@neural-studio/ui/ui/components/label";
-import { Badge } from "@neural-studio/ui/ui/components/badge";
-import { Switch } from "@neural-studio/ui/ui/components/switch";
-import { Spinner } from "@neural-studio/ui/ui/components/spinner";
-import { Toast } from "@neural-studio/ui/ui/components/toast";
+import { useToast } from "@nous-research/ui/hooks/use-toast";
+import { Button } from "@nous-research/ui/ui/components/button";
+import { Input } from "@nous-research/ui/ui/components/input";
+import { Label } from "@nous-research/ui/ui/components/label";
+import { Badge } from "@nous-research/ui/ui/components/badge";
+import { Switch } from "@nous-research/ui/ui/components/switch";
+import { Spinner } from "@nous-research/ui/ui/components/spinner";
+import { Toast } from "@nous-research/ui/ui/components/toast";
 import { cn, themedBody } from "@/lib/utils";
 
 interface Props {

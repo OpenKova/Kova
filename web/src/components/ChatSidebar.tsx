@@ -28,9 +28,9 @@
  * terminal pane keeps working unimpaired.
  */
 
-import { Button } from '@neural-studio/ui/ui/components/button'
-import { Badge } from '@neural-studio/ui/ui/components/badge'
-import { Card } from '@neural-studio/ui/ui/components/card'
+import { Button } from '@nous-research/ui/ui/components/button'
+import { Badge } from '@nous-research/ui/ui/components/badge'
+import { Card } from '@nous-research/ui/ui/components/card'
 
 import { ModelPickerDialog } from '@/components/ModelPickerDialog'
 import { ModelReloadConfirm } from '@/components/ModelReloadConfirm'

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, ExternalLink, Link2 } from "lucide-react";
 import * as QRCode from "qrcode";
-import { Badge } from "@neural-studio/ui/ui/components/badge";
-import { Button } from "@neural-studio/ui/ui/components/button";
-import { Spinner } from "@neural-studio/ui/ui/components/spinner";
+import { Badge } from "@nous-research/ui/ui/components/badge";
+import { Button } from "@nous-research/ui/ui/components/button";
+import { Spinner } from "@nous-research/ui/ui/components/spinner";
 import { api } from "@/lib/api";
 import type { MessagingPlatform, RelayLinkCode, RelayLinkedAccount } from "@/lib/api";
 import { errorMessage } from "@/lib/api-error";

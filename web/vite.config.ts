@@ -100,7 +100,7 @@ export default defineConfig({
       "@": path.resolve(configDir, "./src"),
       "@kova/shared": path.resolve(configDir, "../apps/shared/src"),
     },
-    // When @neural-studio/ui is symlinked via `file:../../design-language`,
+    // When @nous-research/ui is symlinked via `file:../../design-language`,
     // Node's module resolution would pick up shared deps from
     // design-language/node_modules/*, giving us two copies + breaking
     // hooks (useRef-of-null), webgl contexts, etc. Force everything that
