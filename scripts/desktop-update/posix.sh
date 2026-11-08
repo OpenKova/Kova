@@ -938,7 +938,7 @@ tcc_pick_update_invoke() { # sets UPDATE_INVOKE; safety net past a failed heal
   # launchd gateway proves `venv/bin/python -m kova_cli.main` works when
   # every alias entrypoint is bricked — drive the update the same way.
   local bin="$1"
-  UPDATE_INVOKE=("$bin/hermes")
+  UPDATE_INVOKE=("$bin/kova")
   if ! tcc_probe_python "$bin/python3" && tcc_probe_python "$bin/python"; then
     UPDATE_INVOKE=("$bin/python" -m kova_cli.main)
   fi
@@ -1138,7 +1138,7 @@ start_ui
 LEGACY_INSTALL=0
 [ -d "$INSTALL_ROOT/pm" ] || LEGACY_INSTALL=1
 select_update_invoke() {
-  KOVA_BIN="$INSTALL_ROOT/.kova/bin/hermes"
+  KOVA_BIN="$INSTALL_ROOT/.kova/bin/kova"
   if [ -x "$KOVA_BIN" ]; then
     UPDATE_INVOKE=("$KOVA_BIN")
     return 0
@@ -1146,7 +1146,7 @@ select_update_invoke() {
   if [ -f "$INSTALL_ROOT/kova_cli/_launchers.py" ]; then
     local candidate version reported expected
     expected="$(cd "$INSTALL_ROOT" && pwd -P)" || return 1
-    for candidate in "$HOME/.local/bin/hermes" "$KOVA_HOME/bin/hermes"; do
+    for candidate in "$HOME/.local/bin/kova" "$KOVA_HOME/bin/kova"; do
       [ -x "$candidate" ] || continue
       version="$(run_bounded 60 "$candidate" --version)" || continue
       reported="$(printf '%s\n' "$version" | sed -n 's/^Install directory: //p')"
@@ -1158,7 +1158,7 @@ select_update_invoke() {
     done
   fi
   if [ "$LEGACY_INSTALL" -eq 1 ] && [ ! -d "$INSTALL_ROOT/pm" ]; then
-    KOVA_BIN="$INSTALL_ROOT/venv/bin/hermes"
+    KOVA_BIN="$INSTALL_ROOT/venv/bin/kova"
     [ -x "$KOVA_BIN" ] || return 1
     if [ "$(uname)" = Darwin ]; then
       tcc_anchor_heal "$INSTALL_ROOT/venv/bin" || log "TCC anchor rescue failed ($TCC_HEAL_STATE)"
@@ -1207,7 +1207,7 @@ KEEP_STASH=""
 if run_bounded 60 "${UPDATE_INVOKE[@]}" update --help | grep -q -- '--keep-stash'; then
   KEEP_STASH="--keep-stash"
 else
-  log "installed hermes predates --keep-stash (or the probe failed); running without it"
+  log "installed kova predates --keep-stash (or the probe failed); running without it"
 fi
 # --gateway restarts the local messaging gateway after the update. The
 # Desktop omits it (--no-gateway) when it is served by a remote gateway
@@ -1297,7 +1297,7 @@ if [ "$CODE" -eq 0 ]; then FINAL_CODE=0 FINAL_MSG="Update complete." UPDATE_COMM
   # never "finished OK" and never "still on the previous version".
   if printf '%s\n' "$OUT" | grep -Eq '^[[:space:]]*Desktop app build owed: '; then
     APP_REBUILD_FAILED=1
-    DONE_NOTE="Kova was updated, but the Desktop app could not be rebuilt, so it still runs its old build. Run hermes desktop --force-build in a terminal to rebuild it; the update log has the build error."
+    DONE_NOTE="Kova was updated, but the Desktop app could not be rebuilt, so it still runs its old build. Run kova desktop --force-build in a terminal to rebuild it; the update log has the build error."
     add_warning "build" "the Desktop app build is owed by the committed update"
   fi
   # Every other owed follow-up (a gateway still on the old code, a Windows
@@ -1341,7 +1341,7 @@ else
   # succeed — tell the user what is actually wrong (#95759).
   if [ "$LEGACY_INSTALL" -eq 1 ] && ! tcc_probe_python "$INSTALL_ROOT/venv/bin/python3" \
       && ! tcc_probe_python "$INSTALL_ROOT/venv/bin/python"; then
-    FINAL_MSG="Update failed: the Python interpreter inside $INSTALL_ROOT/venv cannot start (heal state: $TCC_HEAL_STATE). Reinstall the runtime with the Kova installer, or run kova doctor --fix from a terminal if any hermes command still works."
+    FINAL_MSG="Update failed: the Python interpreter inside $INSTALL_ROOT/venv cannot start (heal state: $TCC_HEAL_STATE). Reinstall the runtime with the Kova installer, or run kova doctor --fix from a terminal if any kova command still works."
   fi
 fi
 
@@ -1354,7 +1354,7 @@ if [ "$LEGACY_INSTALL" -eq 1 ] && [ "$CODE" -eq 0 ] && printf '%s' "$OUT" | grep
   publish_stage "Rebuilding Desktop"
   if ! ( trap - TERM; exec "${UPDATE_INVOKE[@]}" desktop --force-build --build-only ) >> "$LOG" 2>&1; then
     APP_REBUILD_FAILED=1
-    DONE_NOTE="Kova was updated, but the Desktop app rebuild failed - you are running the previous app build. Run hermes desktop --force-build from a terminal to retry."
+    DONE_NOTE="Kova was updated, but the Desktop app rebuild failed - you are running the previous app build. Run kova desktop --force-build from a terminal to retry."
     add_warning "desktop-rebuild" "kova desktop --force-build --build-only failed"
   fi
 fi

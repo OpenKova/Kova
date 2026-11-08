@@ -48,7 +48,7 @@ function Get-KovaRuntimeCommand {
 
     # The launcher owns interpreter/ABI and generation selection. Never infer
     # PM's store layout or borrow a different installation's PATH command.
-    foreach ($name in @('hermes.exe', 'hermes.cmd')) {
+    foreach ($name in @('kova.exe', 'kova.cmd', 'hermes.exe', 'hermes.cmd')) {
         $launcher = Join-Path $InstallRoot ".kova\bin\$name"
         if (Test-Path -LiteralPath $launcher -PathType Leaf) {
             $probe = Invoke-KovaProbe $launcher @('--print-runtime-command', '--module', $Module)
@@ -69,9 +69,9 @@ function Get-KovaRuntimeCommand {
             (Join-Path $env:KOVA_HOME 'bin'),
             (Join-Path (Split-Path -Parent $InstallRoot) 'bin')
         )
-        if ($env:LOCALAPPDATA) { $directories += Join-Path $env:LOCALAPPDATA 'hermes/bin' }
+        if ($env:LOCALAPPDATA) { $directories += Join-Path $env:LOCALAPPDATA 'Kova\bin' }
         foreach ($directory in ($directories | Select-Object -Unique)) {
-            foreach ($name in @('hermes.exe', 'hermes.cmd')) {
+            foreach ($name in @('kova.exe', 'kova.cmd', 'hermes.exe', 'hermes.cmd')) {
                 $legacy = Join-Path $directory $name
                 if (-not (Test-Path -LiteralPath $legacy -PathType Leaf)) { continue }
                 $probe = Invoke-KovaProbe $legacy @('--version')

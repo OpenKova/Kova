@@ -1,5 +1,5 @@
 # update-job.ps1 -- the Win32 job/process helper windows.ps1 runs every
-# hermes step through (dot-sourced after the marker claim, never before it:
+# kova step through (dot-sourced after the marker claim, never before it:
 # Add-Type is not allowed in the claim path). StartAssigned creates the step
 # SUSPENDED inside a private job (kill-on-close until Resume), so windows.ps1
 # can publish the update marker's delegate before the first instruction runs.
