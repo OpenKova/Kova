@@ -272,12 +272,17 @@ def _print_parked_branch_kept_notice(current_branch: str, target_branch: str, un
 
 
 OFFICIAL_REPO_URLS = {
+    "https://github.com/OpenKova/Kova.git",
+    "git@github.com:OpenKova/Kova.git",
+    "https://github.com/OpenKova/Kova",
+    "git@github.com:OpenKova/Kova",
+    # Legacy upstream clones (pre-fork installer): still count as official.
     "https://github.com/NeuralStudio/kova-agent.git",
     "git@github.com:NeuralStudio/kova-agent.git",
     "https://github.com/NeuralStudio/kova-agent",
     "git@github.com:NeuralStudio/kova-agent",
 }
-OFFICIAL_REPO_URL = "https://github.com/NeuralStudio/kova-agent.git"
+OFFICIAL_REPO_URL = "https://github.com/OpenKova/Kova.git"
 SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
 
 

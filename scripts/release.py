@@ -304,7 +304,7 @@ def get_pr_number(subject: str) -> str | None:
     return None
 
 
-def generate_changelog(commits, tag_name, semver, repo_url="https://github.com/NeuralStudio/kova-agent",
+def generate_changelog(commits, tag_name, semver, repo_url="https://github.com/OpenKova/Kova",
                        prev_tag=None, first_release=False, no_changelog=False):
     """Generate markdown changelog from categorized commits."""
     lines = []

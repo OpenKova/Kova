@@ -58,7 +58,7 @@ from scripts.releases.desktop_targets import TARGETS as DESKTOP_TARGETS
 
 MARKER = "<!-- KOVA_BUILDS_TABLE -->"
 END_MARKER = "<!-- /KOVA_BUILDS_TABLE -->"
-DEFAULT_REPO = "NeuralStudio/kova-agent"
+DEFAULT_REPO = "OpenKova/Kova"
 
 # Asset name shapes (electron-builder artifactName in
 # apps/desktop/electron-builder.config.cjs):
