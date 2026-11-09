@@ -1665,6 +1665,10 @@ platform_toolsets:
 #     args: ["-y", "@modelcontextprotocol/server-github"]
 #     env:
 #       GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_..."
+#   composio:                    # Gmail, Slack, GitHub and 1,000+ more apps
+#     url: https://connect.composio.dev/mcp    # or: hermes mcp add composio --preset composio
+#     headers:
+#       x-consumer-api-key: "${MCP_COMPOSIO_API_KEY}"   # Composio account → Settings → API Key
 #
 # Sampling (server-initiated LLM requests) — enabled by default.
 # Per-server config under the 'sampling' key:

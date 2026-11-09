@@ -272,6 +272,45 @@ class TestMcpAdd:
         assert srv["args"] == ["-y", "test-mcp-server"]
         assert "env" not in srv
 
+    def test_add_composio_preset_prompts_header_key(self, tmp_path, capsys, monkeypatch):
+        """The Composio preset carries the x-consumer-api-key header template; the
+        add flow asks for the key, saves it to .env, and never writes the secret
+        into config.yaml."""
+        fake_tools = [FakeTool("gmail_search", "Search Gmail")]
+
+        def mock_probe(name, config, **kw):
+            assert name == "composio"
+            assert config["url"] == "https://connect.composio.dev/mcp"
+            assert config["headers"] == {"x-consumer-api-key": "${MCP_COMPOSIO_API_KEY}"}
+            return [(t.name, t.description) for t in fake_tools]
+
+        monkeypatch.setattr(
+            "kova_cli.mcp_config._probe_single_server", mock_probe
+        )
+        # Both prompts (API key, then enable-all) receive the same answer;
+        # enable-all only treats n/no/s/select specially, so any key feeds it.
+        monkeypatch.setattr("builtins.input", lambda _: "ck_testkey123")
+        # The API-key prompt is password-flavored (getpass) — pytest capture
+        # forbids stdin reads, so stub the shared prompt helper.
+        monkeypatch.setattr("kova_cli.cli_output.prompt", lambda *a, **kw: "ck_testkey123")
+
+        from kova_cli.mcp_config import cmd_mcp_add
+        from kova_cli.config import read_raw_config
+
+        cmd_mcp_add(_make_args(name="composio", preset="composio"))
+        out = capsys.readouterr().out
+        assert "Saved" in out
+
+        config = read_raw_config()
+        srv = config["mcp_servers"]["composio"]
+        assert srv["url"] == "https://connect.composio.dev/mcp"
+        assert srv["headers"] == {"x-consumer-api-key": "${MCP_COMPOSIO_API_KEY}"}
+        assert "ck_testkey123" not in str(srv)
+
+        from kova_cli.config import get_env_value
+
+        assert get_env_value("MCP_COMPOSIO_API_KEY") == "ck_testkey123"
+
 
 # ---------------------------------------------------------------------------
 # Tests: cmd_mcp_test

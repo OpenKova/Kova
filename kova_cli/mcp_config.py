@@ -182,6 +182,14 @@ def _redact_probe_exception(exc: BaseException) -> Exception:
 
 _MCP_PRESETS: dict[str, dict[str, Any]] = {
     "codex": {"command": "codex", "args": ["mcp-server"]},
+    # Composio (OpenBot's connector): one Streamable-HTTP server for Gmail,
+    # Slack, GitHub and 1,000+ more apps. Auth is a single API key in the
+    # `x-consumer-api-key` header (Composio account → Settings → API Key);
+    # the user then connects each app inside their Composio account.
+    "composio": {
+        "url": "https://connect.composio.dev/mcp",
+        "headers": {"x-consumer-api-key": "${MCP_COMPOSIO_API_KEY}"},
+    },
 }
 
 
@@ -385,6 +393,11 @@ def _apply_mcp_preset(
         server_config["command"] = command
     if cmd_args:
         server_config["args"] = cmd_args
+    if preset.get("headers"):
+        # Preset-carried header templates (e.g. Composio's x-consumer-api-key):
+        # they hold ${ENV} placeholders whose values _configure_http_auth asks
+        # for and persists to .env — the config itself never stores secrets.
+        server_config["headers"] = dict(preset["headers"])
     return url, command, cmd_args, True
 
 
@@ -542,6 +555,32 @@ def _unwrap_exception_group(exc: BaseException) -> Exception:
     return exc if isinstance(exc, Exception) else RuntimeError(str(exc))
 
 
+def _configure_preset_headers(headers: dict[str, Any]) -> bool:
+    """Prompt for the ${ENV} values a preset's header template needs.
+
+    Values persist to .env under their placeholder names (get_env_value reads
+    them back at runtime via the existing interpolation). Returns False when
+    the user cancels, so the add aborts like every other cancelled auth flow.
+    """
+    import re
+
+    vars_needed = sorted(
+        {match for value in headers.values() if isinstance(value, str) for match in re.findall(r"\$\{([A-Za-z0-9_]+)\}", value)}
+    )
+    missing = [var for var in vars_needed if not get_env_value(var)]
+    if missing:
+        from kova_cli.cli_output import prompt
+
+        for var in missing:
+            value = prompt(var, default="", password=True)
+            if not value:
+                _info("Cancelled.")
+                return False
+            save_env_value(var, value)
+            _success(f"Saved to {display_kova_home()}/.env as {var}")
+    return True
+
+
 def _configure_http_auth(
     name: str, url: str, auth_type: Optional[str], server_config: dict[str, Any]
 ) -> bool:
@@ -566,6 +605,13 @@ def _configure_http_auth(
                 _info("Cancelled.")
                 return False
         return True
+
+    # A preset brought its own header template(s) with ${ENV} placeholders
+    # (Composio's x-consumer-api-key): ask for each missing value and persist
+    # it to .env; the config keeps only the template.
+    preset_headers = server_config.get("headers")
+    if preset_headers:
+        return _configure_preset_headers(preset_headers)
 
     _info(f"Connecting to {url}")
     needs_auth = _confirm("Does this server require authentication?", default=True)
@@ -645,7 +691,7 @@ def cmd_mcp_add(args):
         _info("Examples:")
         _info('  hermes mcp add ink --url "https://mcp.ml.ink/mcp"')
         _info('  hermes mcp add github --command npx --args @modelcontextprotocol/server-github')
-        _info('  hermes mcp add myserver --preset mypreset')
+        _info('  hermes mcp add composio --preset composio   # Gmail, Slack, GitHub + 1,000 apps')
         return
 
     # Overwriting an existing server is a re-add, not an install; cancels are not recorded either.
