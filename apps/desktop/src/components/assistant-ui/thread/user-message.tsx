@@ -19,6 +19,7 @@ import { useMessageReactions } from '@/components/assistant-ui/thread/use-messag
 import { UserMessageText } from '@/components/assistant-ui/thread/user-message-text'
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
+import { CopyButton } from '@/components/ui/copy-button'
 import { Tip } from '@/components/ui/tooltip'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { useI18n } from '@/i18n'
@@ -54,7 +55,7 @@ export function StickyHumanMessageContainer({
     // while attachments below it scroll away.
     <>
       <div
-        className="group/user-message sticky z-40 -mx-4 flex w-[calc(100%+2rem)] min-w-0 max-w-none flex-col items-stretch gap-0 self-end overflow-visible px-4 pb-(--conversation-turn-gap) pt-1"
+        className="group/user-message sticky z-40 -mx-4 flex w-[calc(100%+2rem)] min-w-0 max-w-none flex-col items-end gap-0 self-end overflow-visible px-4 pb-(--conversation-turn-gap) pt-1"
         data-message-id={messageId}
         data-role="user"
         data-slot="aui_user-message-root"
@@ -280,15 +281,33 @@ const UserBubbleActions: FC<UserBubbleActionsProps> = ({
   }
 
   return (
+    // Codex-style hover row UNDER the bubble (right-aligned): "6:02 PM ·
+    // copy · pencil", plus Stop/Restore when they apply. Absolute so the
+    // bubble's layout never shifts when it appears.
     <div
       className={cn(
-        'pointer-events-none absolute right-2 bottom-2 z-10 flex items-center gap-1 rounded-md bg-(--dt-user-bubble) pl-1 transition-opacity',
+        'pointer-events-none absolute top-full right-0 z-10 flex items-center gap-0.5 pt-1 transition-opacity',
         touch
           ? 'opacity-100'
-          : 'opacity-0 group-hover/user-message:opacity-100 group-hover/user-message:transition-none group-focus-within/user-message:opacity-100'
+          : 'opacity-0 group-hover/user-message:opacity-100 group-focus-within/user-message:opacity-100'
       )}
     >
-      {!touch && <MessageHoverTime className={cn(!showStop && !showRestore && 'pr-0.5')} />}
+      {!touch && <MessageHoverTime />}
+      {!touch && fullText.trim() && (
+        <CopyButton appearance="icon" className="pointer-events-auto" label={copy.copy} text={fullText} />
+      )}
+      {!touch && (
+        <ActionBarPrimitive.Edit asChild>
+          <button
+            aria-label={copy.editMessage}
+            className={cn('pointer-events-auto size-6', USER_ACTION_ICON_BUTTON_CLASS)}
+            onClick={notifyThreadEditOpen}
+            type="button"
+          >
+            <Codicon name="edit" size="0.875rem" />
+          </button>
+        </ActionBarPrimitive.Edit>
+      )}
       {showStop ? (
         <button
           aria-label={copy.stop}
@@ -543,7 +562,7 @@ export const UserMessage: FC<{
 
   const bubbleClassName = cn(
     USER_BUBBLE_BASE_CLASS,
-    'cursor-pointer pr-9 text-[length:var(--conversation-text-font-size)] leading-(--dt-line-height) text-foreground/95 transition-colors',
+    'w-fit cursor-pointer text-[length:var(--conversation-text-font-size)] leading-(--dt-line-height) text-foreground/95 transition-colors',
     'border-(--ui-stroke-tertiary) hover:border-(--ui-stroke-secondary)'
   )
 
@@ -590,7 +609,7 @@ export const UserMessage: FC<{
         }
         messageId={messageId}
       >
-        <ActionBarPrimitive.Root className="relative w-full max-w-full" data-slot="aui_user-bubble-actions">
+        <ActionBarPrimitive.Root className="relative w-fit max-w-[75%]" data-slot="aui_user-bubble-actions">
           <div className="human-message-with-todos-wrapper flex w-full flex-col gap-0">
             <ReactionPicker
               onOpenChange={setPickerOpen}
@@ -599,7 +618,7 @@ export const UserMessage: FC<{
               selected={shownReactions.find(reaction => reaction.author === 'user')?.emoji}
             >
               <div
-                className="relative w-full"
+                className="relative flex w-fit max-w-full flex-col items-end"
                 // The app context menu skips PLAIN right-clicks here (the
                 // attr below) so this handler keeps the picker gesture; a
                 // link/image/selection inside the bubble still gets the app

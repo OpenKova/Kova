@@ -57,8 +57,8 @@ import { chipTypedUrlOnSpace, linkifyUrls } from '@/app/chat/composer/url-refs'
 import { type DropFailure, dropWarning } from '@/app/chat/hooks/drop-warning'
 import {
   extractDroppedFiles,
-  KOVA_PATHS_MIME,
   isImagePath,
+  KOVA_PATHS_MIME,
   partitionDroppedFiles,
   stageDroppedFilePath
 } from '@/app/chat/hooks/use-composer-actions'
@@ -67,13 +67,10 @@ import { kovaDirectiveFormatter } from '@/components/assistant-ui/directive-text
 import {
   StickyHumanMessageContainer,
   StopGlyph,
-  USER_ACTION_ICON_BUTTON_CLASS,
-  USER_ACTION_ICON_SIZE,
   USER_BUBBLE_BASE_CLASS
 } from '@/components/assistant-ui/thread/user-message'
-import { Codicon } from '@/components/ui/codicon'
-import type { KovaGateway } from '@/kova'
 import { useI18n } from '@/i18n'
+import type { KovaGateway } from '@/kova'
 import { attachmentDisplayText, attachmentId, pathLabel } from '@/lib/chat-runtime'
 import { sanitizeComposerInput } from '@/lib/composer-input-sanitize'
 import { DATA_IMAGE_URL_RE } from '@/lib/embedded-images'
@@ -909,7 +906,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
               {...composerTextEntryProps(touchPointer)}
               {...tapFocus}
               className={cn(
-                'ui-prompt-input-editor__input max-h-48 w-full resize-none overflow-y-auto bg-transparent p-0 pr-7 text-[length:var(--conversation-text-font-size)] text-foreground/95 outline-none',
+                'ui-prompt-input-editor__input max-h-48 w-full resize-none overflow-y-auto bg-transparent p-0 text-[length:var(--conversation-text-font-size)] text-foreground/95 outline-none',
                 '**:data-ref-text:cursor-default',
                 expanded ? 'min-h-16' : 'min-h-[1.25rem]'
               )}
@@ -967,28 +964,45 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
                 {copy.attachingFile}
               </span>
             )}
-            <button
-              aria-label={copy.sendEdited}
-              className={cn('absolute right-2 bottom-2 size-5', USER_ACTION_ICON_BUTTON_CLASS)}
-              disabled={!canSubmit || submitting || staging}
-              onClick={() => {
-                const editor = editorRef.current
+            {/* Codex-style edit actions: Cancel (ghost) + Send (white pill),
+                in flow at the card's bottom-right so they never overlap the
+                text. onPointerDown keeps focus in the editor on macOS —
+                without it the click blurs the editor, the blur timer cancels
+                the edit (tearing down the composer core), and send() then
+                throws against a dead core. */}
+            <div className="flex items-center justify-end gap-1.5 pt-1">
+              <button
+                aria-label={t.common.cancel}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-(--ui-text-secondary) transition-colors hover:bg-(--ui-control-active-background) hover:text-foreground"
+                onClick={() => {
+                  try {
+                    aui.composer().cancel()
+                  } catch {
+                    // Composer core already gone — the edit is closing anyway.
+                  }
+                }}
+                onPointerDown={event => event.preventDefault()}
+                type="button"
+              >
+                {t.common.cancel}
+              </button>
+              <button
+                aria-label={copy.sendEdited}
+                className="rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-50"
+                disabled={!canSubmit || submitting || staging}
+                onClick={() => {
+                  const editor = editorRef.current
 
-                if (editor) {
-                  submitEdit(editor)
-                }
-              }}
-              // Keep focus in the editor on click: macOS doesn't focus a button
-              // on mousedown, so without this the arrow-click blurs the editor,
-              // the blur timer cancels the edit (tearing down the composer
-              // core), and the click's send() then throws against a dead core —
-              // the edit silently never sends. The restore button guards the
-              // same way.
-              onPointerDown={event => event.preventDefault()}
-              type="button"
-            >
-              {submitting ? StopGlyph : <Codicon name="arrow-up" size={USER_ACTION_ICON_SIZE} />}
-            </button>
+                  if (editor) {
+                    submitEdit(editor)
+                  }
+                }}
+                onPointerDown={event => event.preventDefault()}
+                type="button"
+              >
+                {submitting ? StopGlyph : t.common.send}
+              </button>
+            </div>
           </div>
         </div>
       </StickyHumanMessageContainer>

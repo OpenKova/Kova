@@ -137,7 +137,11 @@ One glass card — the app's signature.
 ## Chat messages
 
 - Assistant turns are columnar and uncolored; **user bubbles** are `22px`
-  radius on the inverted surface, right-aligned, capped width.
+  radius on the inverted surface — **compact** (shrink-wrap, max 75% of the
+  transcript), never full-width.
+- Hovering a user bubble reveals a row **under** it (right-aligned):
+  timestamp · copy · pencil. The pencil opens the inline edit card with
+  **Cancel** (ghost) + **Send** (white pill) at its bottom-right.
 - Tool calls are quiet chips (icon + line + duration), expanding into one
   `14px` glass surface — never nested boxes.
 - Code blocks: `14px`, one hairline, no inner header boxes.
