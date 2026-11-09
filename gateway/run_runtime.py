@@ -12,6 +12,7 @@ is parked (logged, left out of ``served_profiles``) instead of aborting every ot
 from __future__ import annotations
 
 import asyncio
+import os
 from contextlib import suppress
 import logging
 from pathlib import Path
@@ -48,7 +49,11 @@ async def _build_profile_authority(runner, name, home, *, register):
         if db is None:
             raise RuntimeError(_store_open_failure(runner, home))
         db_home = (await asyncio.to_thread(Path(db.db_path).resolve)).parent
-        if db_home != Path(home).resolve() and db_home != Path(home):
+        try:
+            home_same = os.path.samefile(db_home, home)
+        except OSError:
+            home_same = db_home == Path(home).resolve() or db_home == Path(home)
+        if not home_same:
             raise RuntimeError(f'session authority database does not belong to the reserved profile {home}')
         registry.add(home, None, name=name)
         try:
