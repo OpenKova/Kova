@@ -19,9 +19,9 @@ import { codiconIcon } from '@/components/ui/codicon'
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { KbdCombo } from '@/components/ui/kbd'
-import { getKovaConfigRecord, listAllProfileSessions } from '@/kova'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useI18n } from '@/i18n'
+import { getKovaConfigRecord, listAllProfileSessions } from '@/kova'
 import { sessionTitle } from '@/lib/chat-runtime'
 import {
   Activity,
@@ -683,12 +683,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
     return resolvePinnedSessions(pinnedSessionIds, byAnyId, liveRows, unconfirmedPinWrites).map(toSessionEntry)
   }, [liveRows, pinnedSessionIds, unconfirmedPinWrites])
 
-  const sessions = useMemo(() => {
-    const pinned = new Set(pinnedSessions.map(session => session.id))
-
-    return liveRows.filter(session => !pinned.has(session.id)).map(toSessionEntry)
-  }, [liveRows, pinnedSessions])
-
   const archivedSessions = useMemo(() => (archivedQuery.data?.sessions ?? []).map(toSessionEntry), [archivedQuery.data])
 
   // Search/sub-page are local to a mount, and this component remounts per open
@@ -1219,19 +1213,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
       })
     }
 
-    if (sessions.length > 0) {
-      result.push({
-        heading: t.commandCenter.sections.sessions,
-        items: sessions.map(session => ({
-          icon: MessageCircle,
-          id: `session-${session.id}`,
-          keywords: sessionKeywords(session),
-          label: session.title,
-          runWithEvent: goSession(session.id)
-        }))
-      })
-    }
-
     const fieldItems = [
       ...settingsCatalog.subpageEntries,
       ...settingsCatalog.settingEntries,
@@ -1302,7 +1283,6 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
     resolvedMode,
     resolveThemeMode,
     search,
-    sessions,
     setMode,
     setTheme,
     settingsCatalog,
