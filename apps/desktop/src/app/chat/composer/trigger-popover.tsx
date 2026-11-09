@@ -188,7 +188,7 @@ export function ComposerTriggerPopover({
       ) : (
         items.map((item, index) => {
           const meta = item.metadata as RowMeta | undefined
-          const display = meta?.display ?? item.label
+          const display = meta?.display ?? (isSlash ? `/${item.label}` : item.label)
           const description = meta?.meta || item.description
           const group = meta?.group?.trim()
           const showHeader = isSlash && Boolean(group) && group !== lastGroup

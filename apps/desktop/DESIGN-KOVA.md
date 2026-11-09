@@ -109,7 +109,8 @@ One glass card — the app's signature.
 
 - **Geometry**: radius `20px`; **solid** card fill (the Codex box is an
   opaque dark card, not translucent glass) + 1px `--border`; soft depth
-  shadow only — never a heavy elevation.
+  shadow only — never a heavy elevation. The dock is Codex-width: max
+  `46rem`, centered — never full-bleed.
 - **Focus**: a single accent border — no outer ring or glow. The composer
   must never show two blue lines.
 - **Structure (Codex layout, permanent)**: the layout is always stacked —

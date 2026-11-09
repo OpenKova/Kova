@@ -2068,10 +2068,10 @@ body.guest-pointer-lock :is(webview, iframe) {
 /* The dock column owns the composer's width; the composer keeps the 5px
    transparent grab margin that the peel-out drag needs. +10px width compensates
    that padding so the visible surface keeps its exact width/position.
-   The prompt box sits ~1in (6rem) in from each side of the thread — never
-   full-bleed (floored so narrow panes keep a usable input). */
+   The prompt box is capped at 46rem — Codex-width — centered in the thread,
+   never full-bleed (floored so narrow panes keep a usable input). */
 [data-slot='composer-dock'] {
-  width: calc(min(var(--composer-width), max(20rem, calc(100% - 2rem - 12rem))) + 10px);
+  width: calc(min(var(--composer-width), 46rem, max(20rem, calc(100% - 2rem - 12rem))) + 10px);
   padding-bottom: var(--composer-shell-pad-block-end);
 }
 
