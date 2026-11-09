@@ -111,10 +111,14 @@ One glass card — the app's signature.
 - **Structure (Codex layout, permanent)**: the layout is always stacked —
   the input sits on its own full-width row with the placeholder at the top
   ("Ask anything"), and the controls row sits **below** it inside the same
-  card: left `+` attach (28px circle, muted icon), model pill (`999px`,
-  soft fill), voice/mic, and at the far right the **white round send**
-  (foreground circle, background arrow-up glyph — black-on-white in light,
-  white-on-black in dark). Never inline the input between the buttons.
+  card: left `+` attach (28px circle, muted icon), **approval pill**
+  ("Ask for approval" / "Approve for me" / "Full access" — the old statusbar
+  chip, moved in), model pill (`999px`, soft fill), reasoning pill, voice/mic,
+  and at the far right the **white round send** (foreground circle,
+  background arrow-up glyph). Never inline the input between the buttons.
+- **Reasoning effort is a slider, not a list**: the reasoning pill opens a
+  Codex-style moving bar — active level as the accent label on top, model
+  name beneath, seven tick stops (minimal → ultra) on a range slider.
 - **Env row**: a quiet text row beneath the card (mode labels left, branch
   right) — the Codex `Local · Worktree · Cloud` / branch line. Kova's
   coding/branch row and the underside strip own this today.
@@ -167,14 +171,14 @@ One glass card — the app's signature.
 - Rows are `12px`-rounded with comfortable padding and a control-hover
   highlight; submenus share the card.
 
-## Directory pages (Messaging, Connectors, Capabilities)
+## Directory pages (Channels, Connectors, Capabilities)
 
 - Apps/platforms render as a **card grid** (2–3 columns): brand mark,
   name, one-line description, status + state word on the right, and a
   Connect/Configure action.
 - Selecting a card opens a **popup dialog** with the full setup/detail
   flow (credentials, toggles, save action in the dialog footer) — never a
-  competing two-pane page.
+  competing two-pane page. The Messaging page is named **Channels**.
 
 ## Empty / error / boot
 

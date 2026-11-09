@@ -7,12 +7,14 @@ import { StatusDot, type StatusTone } from '@/components/status-dot'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { ErrorBanner } from '@/components/ui/error-state'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { ResponsiveTabs } from '@/components/ui/tab-dropdown'
 import { Tip } from '@/components/ui/tooltip'
+import { type Translations, useI18n } from '@/i18n'
 import {
   approvePairing,
   getMessagingPlatforms,
@@ -25,7 +27,6 @@ import {
   type TelegramOnboardingApplyResponse,
   updateMessagingPlatform
 } from '@/kova'
-import { type Translations, useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { AlertTriangle, ExternalLink, RefreshCw, Save, Trash2 } from '@/lib/icons'
 import { platformStatusTone } from '@/lib/platform-status'
@@ -39,7 +40,6 @@ import { $gatewayRestarting, runGatewayRestart, watchGatewayRestartOutcome } fro
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { PageSearchShell } from '../page-search-shell'
 import { CREDENTIAL_CONTROL_CLASS } from '../settings/credential-key-ui'
 import { credentialPreview } from '../settings/helpers'

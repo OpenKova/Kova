@@ -85,7 +85,7 @@ export const zhHantChrome = {
     nav: {
       'new-session': '新增聊天',
       capabilities: '技能與工具',
-      messaging: '訊息平台',
+      messaging: '頻道',
       artifacts: '成品',
       cron: '已排程'
     },

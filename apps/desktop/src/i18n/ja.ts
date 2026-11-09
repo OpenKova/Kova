@@ -2198,7 +2198,7 @@ export const jaOverrides = {
     nav: {
       'new-session': '新しいチャット',
       capabilities: 'スキルとツール',
-      messaging: 'メッセージング',
+      messaging: 'チャンネル',
       artifacts: 'アーティファクト',
       cron: 'スケジュール'
     },

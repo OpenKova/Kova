@@ -3112,7 +3112,7 @@ export const zhOverrides = {
     nav: {
       'new-session': '新建聊天',
       capabilities: '技能与工具',
-      messaging: '消息平台',
+      messaging: '频道',
       artifacts: '产物',
       cron: '已排期'
     },

@@ -2450,7 +2450,7 @@ export const ruOverrides = {
     nav: {
       'new-session': 'Новый чат',
       capabilities: 'Возможности',
-      messaging: 'Сообщения',
+      messaging: 'Каналы',
       artifacts: 'Артефакты',
       cron: 'Запланировано'
     },

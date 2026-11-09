@@ -3658,7 +3658,7 @@ export const frOverrides = {
     nav: {
       'new-session': 'Nouveau chat',
       capabilities: 'Capacités',
-      messaging: 'Messagerie',
+      messaging: 'Canaux',
       artifacts: 'Artefacts',
       cron: 'Planifiées'
     },

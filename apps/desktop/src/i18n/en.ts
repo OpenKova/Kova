@@ -3214,7 +3214,7 @@ export const en: Translations = {
     nav: {
       'new-session': 'New chat',
       capabilities: 'Capabilities',
-      messaging: 'Messaging',
+      messaging: 'Channels',
       artifacts: 'Artifacts',
       cron: 'Scheduled'
     },
@@ -4125,14 +4125,14 @@ export const en: Translations = {
       messagingPlatforms: 'Messaging platforms'
     },
     approvalMode: {
-      title: 'Approval mode',
+      title: 'How should Kova actions be approved?',
       ariaLabel: mode => `Approval mode: ${mode}`,
-      manual: 'Manual',
-      manualDescription: 'Ask before actions that require approval',
-      smart: 'Smart',
-      smartDescription: 'Automatically assess actions and ask when needed',
-      off: 'Off',
-      offDescription: 'Run without approval prompts'
+      manual: 'Ask for approval',
+      manualDescription: 'Always ask before actions that require approval',
+      smart: 'Approve for me',
+      smartDescription: 'Only ask for actions detected as potentially unsafe',
+      off: 'Full access',
+      offDescription: 'Unrestricted access — no approval prompts'
     },
     statusbar: {
       unknown: 'unknown',

@@ -3650,7 +3650,7 @@ export const deOverrides = {
     nav: {
       'new-session': 'Neuer Chat',
       capabilities: 'Fähigkeiten',
-      messaging: 'Messaging',
+      messaging: 'Kanäle',
       artifacts: 'Artefakte',
       cron: 'Geplant'
     },

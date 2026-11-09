@@ -1128,6 +1128,8 @@ export function ChatBar({
 
   const controls = (
     <ComposerControls
+      approvalGateway={gateway ? requestBusyConfig : null}
+      approvalProfile={profile ?? queueSessionKey ?? null}
       autoSpeak={autoSpeak}
       busy={busy}
       busyAction={busyAction}

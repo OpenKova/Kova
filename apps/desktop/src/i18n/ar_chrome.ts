@@ -194,7 +194,7 @@ export const arChrome = {
     nav: {
       'new-session': 'محادثة جديدة',
       capabilities: 'المهارات',
-      messaging: 'المراسلة',
+      messaging: 'قنوات',
       artifacts: 'العناصر',
       cron: 'مجدولة'
     },
