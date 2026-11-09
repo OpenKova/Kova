@@ -370,7 +370,7 @@ def _beta_header(betas: list) -> dict[str, str]:
 def _attribution_headers() -> dict[str, str]:
     """Same client-attribution set sent to OpenRouter / Vercel AI Gateway / Fireworks."""
     return {
-        "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent", "X-Title": "Kova Agent",
+        "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent", "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
         "User-Agent": f"KovaAgent/{get_version_info().base_version}",
     }
 

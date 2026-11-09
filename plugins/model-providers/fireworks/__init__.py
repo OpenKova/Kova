@@ -35,7 +35,7 @@ fireworks = FireworksProfile(
     # survive switch_model and credential rotation.
     default_headers=LazyHeaders({
         "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
-        "X-Title": "Kova Agent",
+        "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
         "User-Agent": lambda: kova_user_agent("KovaAgent"),
     }),
     default_aux_model="accounts/fireworks/models/glm-5p2",

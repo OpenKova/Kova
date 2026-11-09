@@ -16,7 +16,7 @@ from datetime import UTC
 # default_headers so they survive model switches and credential rotation.
 _ATTRIBUTION_HEADERS = {
     "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
-    "X-Title": "Kova Agent",
+    "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
     "User-Agent": lambda: kova_user_agent("KovaAgent"),
 }
 

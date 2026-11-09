@@ -56,7 +56,7 @@ _KEY_URL = "https://www.perplexity.ai/account/api"
 def _headers() -> dict[str, str]:
     return {
         "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
-        "X-Title": "Kova Agent",
+        "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
         "User-Agent": kova_user_agent("KovaAgent"),
         "X-Pplx-Integration": "kova-agent",
     }

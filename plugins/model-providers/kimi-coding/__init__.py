@@ -11,7 +11,7 @@ from providers.base import OMIT_TEMPERATURE, LazyHeaders, ProviderProfile
 
 _HEADERS = {
     "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
-    "X-Title": "Kova Agent",
+    "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
     "User-Agent": lambda: kova_user_agent("KovaAgent"),
     # Exclude brotli: httpx's brotlicffi backend has a streaming decode bug on
     # Moonshot's content-encoding: br SSE responses (#28043, #48428, #59556).

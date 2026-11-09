@@ -173,7 +173,7 @@ _ATTRIBUTION_HEADERS = {
     "Content-Type": "application/json",
     # OpenRouter attribution headers (harmless against Neural Studio Portal).
     "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
-    "X-Title": "Kova Agent",
+    "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
 }
 
 
