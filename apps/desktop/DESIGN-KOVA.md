@@ -99,7 +99,8 @@ overlays; always ship the `-webkit-` prefix and the `@supports` fallback.
   grouped under project folders, flat rows, one active pill, **no status
   dots** on titles (branched sessions keep their tree stem). Chat tabs have
   no `+` — new chats come from "New chat" (⌘T still opens a tab). The slash
-  palette shows command names without the `/` prefix.
+  palette opens above the prompt bar at the **full bar width** (Codex), with
+  command names carrying their `/` prefix.
 - Sidebar and topbar are glass tier 1; panes attach beneath the topbar with
   one hairline per panel — no two-level boxes.
 
