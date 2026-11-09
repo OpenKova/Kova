@@ -1569,7 +1569,19 @@ export function ChatSidebar({
       data-tour="sessions-sidebar"
     >
       <SidebarContent className="gap-0 overflow-hidden bg-transparent px-2.5">
-        <SidebarGroup className="shrink-0 p-0 pb-2 pt-[calc(var(--titlebar-height)+0.375rem)]">
+        {/* Codex order: search field at the very top, then nav, then threads. */}
+        {showSessionSections && (
+          <div className="shrink-0 px-2 pb-1 pt-[calc(var(--titlebar-height)+0.375rem)]">
+            <SearchField
+              aria-label={s.searchAria}
+              inputRef={searchInputRef}
+              onChange={setSearchQuery}
+              placeholder={s.searchPlaceholder}
+              value={searchQuery}
+            />
+          </div>
+        )}
+        <SidebarGroup className={cn('shrink-0 p-0 pb-2', showSessionSections ? 'pt-1' : 'pt-[calc(var(--titlebar-height)+0.375rem)]')}>
           <SidebarGroupContent>
             <SidebarMenu className="gap-px">
               {navItems.map(item => {
@@ -1596,9 +1608,9 @@ export function ChatSidebar({
                       // resolved region has been observed to swallow clicks on the
                       // top rows. Same carve-out as USER_BUBBLE_BASE_CLASS in
                       // thread.tsx.
-                      'flex h-7 w-full justify-start gap-2 rounded-md border border-transparent px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
+                      'flex h-7 w-full justify-start gap-2 rounded-lg border border-transparent px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
                       active &&
-                        'border-(--ui-stroke-tertiary) bg-(--ui-control-active-background) text-foreground shadow-none hover:border-(--ui-stroke-tertiary)!',
+                        'bg-(--ui-control-active-background) text-foreground shadow-none',
                       !isInteractive &&
                         'cursor-default hover:border-transparent hover:bg-transparent hover:text-inherit'
                     )}
@@ -1705,18 +1717,6 @@ export function ChatSidebar({
         </SidebarGroup>
 
         <SidebarStorageCorruptNotice />
-
-        {showSessionSections && (
-          <div className="shrink-0 px-2 pb-1 pt-1">
-            <SearchField
-              aria-label={s.searchAria}
-              inputRef={searchInputRef}
-              onChange={setSearchQuery}
-              placeholder={s.searchPlaceholder}
-              value={searchQuery}
-            />
-          </div>
-        )}
 
         {showSessionSections && (
           <div

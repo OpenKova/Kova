@@ -92,6 +92,10 @@ overlays; always ship the `-webkit-` prefix and the `@supports` fallback.
 └────────┴────────────────────────────────────┘
 ```
 
+- Sidebar is Codex-style: search field at the very top, then nav rows
+  (New session, Capabilities, Messaging, Artifacts, Scheduled jobs) as flat
+  `rounded-lg` rows with a single active pill (no border), then Threads —
+  sessions grouped under project folders, flat rows, one active pill.
 - Sidebar and topbar are glass tier 1; panes attach beneath the topbar with
   one hairline per panel — no two-level boxes.
 
