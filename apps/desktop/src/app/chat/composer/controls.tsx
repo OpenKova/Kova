@@ -8,12 +8,10 @@ import { triggerHaptic } from '@/lib/haptics'
 import { hostHas } from '@/lib/host-capabilities'
 import { Ear, EarOff, iconSize, Layers3, Loader2, Square } from '@/lib/icons'
 import { cn } from '@/lib/utils'
-import type { ApprovalModeRequester } from '@/store/approval-mode'
 import { recordAction } from '@/store/desktop-metrics'
 import { $hudMode, closeHud, resetHudLayout } from '@/store/hud'
 import { $wakeWord, toggleWakeWord } from '@/store/wake-word'
 
-import { ApprovalPill } from './approval-pill'
 import { ACTIVE_ICON_BTN, GHOST_ICON_BTN, PRIMARY_ICON_BTN } from './control-classes'
 import type { ConversationStatus } from './hooks/use-voice-conversation'
 import { ModelPill } from './model-pill'
@@ -61,8 +59,6 @@ export function ComposerControls({
   hasComposerPayload,
   hideModelPill = false,
   minimal = false,
-  approvalGateway = null,
-  approvalProfile = null,
   state,
   voiceStatus,
   onDictate,
@@ -83,8 +79,6 @@ export function ComposerControls({
   hasComposerPayload: boolean
   hideModelPill?: boolean
   minimal?: boolean
-  approvalGateway?: ApprovalModeRequester | null
-  approvalProfile?: string | null
   state: ChatBarState
   voiceStatus: VoiceStatus
   onDictate: () => void
@@ -153,7 +147,6 @@ export function ComposerControls({
         <>
           {hideModelPill ? null : (
             <>
-              <ApprovalPill disabled={disabled} gateway={approvalGateway} profile={approvalProfile} />
               <ModelPill compact={compactModelPill} disabled={disabled} model={state.model} />
               {compactModelPill ? null : <ReasoningPill disabled={disabled} model={state.model} />}
             </>

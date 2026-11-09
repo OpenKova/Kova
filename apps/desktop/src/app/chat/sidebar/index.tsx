@@ -92,7 +92,6 @@ import { $profileRailVisible } from '@/store/profile-rail-prefs'
 import { $projectScope, ALL_PROJECTS, exitProjectScope } from '@/store/project-scope'
 import {
   $activeProjectId,
-  $newProjectDropPlacement,
   $projectOwnerBySessionId,
   $projects,
   $projectTree,
@@ -152,7 +151,6 @@ import {
 import type { SidebarNavItem } from '../../types'
 import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session-drag'
 
-import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
@@ -1569,22 +1567,6 @@ export function ChatSidebar({
       data-tour="sessions-sidebar"
     >
       <SidebarContent className="gap-0 overflow-hidden bg-transparent px-2.5">
-        {/* Codex order: search icon at the very top, then nav, then threads. */}
-        {showSessionSections && (
-          <div className="flex shrink-0 justify-end px-2 pb-1 pt-[calc(var(--titlebar-height)+0.375rem)]">
-            <Tip label={s.searchAria}>
-              <Button
-                aria-label={s.searchAria}
-                className="size-7 shrink-0"
-                onClick={openCommandPalette}
-                size="icon"
-                variant="ghost"
-              >
-                <Search className="size-3.5" />
-              </Button>
-            </Tip>
-          </div>
-        )}
         <SidebarGroup className={cn('shrink-0 p-0 pb-2', showSessionSections ? 'pt-1' : 'pt-[calc(var(--titlebar-height)+0.375rem)]')}>
           <SidebarGroupContent>
             <SidebarMenu className="gap-px">
@@ -1905,35 +1887,24 @@ export function ChatSidebar({
                       </div>
                     ) : (
                       <>
-                        {/* The flat-list header "+" is a drag source too — the
-                            same gesture as the nav's "New session" row: drag
-                            it onto a chat zone's tab strip / edge / center to
-                            create the session exactly there. Project-overview
-                            mode drags its "+" (the "New project" button) with
-                            the project-drag variant: a drop opens the SAME
-                            project dialog, and the created project starts at
-                            the dropped spot. */}
-                        <SidebarSectionAddButton
-                          ariaLabel={agentsGrouped ? s.projects.newButton : s.nav['new-session']}
-                          onNewProjectDrag={
-                            agentsGrouped
-                              ? {
-                                  // Dragging the "New project" + arms WHERE the
-                                  // project should start; the dialog flow consumes
-                                  // it on create (see $newProjectDropPlacement).
-                                  onArm: placement => $newProjectDropPlacement.set(placement)
-                                }
-                              : undefined
-                          }
-                          onNewSessionSplit={agentsGrouped ? undefined : onNewSessionSplit}
-                          onPlainClick={() => {
-                            if (agentsGrouped) {
-                              openProjectCreate()
-                            } else {
-                              onNewSessionInWorkspace(null)
-                            }
-                          }}
-                        />
+                        {/* Search lives in the SESSIONS header (Codex keeps it
+                            up top with the nav) — it opens the command palette,
+                            which is the search surface (sessions, views,
+                            actions). The "New chat" row already covers new
+                            sessions, so there is no "+" here. */}
+                        <div className="grid size-6 place-items-center">
+                          <Tip label={s.searchAria}>
+                            <Button
+                              aria-label={s.searchAria}
+                              className={HEADER_NAV_BTN}
+                              onClick={openCommandPalette}
+                              size="icon-xs"
+                              variant="ghost"
+                            >
+                              <Search className="size-3.5" />
+                            </Button>
+                          </Tip>
+                        </div>
                         <div className="grid size-6 place-items-center">
                           <SidebarFilterMenu className={HEADER_NAV_BTN} />
                         </div>

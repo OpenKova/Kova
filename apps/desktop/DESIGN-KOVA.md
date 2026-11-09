@@ -92,15 +92,17 @@ overlays; always ship the `-webkit-` prefix and the `@supports` fallback.
 └────────┴────────────────────────────────────┘
 ```
 
-- Sidebar is Codex-style: a search **icon** at the very top (opens the
-  command palette — the search surface), then nav rows (New session,
+- Sidebar is Codex-style: a search **icon** in the SESSIONS header (opens
+  the command palette — the search surface), then nav rows (New session,
   Capabilities, Channels, Artifacts, Scheduled jobs) as flat `rounded-lg`
   rows with a single active pill (no border), then Threads — sessions
   grouped under project folders, flat rows, one active pill, **no status
-  dots** on titles (branched sessions keep their tree stem). Chat tabs have
-  no `+` — new chats come from "New chat" (⌘T still opens a tab). The slash
-  palette opens above the prompt bar at the **full bar width** (Codex), with
-  command names carrying their `/` prefix.
+  dots** on titles (branched sessions keep their tree stem). Chat zones have
+  **no tab strip** — the sidebar switches conversations; ⌘T still opens a
+  tab. The slash palette opens above the prompt bar at the **full bar
+  width** (Codex), with command names carrying their `/` prefix. The prompt
+  bar: solid card, **no ring border**, approval pill right of the `+`
+  attach, model/reasoning pills on the right.
 - Sidebar and topbar are glass tier 1; panes attach beneath the topbar with
   one hairline per panel — no two-level boxes.
 

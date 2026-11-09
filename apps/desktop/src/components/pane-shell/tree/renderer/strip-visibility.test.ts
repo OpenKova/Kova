@@ -101,6 +101,18 @@ describe('a lone workspace', () => {
   })
 })
 
+// A chat strip is never drawn, whatever the tab count or the stored choice:
+// the sidebar switches conversations, so hiding a session pane cannot strand
+// it — every session stays activatable by id.
+describe('a chat tab strip', () => {
+  it('never renders for a session strip', () => {
+    expect(resolveTabStripVisible({ sessionStrip: true, shown: [workspace()] })).toBe(false)
+    expect(resolveTabStripVisible({ sessionStrip: true, shown: [workspace(), tile()] })).toBe(false)
+    expect(resolveTabStripVisible({ sessionStrip: true, mode: 'always', shown: [workspace()] })).toBe(false)
+    expect(resolveTabStripVisible({ sessionStrip: false, shown: [workspace()] })).toBe(true)
+  })
+})
+
 // The adapter both TreeGroup and the store call. Its job is to read the same
 // chrome flags and fold in the app-wide default on both paths, so the strip on
 // screen and the toggle command can never disagree.

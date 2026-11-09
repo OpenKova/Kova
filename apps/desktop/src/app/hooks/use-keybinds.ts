@@ -47,7 +47,6 @@ import {
   layoutHasRightSide,
   requestSessionSearchFocus,
   setFileBrowserOpen,
-  togglePanesFlipped,
   toggleRightSide,
   toggleSidebarOpen
 } from '@/store/layout'
@@ -373,7 +372,6 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
     'view.nextTerminal': () => isPaneVisible('terminal') && cycleTerminal(1),
     'view.prevTerminal': () => isPaneVisible('terminal') && cycleTerminal(-1),
     'view.closeTerminal': () => isPaneVisible('terminal') && closeActiveTerminal(),
-    'view.flipPanes': togglePanesFlipped,
     // ⌘W: close the focused tab (terminal / preview target / zone tree tab).
     // On the main tab with session tabs stacked, it shifts the next one in —
     // the loader navigates to that session's route (loads it into main). On

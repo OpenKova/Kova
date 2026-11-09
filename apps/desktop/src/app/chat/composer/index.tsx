@@ -44,6 +44,7 @@ import { $threadScrolledUpBySession } from '@/store/thread-scroll'
 import { $autoSpeakReplies } from '@/store/voice-prefs'
 import { useTheme } from '@/themes'
 
+import { ApprovalPill } from './approval-pill'
 import { AttachmentList } from './attachments'
 import { deriveBusySubmitState } from './busy-submit-state'
 import { ComposerDockGlow, QueuedEditBanner } from './chat-bar-parts'
@@ -1128,8 +1129,6 @@ export function ChatBar({
 
   const controls = (
     <ComposerControls
-      approvalGateway={gateway ? requestBusyConfig : null}
-      approvalProfile={profile ?? queueSessionKey ?? null}
       autoSpeak={autoSpeak}
       busy={busy}
       busyAction={busyAction}
@@ -1529,6 +1528,13 @@ export function ChatBar({
                   <div className={cn('grid w-full', controlRowGridClass(singleColumn, stacked))}>
                     <div className="flex translate-y-[3px] items-start gap-(--composer-control-gap) self-start [grid-area:menu]">
                       {contextMenu}
+                      {!(minimal || chatOnboardingSolo) && !guidedChat && (
+                        <ApprovalPill
+                          disabled={disabled}
+                          gateway={gateway ? requestBusyConfig : null}
+                          profile={profile ?? queueSessionKey ?? null}
+                        />
+                      )}
                       <ContribSlot area={COMPOSER_AREAS.leading} />
                     </div>
                     <div className="min-w-0 [grid-area:input]">{input}</div>

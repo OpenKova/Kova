@@ -95,7 +95,6 @@ import {
   toggleTabSelected
 } from '../tab-selection'
 
-import { CompactTabPicker } from './compact-tab-picker'
 import { startPaneDrag } from './drag-session'
 import { KeepAlivePaneSlot, useStablePaneHosts } from './keep-alive-panes'
 import { PaneBody } from './pane-body'
@@ -318,44 +317,6 @@ function EditVeil({ label, onPointerDown, top, ...menu }: EditVeilProps) {
   )
 }
 
-type CompactTabPickerProps = ComponentProps<typeof CompactTabPicker>
-
-interface CompactZoneTabsProps extends Pick<CompactTabPickerProps, 'activeId' | 'newTab' | 'tabActions' | 'tabs'> {
-  belowControls: boolean
-  /** The active tab takes Close (see TreeGroup's `closeableTab`). */
-  closeable: boolean
-  node: GroupNode
-}
-
-/** A narrow touch zone's tab row: the picker in place of the scrolling strip.
- *  Picking a tab is a strip tap, so a minimized zone restores first. */
-function CompactZoneTabs({ activeId, belowControls, closeable, newTab, node, tabActions, tabs }: CompactZoneTabsProps) {
-  return (
-    <div
-      className={cn('flex min-w-0 flex-1', belowControls && 'absolute inset-x-0 bottom-0')}
-      data-zone-tabstrip={node.id}
-      onPointerDownCapture={() => noteActiveTreeGroup(node.id)}
-    >
-      <CompactTabPicker
-        activeId={activeId}
-        newTab={node.minimized ? null : newTab}
-        onClose={closeable ? () => closeTabPane(activeId) : undefined}
-        onSelect={paneId => {
-          clearTabSelection()
-
-          if (node.minimized) {
-            restoreTreePane(paneId)
-          }
-
-          activateTreePane(node.id, paneId)
-        }}
-        tabActions={tabActions}
-        tabs={tabs}
-      />
-    </div>
-  )
-}
-
 interface CollapsedZoneRailProps {
   activeId: string
   children: ReactNode
@@ -462,7 +423,7 @@ export function TreeGroup({
   const isEmpty = shown.length === 0
   const sidebarGroup = !node.panes.some(id => id === 'workspace' || paneChrome(paneFor(id)).placement === 'main')
 
-  const { compactTabs, tabStripHeight, tabsBelowControls, tabsInTitlebar, titlebarHeight } = useZoneHeaderLayout({
+  const { tabStripHeight, tabsBelowControls, tabsInTitlebar, titlebarHeight } = useZoneHeaderLayout({
     measuredBelowControls,
     narrow,
     shown,
@@ -546,6 +507,7 @@ export function TreeGroup({
     isCollapsePane,
     mode: node.tabStrip,
     paneFor,
+    sessionStrip: shown.length > 0 && shown.every(isSessionStripPane),
     shown
   })
 
@@ -569,7 +531,7 @@ export function TreeGroup({
   // the strip's scroll window. Opening a tab past the right edge otherwise
   // left both the new tab and the button that made it out of view.
   useActiveTabVisible(tabsRef, activeId, {
-    enabled: headerVisible && !compactTabs,
+    enabled: headerVisible,
     last: shown[shown.length - 1] === activeId,
     tabCount: shown.length
   })
@@ -735,16 +697,6 @@ export function TreeGroup({
             >
               <PaneTab active>{pageHeader()}</PaneTab>
             </div>
-          ) : headerVisible && compactTabs ? (
-            <CompactZoneTabs
-              activeId={activeId}
-              belowControls={tabsBelowControls}
-              closeable={closeableTab(activeId)}
-              newTab={newTab}
-              node={node}
-              tabActions={paneId => paneChrome(paneFor(paneId)).tabActions?.()}
-              tabs={shown.map(id => ({ id, label: tabLabel(id), title: tabText(id) }))}
-            />
           ) : headerVisible ? (
             <ZoneMenu {...zoneMenu}>
               <PaneTabStrip

@@ -31,6 +31,10 @@ export interface StripZone {
   headerVeto?: boolean
   /** The zone's standing choice; undefined = auto. */
   mode?: TabStripMode
+  /** Every shown pane is a chat pane (workspace / session tile) — Codex
+   *  has no chat tab strip: the sidebar switches conversations, so a chat
+   *  zone never renders tabs no matter the count. */
+  sessionStrip?: boolean
   /** Panes currently rendered as chips — chrome-hidden and narrow-collapsed
    *  panes are already filtered out. */
   shown: readonly StripPane[]
@@ -80,6 +84,13 @@ export function resolveTabStripVisible(zone: StripZone): boolean {
     return false
   }
 
+  // Chat strips are gone (Codex): the sidebar owns conversation switching.
+  // Outranks the stranded rule on purpose — hiding a session pane never
+  // strands it, because the sidebar still activates every session by id.
+  if (zone.sessionStrip && zone.shown.length > 0) {
+    return false
+  }
+
   if (stranded(zone.shown)) {
     return true
   }
@@ -109,10 +120,13 @@ export function tabStripVisibleForZone(zone: {
   paneFor: (id: string) => Contribution | undefined
   /** Panes currently rendered as chips. */
   shown: readonly string[]
+  /** Every shown pane is a chat pane (workspace / session tile). */
+  sessionStrip?: boolean
 }): boolean {
   return resolveTabStripVisible({
     headerVeto: paneChrome(zone.paneFor(zone.active)).headerVeto,
     mode: effectiveTabStripMode(zone.mode),
+    sessionStrip: zone.sessionStrip,
     shown: zone.shown.map(id => {
       const chrome = paneChrome(zone.paneFor(id))
 

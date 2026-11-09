@@ -860,6 +860,7 @@ export function tabStripVisibleForGroup(group: GroupNode): boolean {
     isCollapsePane,
     mode: group.tabStrip,
     paneFor: (id: string) => registered.find(c => c.id === id),
+    sessionStrip: shown.length > 0 && shown.every(isSessionStripPane),
     shown
   })
 }
