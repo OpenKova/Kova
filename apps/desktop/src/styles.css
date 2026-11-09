@@ -2186,7 +2186,7 @@ body.guest-pointer-lock :is(webview, iframe) {
 }
 
 [data-slot='composer-root'] {
-  --composer-fill: color-mix(in srgb, var(--dt-card) 88%, transparent);
+  --composer-fill: var(--dt-card);
 }
 
 /* OpenClaw clone: focus is the accent ring with glow (--focus-glow):
@@ -2205,7 +2205,7 @@ body.guest-pointer-lock :is(webview, iframe) {
 }
 
 [data-slot='composer-dock']:is(:hover, :focus-within) [data-slot='composer-root'][data-thread-scrolled-up] {
-  --composer-fill: color-mix(in srgb, var(--dt-card) 88%, transparent);
+  --composer-fill: var(--dt-card);
 }
 
 /* Tool/thinking blocks now live at message-text alignment (no leading

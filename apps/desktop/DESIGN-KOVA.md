@@ -2,10 +2,12 @@
 
 Kova's desktop design language, cloned from **OpenClaw's Control UI design
 system** (`ui/docs/design-system/`: README, color-tokens, glass-surfaces,
-motion, accessibility) and its chat composer (`ui/src/styles/chat/`). The
-OpenBot clone of this contract is parked in `DESIGN-KOVA-OPENBOT.md`. Where
-this file and the legacy Hermes `DESIGN.md` disagree, this file wins for
-anything visual.
+motion, accessibility) and its chat composer (`ui/src/styles/chat/`), with
+the **Codex desktop prompt box** as the reference for the composer itself
+(dark filled card, placeholder on top, `+` bottom-left, white round send
+bottom-right, env row beneath). The OpenBot clone of this contract is parked
+in `DESIGN-KOVA-OPENBOT.md`. Where this file and the legacy Hermes
+`DESIGN.md` disagree, this file wins for anything visual.
 
 OpenClaw's system in one paragraph: **dark-first glass** on a deep charcoal
 base (`#0e1015`), a **signature red accent** (`#ff5c5c`) used with restraint,
@@ -97,22 +99,28 @@ overlays; always ship the `-webkit-` prefix and the `@supports` fallback.
 
 One glass card — the app's signature.
 
-- **Geometry**: radius `20px`; card fill + 1px `--border`; backdrop blur
-  12px saturate 1.6 (semi-opaque `@supports` fallback); soft depth shadow
-  only — never a heavy elevation.
+- **Geometry**: radius `20px`; **solid** card fill (the Codex box is an
+  opaque dark card, not translucent glass) + 1px `--border`; soft depth
+  shadow only — never a heavy elevation.
 - **Focus**: accent-colored ring with glow —
   `0 0 0 2px var(--bg), 0 0 0 3px accent@80%, 0 0 16px accent-glow` — the
   accent, not grey. Composer border/shadow transitions at 100ms.
-- **Structure**: message text at top full-bleed; one control row inside the
-  bottom edge — left: `+` attach (28px circle, muted icon), center: model
-  pill (`999px`, soft fill), right: **round send in signature red**
-  (arrow-up glyph). Voice/mic left of send as a 28px circle.
+- **Structure (Codex layout, permanent)**: the layout is always stacked —
+  the input sits on its own full-width row with the placeholder at the top
+  ("Ask anything"), and the controls row sits **below** it inside the same
+  card: left `+` attach (28px circle, muted icon), model pill (`999px`,
+  soft fill), voice/mic, and at the far right the **white round send**
+  (foreground circle, background arrow-up glyph — black-on-white in light,
+  white-on-black in dark). Never inline the input between the buttons.
+- **Env row**: a quiet text row beneath the card (mode labels left, branch
+  right) — the Codex `Local · Worktree · Cloud` / branch line. Kova's
+  coding/branch row and the underside strip own this today.
 - **States**: busy — send becomes a small square stop glyph on the same
   circle; error — inline `ErrorState`, never a second banner card.
 - **Centered → docked (empty state)**: while the chat has no messages, the
-  whole dock — hero (BrandMark 64px + title 32px semibold + subtitle 16px
-  muted) + prompt bar + suggestion chips — sits centered (~46% of the
-  surface). The first send slides it to the bottom as one motion
+  whole dock — hero (BrandMark 40px + title 20px semibold + one muted
+  subtitle line) + prompt bar + suggestion chips — sits centered (~46% of
+  the surface). The first send slides it to the bottom as one motion
   (300ms, `cubic-bezier(0.4,0,0.2,1)` in-out — it travels A→B) and it
   stays docked. Loading, resume-exhausted, and guided-setup surfaces never
   center. Suggestion chips fill the draft and focus the input; they never
@@ -161,7 +169,8 @@ One glass card — the app's signature.
 ## Checklist before shipping a change
 
 - [ ] Glass tier correct (nav = tier 1, card/input = tier 2), `@supports` fallback present
-- [ ] Prompt bar reads as one glass object (input + row + red send inside)
+- [ ] Prompt bar reads as one solid card (input row on top, `+` bottom-left,
+      white round send bottom-right, env row beneath)
 - [ ] Tokens, never literals; `Button` only; no one-off radii/shadows
 - [ ] Renders in light *and* dark without repapering (warm paper + terracotta in light)
 - [ ] Locale strings in `en` (other locales fall back)

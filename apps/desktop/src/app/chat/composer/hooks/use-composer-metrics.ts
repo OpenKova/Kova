@@ -263,7 +263,9 @@ export function useComposerMetrics({
     compactPill: fit.compactPill || fit.tight,
     foldVoice: fit.foldVoice || fit.minimal,
     minimal: fit.minimal,
-    stacked: expanded || fit.tight,
+    // Codex layout is permanent: the input always sits on its own row with
+    // the controls (+ / model / send) on the row below, at every width.
+    stacked: true,
     tight: fit.tight,
     singleColumn: fit.singleColumn
   }

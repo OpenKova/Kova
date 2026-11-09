@@ -1316,9 +1316,9 @@ export function ChatBar({
               className="flex flex-col items-center px-4 pb-5 text-center"
               data-slot="composer-hero"
             >
-              <BrandMark className="size-16" />
-              <h1 className="mt-3 text-[32px] leading-[38px] font-semibold tracking-[-0.01em] text-foreground">{t.composer.heroTitle}</h1>
-              <p className="mt-1 max-w-[30rem] text-base leading-[1.5] text-(--ui-text-secondary)">{t.composer.heroSubtitle}</p>
+              <BrandMark className="size-10" />
+              <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">{t.composer.heroTitle}</h1>
+              <p className="mt-1 max-w-[30rem] text-sm leading-relaxed text-(--ui-text-secondary)">{t.composer.heroSubtitle}</p>
             </div>
           )}
           {/* Aligned to the composer SURFACE, which sits inside the composer's
