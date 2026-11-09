@@ -102,9 +102,8 @@ One glass card — the app's signature.
 - **Geometry**: radius `20px`; **solid** card fill (the Codex box is an
   opaque dark card, not translucent glass) + 1px `--border`; soft depth
   shadow only — never a heavy elevation.
-- **Focus**: accent-colored ring with glow —
-  `0 0 0 2px var(--bg), 0 0 0 3px accent@80%, 0 0 16px accent-glow` — the
-  accent, not grey. Composer border/shadow transitions at 100ms.
+- **Focus**: a single accent border — no outer ring or glow. The composer
+  must never show two blue lines.
 - **Structure (Codex layout, permanent)**: the layout is always stacked —
   the input sits on its own full-width row with the placeholder at the top
   ("Ask anything"), and the controls row sits **below** it inside the same
@@ -174,5 +173,5 @@ One glass card — the app's signature.
 - [ ] Tokens, never literals; `Button` only; no one-off radii/shadows
 - [ ] Renders in light *and* dark without repapering (warm paper + terracotta in light)
 - [ ] Locale strings in `en` (other locales fall back)
-- [ ] Focus ring visible (accent + glow); reduced-motion respected
+- [ ] Focus shows one accent border only (never a double line)
 - [ ] Library icons only (Tabler/Codicon), brand mark only for brand moments
