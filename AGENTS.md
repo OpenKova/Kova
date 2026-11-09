@@ -79,7 +79,7 @@ kova-agent/
 ├── model_tools.py        # Tool orchestration, discover_builtin_tools(), handle_function_call()
 ├── toolsets.py           # TOOLSETS dict, _KOVA_CORE_TOOLS
 ├── cli.py                # KovaCLI (REPL, slash dispatch) + kova_cli/cli_*_mixin.py
-├── hermes_state.py       # SessionDB facade; hermes_state_*.py siblings
+├── kova_state.py       # SessionDB facade; kova_state_*.py siblings
 ├── hermes_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
 ├── scripts/              # check, run_tests.sh, code_health/, ci/
 └── website/              # Docusaurus docs (developer-guide/ holds the long-form area docs)
@@ -91,7 +91,7 @@ all profile-aware via `get_hermes_home()`.
 ### Facade + siblings layout
 
 Every former god file is a **facade** (public entry points + the names other packages import) plus
-**siblings** `<stem>_<topic>.py`, each owning one topic (`hermes_state.py`, `gateway/run.py`,
+**siblings** `<stem>_<topic>.py`, each owning one topic (`kova_state.py`, `gateway/run.py`,
 `tools/mcp_tool.py`, `kova_cli/kanban.py`, `kova_cli/web_server.py`, `cli.py` →
 `kova_cli/cli_*_mixin.py`, `run_agent.py` → `agent/turn_*.py`).
 
