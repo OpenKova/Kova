@@ -32,7 +32,7 @@ import type { ChatBarState } from './types'
 const UNKNOWN_TIER = atom('')
 
 const PILL = cn(
-  'h-(--composer-control-size) min-w-0 shrink gap-1 rounded-md px-2 text-xs font-normal',
+  'h-(--composer-control-size) min-w-0 shrink gap-1 rounded-full border border-transparent bg-background/45 px-2.5 text-xs font-normal',
   'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
 )
 
@@ -164,7 +164,7 @@ export function ModelPill({
   // padding, sized to match the other composer icon buttons.
   const pillClass = compact
     ? cn(
-        'size-(--composer-control-size) shrink-0 justify-center gap-0 rounded-md p-0',
+        'size-(--composer-control-size) shrink-0 justify-center gap-0 rounded-full p-0',
         'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
       )
     : PILL

@@ -21,7 +21,7 @@ export const composerInputBacking = cn(
 /** The composer surface's hairline ring. Plugin composers (Bot Mode rooms) wear it too,
  *  so every input surface in the app reads as the same composer. */
 export const composerSurfaceRing =
-  'border border-[color-mix(in_srgb,var(--dt-composer-ring)_calc(18%*var(--composer-ring-strength)),var(--dt-input))]'
+  'border border-[color-mix(in_srgb,var(--dt-composer-ring)_calc(14%*var(--composer-ring-strength)),var(--dt-input))] shadow-[0_16px_48px_-16px_rgba(0,0,0,0.28),0_4px_16px_-8px_rgba(0,0,0,0.12)]'
 
 /** Backdrop treatment for non-input composer chrome. Harmless when the fill
  *  goes opaque (drawer open) — nothing shows through to blur. */
@@ -49,7 +49,7 @@ export const composerDockCard = (edge: 'bottom' | 'top' = 'top') =>
  *  so it renders identically whether mounted inside the composer or portaled out
  *  of it. Visual skin only — consumers add their own size/position/padding. */
 export const composerPanelCard = cn(
-  'rounded-2xl border border-border/65 shadow-nous text-[length:var(--conversation-tool-font-size)]',
+  'rounded-3xl border border-border/65 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.32)] text-[length:var(--conversation-tool-font-size)]',
   'bg-[color-mix(in_srgb,var(--dt-card)_72%,transparent)]',
   composerSurfaceGlass
 )

@@ -18,7 +18,7 @@ import { $defaultReasoningEffort } from '@/store/session'
 import type { ChatBarState } from './types'
 
 const PILL = cn(
-  'h-(--composer-control-size) shrink-0 gap-1 rounded-md px-2 text-xs font-normal',
+  'h-(--composer-control-size) shrink-0 gap-1 rounded-full border border-transparent bg-background/45 px-2.5 text-xs font-normal',
   'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
 )
 

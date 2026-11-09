@@ -1343,7 +1343,7 @@ export function ChatBar({
           </StatusDrawerContent>
           <ComposerPrimitive.Root
             className={cn(
-              'group/composer relative w-full overflow-visible rounded-2xl',
+              'group/composer relative w-full overflow-visible rounded-[28px]',
               poppedOut && 'bg-transparent',
               dragging && 'cursor-grabbing select-none touch-none',
               // Native Wayland HUD: setBounds cannot position a top-level
@@ -1550,7 +1550,7 @@ export function ChatBarFallback() {
   return (
     <div
       className={cn(
-        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-2xl pt-2 pb-[var(--composer-shell-pad-block-end)]',
+        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-[28px] pt-2 pb-[var(--composer-shell-pad-block-end)]',
         'bg-linear-to-b from-transparent to-background/55'
       )}
       data-slot="composer-root"
