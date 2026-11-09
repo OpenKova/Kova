@@ -11,7 +11,6 @@ import { Codicon } from '@/components/ui/codicon'
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { KbdGroup } from '@/components/ui/kbd'
-import { SearchField } from '@/components/ui/search-field'
 import {
   Sidebar,
   SidebarContent,
@@ -23,12 +22,14 @@ import {
 } from '@/components/ui/sidebar'
 import { Tip, TipKeybindLabel } from '@/components/ui/tooltip'
 import { useContributions } from '@/contrib/react/use-contributions'
-import { type SessionInfo, type SessionSearchResult } from '@/kova'
 import { useI18n } from '@/i18n'
+import { type SessionInfo, type SessionSearchResult } from '@/kova'
+import { Search } from '@/lib/icons'
 import { comboTokens } from '@/lib/keybinds/combo'
 import { sessionMatchesSearch } from '@/lib/session-search'
 import { normalizeSessionSource, sessionSourceLabel } from '@/lib/session-source'
 import { cn } from '@/lib/utils'
+import { openCommandPalette } from '@/store/command-palette'
 import { $connectionsRegistry } from '@/store/connection-registry-state'
 import { $activeConnectionId } from '@/store/connections'
 import { $cronJobs } from '@/store/cron'
@@ -555,12 +556,11 @@ export function ChatSidebar({
   const messagingOpenIds = useStore($sidebarMessagingOpenIds)
   // Per-platform count of rows currently revealed (starts at NON_SESSION_INITIAL_ROWS).
   const [messagingVisible, setMessagingVisible] = useState<Record<string, number>>({})
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  // Hotkey (session.focusSearch) → the command palette IS the search surface.
   const trimmedQuery = searchQuery.trim()
 
-  // Hotkey (session.focusSearch) → focus the field once it's mounted.
   useEffect(() => {
-    const onFocus = () => searchInputRef.current?.focus({ preventScroll: true })
+    const onFocus = () => openCommandPalette()
 
     window.addEventListener(SESSION_SEARCH_FOCUS_EVENT, onFocus)
 
@@ -1569,16 +1569,20 @@ export function ChatSidebar({
       data-tour="sessions-sidebar"
     >
       <SidebarContent className="gap-0 overflow-hidden bg-transparent px-2.5">
-        {/* Codex order: search field at the very top, then nav, then threads. */}
+        {/* Codex order: search icon at the very top, then nav, then threads. */}
         {showSessionSections && (
-          <div className="shrink-0 px-2 pb-1 pt-[calc(var(--titlebar-height)+0.375rem)]">
-            <SearchField
-              aria-label={s.searchAria}
-              inputRef={searchInputRef}
-              onChange={setSearchQuery}
-              placeholder={s.searchPlaceholder}
-              value={searchQuery}
-            />
+          <div className="flex shrink-0 justify-end px-2 pb-1 pt-[calc(var(--titlebar-height)+0.375rem)]">
+            <Tip label={s.searchAria}>
+              <Button
+                aria-label={s.searchAria}
+                className="size-7 shrink-0"
+                onClick={openCommandPalette}
+                size="icon"
+                variant="ghost"
+              >
+                <Search className="size-3.5" />
+              </Button>
+            </Tip>
           </div>
         )}
         <SidebarGroup className={cn('shrink-0 p-0 pb-2', showSessionSections ? 'pt-1' : 'pt-[calc(var(--titlebar-height)+0.375rem)]')}>

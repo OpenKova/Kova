@@ -8,12 +8,15 @@ import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
 
 import { $layoutEditMode } from '../../edit-mode'
 import { group } from '../model'
-import { $layoutTree, $narrowViewport, $newSessionTabAction } from '../store'
+import { $layoutTree, $narrowViewport } from '../store'
 
 import { TreeGroup } from './tree-group'
 
 const ids = ['workspace', 'session-tile:second', 'session-tile:third']
 const disposers: (() => void)[] = []
+// Chat tabs carry no strip `+` (Codex look) — a pane mints its own kind via
+// paneChrome data.newTab instead (the Browser ruler). The third test uses it.
+let newTabMint: (() => void) | null = null
 
 function Host({ topEdge = false }: { topEdge?: boolean }) {
   const node = useStore($layoutTree)
@@ -28,7 +31,7 @@ beforeEach(() => {
   globalThis.document.documentElement.dataset.kovaDesktopHost = 'browser'
   vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
   ids.forEach((id, i) => disposers.push(registry.register({
-    area: 'panes', id, title: `Session ${i + 1}`, data: { placement: 'main' },
+    area: 'panes', id, title: `Session ${i + 1}`, data: { placement: 'main', newTab: () => newTabMint?.() },
     render: () => <input aria-label={`Draft ${i + 1}`} defaultValue="" />
   })))
   $layoutTree.set({ ...group(ids), active: ids[0], tabStrip: 'always' })
@@ -40,7 +43,7 @@ afterEach(() => {
   disposers.splice(0).forEach(dispose => dispose())
   $layoutTree.set(null)
   $narrowViewport.set(false)
-  $newSessionTabAction.set(null)
+  newTabMint = null
   $layoutEditMode.set(false)
   delete globalThis.document.documentElement.dataset.kovaDesktopHost
   vi.restoreAllMocks()
@@ -82,7 +85,7 @@ it('reserves a separate touch row for phone tabs even when the titlebar reports 
   })
   $layoutTree.set({ ...group([ids[0]]), active: ids[0], tabStrip: 'always' })
   const newTab = vi.fn()
-  $newSessionTabAction.set(newTab)
+  newTabMint = newTab
   const { container } = render(<><div data-titlebar-cluster="left" /><div data-titlebar-cluster="right" /><Host topEdge /></>)
   const header = container.querySelector<HTMLElement>('[data-panel-header]')!
   const height = () => parseFloat(header.style.height)
@@ -91,7 +94,7 @@ it('reserves a separate touch row for phone tabs even when the titlebar reports 
   // 92px of it. The picker needs its own row to keep its label and glyphs apart.
   const touchHeader = height()
   expect(screen.getByRole('button', { name: '1 tab Session 1' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'New session tab' }))
+  fireEvent.click(screen.getByRole('button', { name: 'New tab' }))
   expect(newTab).toHaveBeenCalledOnce()
 
   // The edit veil starts below the taller header instead of covering the picker.

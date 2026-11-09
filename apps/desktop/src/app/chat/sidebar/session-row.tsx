@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { RowButton } from '@/components/ui/row-button'
 import { OverflowTip, Tip } from '@/components/ui/tooltip'
-import type { SessionInfo } from '@/kova'
 import { type Translations, useI18n } from '@/i18n'
+import type { SessionInfo } from '@/kova'
 import { sessionTitle } from '@/lib/chat-runtime'
 import { pathLeaf } from '@/lib/display-path'
 import { triggerHaptic } from '@/lib/haptics'
@@ -36,8 +36,6 @@ import { $sessionListDensity } from '@/store/session-list-density'
 import { $openStoredSessionIds } from '@/store/session-states'
 import { sessionCostUsd } from '@/store/sidebar-archive'
 import { $todoProgressBySession } from '@/store/todos'
-
-import { SessionStatusDot } from '../session-status-dot'
 
 import {
   SIDEBAR_FOCUS_VISIBLE,
@@ -497,21 +495,23 @@ function SidebarSessionRowImpl({
           }}
         >
           {(() => {
+            // Codex look: no status dots on session titles. The lead column
+            // stays (fixed width) so titles align; branched sessions keep
+            // their tree stem, and a custom `lead` still wins.
+            const leadGlyph = lead ?? (
+              branchStem ? (
+                <span aria-hidden className="shrink-0 font-mono text-[0.625rem] leading-none text-(--ui-text-quaternary)">
+                  {branchStem}
+                </span>
+              ) : null
+            )
+
             const leadNode = reorderable ? (
               <SidebarRowGrab ariaLabel={handleLabel} dragging={dragging} dragHandleProps={dragHandleProps}>
-                {lead ?? (
-                  <SessionStatusDot
-                    branchStem={branchStem}
-                    className="transition-opacity group-hover/handle:opacity-0 group-focus-within/handle:opacity-0"
-                    session={session}
-                    storedSessionId={session.id}
-                  />
-                )}
+                {leadGlyph}
               </SidebarRowGrab>
             ) : (
-              <SidebarRowLead className="overflow-hidden">
-                {lead ?? <SessionStatusDot branchStem={branchStem} session={session} storedSessionId={session.id} />}
-              </SidebarRowLead>
+              <SidebarRowLead className="overflow-hidden">{leadGlyph}</SidebarRowLead>
             )
 
             const handoffBadge =

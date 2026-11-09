@@ -62,7 +62,6 @@ import {
   $dropHint,
   $hiddenTreePanes,
   $narrowViewport,
-  $newSessionTabAction,
   $panesWithCloser,
   $treeDragging,
   $treePaneEpochs,
@@ -432,7 +431,6 @@ export function TreeGroup({
   const narrow = useStore($narrowViewport)
   const workspaceMode = useStore($workspaceMode)
   const workspaceOwnerKey = useStore($workspaceOwnerKey)
-  const newSessionTabAction = useStore($newSessionTabAction)
   const panesWithCloser = useStore($panesWithCloser)
   // Multi-tab selection (⌥/Ctrl-click, Shift-click) — null for every zone but
   // the one holding it, so this subscription is quiet during normal use.
@@ -476,22 +474,17 @@ export function TreeGroup({
 
   // What the strip's "+" makes. The pane you are LOOKING AT answers first (a
   // Browser tab makes another Browser, even stacked into the chat strip), then
-  // the chat "+" for any zone holding session tabs, then any other tenant that
-  // can mint its own kind — that last rung is what keeps the button from
-  // blinking out when you click a file tab sitting beside a Browser.
+  // any other tenant that can mint its own kind — that last rung is what keeps
+  // the button from blinking out when you click a file tab sitting beside a
+  // Browser. Codex has no "+" on chat tabs: new chats come from "New chat"
+  // (⌘T still mints one via $newSessionTabAction).
   const ownNewTab = (id: string) => {
     const mint = paneChrome(paneFor(id)).newTab
 
     return mint ? { label: t.zones.newTab, onSelect: mint } : null
   }
 
-  const newTab =
-    ownNewTab(activeId) ??
-    (shown.some(isSessionStripPane) && newSessionTabAction
-      ? { label: t.zones.newSessionTab, onSelect: newSessionTabAction }
-      : null) ??
-    shown.map(ownNewTab).find(Boolean) ??
-    null
+  const newTab = ownNewTab(activeId) ?? shown.map(ownNewTab).find(Boolean) ?? null
 
   useEffect(() => {
     if (activeId) {

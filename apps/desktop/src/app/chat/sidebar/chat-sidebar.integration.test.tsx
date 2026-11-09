@@ -158,9 +158,9 @@ describe('ChatSidebar navigation activity', () => {
 
     for (const [pathname, currentView, label] of [
       ['/capabilities', 'capabilities', 'Capabilities'],
-      ['/messaging', 'messaging', 'Messaging'],
+      ['/messaging', 'messaging', 'Channels'],
       ['/artifacts', 'artifacts', 'Artifacts'],
-      ['/cron', 'cron', 'Scheduled jobs']
+      ['/cron', 'cron', 'Scheduled']
     ] as const) {
       cleanup()
       focus('workspace-group')
@@ -444,10 +444,10 @@ describe('ChatSidebar empty-profile sections', () => {
     // The Telegram platform section renders with its threads…
     expect(screen.getAllByText('Telegram').length).toBeGreaterThan(0)
     expect(screen.getByText('tg-one')).toBeTruthy()
-    // …and the sidebar did not collapse to the blank state: the search field
+    // …and the sidebar did not collapse to the blank state: the search icon
     // only renders inside the session area, so its presence proves the area
     // (and the messaging sections inside it) rendered.
-    expect(screen.getByPlaceholderText('Search sessions…')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Search sessions' })).toBeTruthy()
   })
 
   it('still shows the blank state when a profile has nothing at all', () => {
@@ -459,7 +459,7 @@ describe('ChatSidebar empty-profile sections', () => {
     const { container } = renderSidebar('/', 'chat')
 
     expect(container.textContent).toContain('No sessions yet')
-    expect(screen.queryByPlaceholderText('Search sessions…')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Search sessions' })).toBeNull()
   })
 
   it('shows a section per profile when several profiles have no chats anywhere', () => {
@@ -479,7 +479,7 @@ describe('ChatSidebar empty-profile sections', () => {
         node => node.dataset.gatewayGroup
       )
 
-      expect(screen.getByPlaceholderText('Search sessions…')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Search sessions' })).toBeTruthy()
       expect(groups.some(id => id?.includes('"default"'))).toBe(true)
       expect(groups.some(id => id?.includes('"work"'))).toBe(true)
     } finally {
