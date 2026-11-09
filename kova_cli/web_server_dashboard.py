@@ -307,7 +307,6 @@ _BUILTIN_DASHBOARD_THEMES = [
     {"name": "default",       "label": "Kova Teal",         "description": "Classic dark teal — the canonical Kova look"},
     {"name": "default-large", "label": "Kova Teal (Large)", "description": "Kova Teal with bigger fonts and roomier spacing"},
     {"name": "nous-blue",     "label": "Nous Blue",           "description": "Light mode — vivid Nous-blue accents on cream canvas"},
-    {"name": "midnight",      "label": "Midnight",            "description": "Deep blue-violet with cool accents"},
     {"name": "mono",      "label": "Mono",           "description": "Clean grayscale — minimal and focused"},
     {"name": "rose",      "label": "Rosé",           "description": "Soft pink and warm ivory — easy on the eyes"},
 ]

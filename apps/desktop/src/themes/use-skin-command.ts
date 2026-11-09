@@ -3,19 +3,19 @@ import { useCallback } from 'react'
 import { useTheme } from './context'
 
 // Old names land on a shipped theme so muscle memory works. Removed themes
-// and the stock config value (`default`) land on Onyx, the Desktop default
+// and the stock config value (`default`) land on Mono, the Desktop default
 // everywhere else (boot, backend sync, setTheme).
 const ALIASES: Record<string, string> = {
-  ares: 'onyx',
-  classic: 'onyx',
-  cyberpunk: 'onyx',
-  default: 'onyx',
-  ember: 'onyx',
-  gold: 'onyx',
-  kova: 'onyx',
-  nous: 'onyx',
-  'nous-light': 'onyx',
-  solarized: 'onyx'
+  ares: 'mono',
+  classic: 'mono',
+  cyberpunk: 'mono',
+  default: 'mono',
+  ember: 'mono',
+  gold: 'mono',
+  kova: 'mono',
+  nous: 'mono',
+  'nous-light': 'mono',
+  solarized: 'mono'
 }
 
 export function useSkinCommand() {

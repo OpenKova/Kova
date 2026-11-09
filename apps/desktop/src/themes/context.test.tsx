@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { $backendThemes, __resetBackendSkinSync, ingestBackendSkin } from './backend-sync'
 import { readableInk } from './color'
 import { skinPref, ThemeProvider, useTheme } from './context'
-import { everforestTheme, midnightTheme } from './presets'
+import { githubTheme } from './presets'
 import type { DesktopTheme } from './types'
 import { installUserTheme } from './user-themes'
 
@@ -147,7 +147,7 @@ describe('ThemeProvider ← local bridge fallback', () => {
     const previous = Object.getOwnPropertyDescriptor(window, 'kovaDesktop')
 
     try {
-      window.localStorage.setItem('kova-desktop-theme-v2', 'everforest')
+      window.localStorage.setItem('kova-desktop-theme-v2', 'github')
       Object.defineProperty(window, 'kovaDesktop', {
         configurable: true,
         value: { localSkin: { profile: 'research', skin: bloomberg('#ff9f0a') } }
@@ -162,7 +162,7 @@ describe('ThemeProvider ← local bridge fallback', () => {
         </FreshThemeProvider>
       )
 
-      expect(window.document.documentElement.dataset.kovaTheme).toBe('everforest')
+      expect(window.document.documentElement.dataset.kovaTheme).toBe('github')
     } finally {
       cleanup()
       window.localStorage.clear()
@@ -207,9 +207,9 @@ describe('ThemeProvider highlight preview', () => {
 
     const committed = ctx.themeName
 
-    act(() => ctx.previewTheme('everforest', 'dark'))
+    act(() => ctx.previewTheme('github', 'dark'))
 
-    expect(cssVar('--theme-foreground')).toBe(everforestTheme.darkColors!.foreground)
+    expect(cssVar('--theme-foreground')).toBe(githubTheme.darkColors!.foreground)
     // The commit surface does not change. The context name and the stored
     // preference keep their values.
     expect(ctx.themeName).toBe(committed)
@@ -219,22 +219,22 @@ describe('ThemeProvider highlight preview', () => {
   it('clearThemePreview repaints the committed appearance', () => {
     renderProbe()
 
-    act(() => ctx.previewTheme('everforest', 'dark'))
-    expect(cssVar('--theme-foreground')).toBe(everforestTheme.darkColors!.foreground)
+    act(() => ctx.previewTheme('github', 'dark'))
+    expect(cssVar('--theme-foreground')).toBe(githubTheme.darkColors!.foreground)
 
     act(() => ctx.clearThemePreview())
-    expect(cssVar('--theme-foreground')).not.toBe(everforestTheme.darkColors!.foreground)
+    expect(cssVar('--theme-foreground')).not.toBe(githubTheme.darkColors!.foreground)
   })
 
   it('a commit replaces the preview and persists', () => {
     renderProbe()
 
-    act(() => ctx.previewTheme('everforest', 'dark'))
+    act(() => ctx.previewTheme('github', 'dark'))
     act(() => ctx.setTheme('mono'))
 
     expect(ctx.themeName).toBe('mono')
     expect(skinPref.resolve('default')).toBe('mono')
-    expect(cssVar('--theme-foreground')).not.toBe(everforestTheme.darkColors!.foreground)
+    expect(cssVar('--theme-foreground')).not.toBe(githubTheme.darkColors!.foreground)
   })
 
   it('ignores a preview of an unknown theme', () => {
@@ -362,7 +362,7 @@ describe('ThemeProvider theme typography (#41766)', () => {
   // The merged typography is DEFAULT ← onyx ← theme, so a user theme that sets
   // only the new knobs still inherits the font stacks.
   const bigTypeTheme: DesktopTheme = {
-    ...midnightTheme,
+    ...githubTheme,
     name: 'bigtype',
     label: 'Big Type',
     description: 'Test theme with typography overrides',
@@ -425,14 +425,14 @@ describe('ThemeProvider boot-failure palette', () => {
 
   it.each([true, false])('persists the resolved colours with explicit midground tokens: %s', explicit => {
     const colors = {
-      ...midnightTheme.colors,
+      ...githubTheme.colors,
       foreground: '#123456',
       ring: '#eeeeee',
       midground: explicit ? '#234567' : undefined,
       midgroundForeground: explicit ? '#fedcba' : undefined
     }
 
-    installUserTheme({ ...midnightTheme, name: 'boot-palette', colors, darkColors: colors })
+    installUserTheme({ ...githubTheme, name: 'boot-palette', colors, darkColors: colors })
     let ctx: ReturnType<typeof useTheme>
     render(
       <ThemeProvider>
@@ -455,8 +455,8 @@ describe('ThemeProvider boot-failure palette', () => {
 
   it('stores no snapshot for a theme whose accent is a var() the notice could not resolve', () => {
     window.localStorage.setItem('kova-boot-palette', '{"stale":true}')
-    const colors = { ...midnightTheme.colors, midground: 'var(--theme-primary)', midgroundForeground: '#161616' }
-    installUserTheme({ ...midnightTheme, name: 'boot-palette-var', colors, darkColors: colors })
+    const colors = { ...githubTheme.colors, midground: 'var(--theme-primary)', midgroundForeground: '#161616' }
+    installUserTheme({ ...githubTheme, name: 'boot-palette-var', colors, darkColors: colors })
     let ctx: ReturnType<typeof useTheme>
     render(
       <ThemeProvider>

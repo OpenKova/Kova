@@ -58,7 +58,7 @@ async function launch(localSkin: typeof stockDefaultSkin | null) {
   return { api, bootPaint, connect }
 }
 
-describe('Onyx is the Desktop default, never inferred from stock config', () => {
+describe('Mono is the Desktop default, never inferred from stock config', () => {
   beforeEach(() => window.localStorage.clear())
 
   afterEach(() => {
@@ -71,39 +71,39 @@ describe('Onyx is the Desktop default, never inferred from stock config', () => 
   it.each([
     ['display.skin: default', stockDefaultSkin],
     ['display.skin unset', null]
-  ])('a stock user (%s) with no Desktop pick paints Onyx on boot, connect and relaunch', async (_label, local) => {
+  ])('a stock user (%s) with no Desktop pick paints Mono on boot, connect and relaunch', async (_label, local) => {
     let run = await launch(local)
-    expect(run.bootPaint).toBe('onyx')
+    expect(run.bootPaint).toBe('mono')
     run.connect()
     run.connect() // reconnect re-seed
-    expect(run.api.theme?.themeName).toBe('onyx')
-    expect(paintedSkin()).toBe('onyx')
+    expect(run.api.theme?.themeName).toBe('mono')
+    expect(paintedSkin()).toBe('mono')
 
     run = await launch(local)
-    expect(run.bootPaint).toBe('onyx')
+    expect(run.bootPaint).toBe('mono')
     run.connect()
-    expect(paintedSkin()).toBe('onyx')
+    expect(paintedSkin()).toBe('mono')
   })
 
-  it('an Onyx pick paints pure black/white and survives connect, reconnect and relaunch; a later GitHub pick sticks', async () => {
+  it('a Mono pick paints clean grayscale and survives connect, reconnect and relaunch; a later GitHub pick sticks', async () => {
     let run = await launch(stockDefaultSkin)
-    expect(run.api.theme?.availableThemes.find(t => t.name === 'onyx')?.label).toBe('Onyx')
+    expect(run.api.theme?.availableThemes.find(t => t.name === 'mono')?.label).toBe('Mono')
 
     act(() => run.api.theme?.setMode('dark'))
-    act(() => run.api.theme?.setTheme('onyx'))
-    expect(paintedSkin()).toBe('onyx')
-    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
-    expect(cssVar('--theme-primary').toLowerCase()).toBe('#ffffff')
+    act(() => run.api.theme?.setTheme('mono'))
+    expect(paintedSkin()).toBe('mono')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#0e0e0e')
+    expect(cssVar('--theme-primary').toLowerCase()).toBe('#eaeaea')
 
     run.connect()
     run.connect()
-    expect(run.api.theme?.themeName).toBe('onyx')
+    expect(run.api.theme?.themeName).toBe('mono')
 
     run = await launch(stockDefaultSkin)
-    expect(run.bootPaint).toBe('onyx')
+    expect(run.bootPaint).toBe('mono')
     run.connect()
-    expect(paintedSkin()).toBe('onyx')
-    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
+    expect(paintedSkin()).toBe('mono')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#0e0e0e')
 
     act(() => run.api.theme?.setTheme('github'))
     run = await launch(stockDefaultSkin)
@@ -112,28 +112,29 @@ describe('Onyx is the Desktop default, never inferred from stock config', () => 
     expect(paintedSkin()).toBe('github')
   })
 
-  it('/skin gold, /skin nous and /skin default all land on the Desktop default (Onyx)', async () => {
+  it('/skin onyx, /skin nous and /skin default all land on the Desktop default (Mono)', async () => {
     const run = await launch(stockDefaultSkin)
 
-    act(() => void run.api.skin?.('gold'))
-    expect(run.api.theme?.themeName).toBe('onyx')
+    act(() => void run.api.skin?.('onyx'))
+    expect(run.api.theme?.themeName).toBe('mono')
 
     act(() => void run.api.skin?.('nous'))
     act(() => void run.api.skin?.('kova'))
-    expect(run.api.theme?.themeName).toBe('onyx')
+    expect(run.api.theme?.themeName).toBe('mono')
 
     act(() => void run.api.skin?.('default'))
-    expect(run.api.theme?.themeName).toBe('onyx')
+    expect(run.api.theme?.themeName).toBe('mono')
   })
 
   it('removed themes no longer resolve and are not offered', async () => {
     const run = await launch(stockDefaultSkin)
     const names = (run.api.theme?.availableThemes ?? []).map(t => t.name)
 
-    for (const retired of ['nous', 'classic', 'ember', 'cyberpunk', 'solarized']) {
+    expect(names.sort()).toEqual(['github', 'mono'])
+    for (const retired of ['onyx', 'nous', 'nous-alt', 'classic', 'ember', 'cyberpunk', 'solarized', 'midnight', 'everforest', 'catppuccin', 'slate']) {
       expect(names).not.toContain(retired)
       act(() => void run.api.skin?.(retired))
-      expect(run.api.theme?.themeName).toBe('onyx')
+      expect(run.api.theme?.themeName).toBe('mono')
     }
   })
 
@@ -160,18 +161,17 @@ describe('Onyx is the Desktop default, never inferred from stock config', () => 
     expect(JSON.parse(window.localStorage.getItem(BACKEND_THEMES_KEY) ?? '{}')).not.toHaveProperty('default')
   })
 
-  it('Onyx paints pure black in dark mode and stays readable in light mode', async () => {
+  it('Mono keeps text readable in both modes', async () => {
     const run = await launch(stockDefaultSkin)
-    act(() => run.api.theme?.setTheme('onyx'))
+    act(() => run.api.theme?.setTheme('mono'))
 
     act(() => run.api.theme?.setMode('light'))
     expect(window.document.documentElement.dataset.kovaMode).toBe('light')
-    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#ffffff')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
 
     act(() => run.api.theme?.setMode('dark'))
     expect(window.document.documentElement.dataset.kovaMode).toBe('dark')
-    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#0e0e0e')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
   })
 })

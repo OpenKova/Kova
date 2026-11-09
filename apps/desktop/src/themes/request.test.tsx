@@ -5,7 +5,7 @@ import { registry } from '@/contrib/registry'
 
 import { __resetBackendSkinSync } from './backend-sync'
 import { modePref, skinPref, ThemeProvider, useTheme } from './context'
-import { midnightTheme } from './presets'
+import { githubTheme } from './presets'
 import { requestMode, requestTheme } from './request'
 import type { DesktopTheme } from './types'
 import { THEMES_AREA } from './user-themes'
@@ -52,9 +52,9 @@ describe('requestTheme', () => {
   it('persists per profile like a manual pick', () => {
     renderProbe()
 
-    act(() => void requestTheme('midnight'))
+    act(() => void requestTheme('github'))
 
-    expect(skinPref.resolve('default')).toBe('midnight')
+    expect(skinPref.resolve('default')).toBe('github')
   })
 
   it('switches and persists light/dark from outside React', () => {
@@ -85,7 +85,7 @@ describe('requestTheme', () => {
   // The whole plugin loop: contribute a palette through THEMES_AREA, then
   // activate it on an event with no component in scope.
   it('activates a theme contributed through the registry', () => {
-    const zeus: DesktopTheme = { ...midnightTheme, description: 'Zeus', label: 'Zeus', name: 'zeus' }
+    const zeus: DesktopTheme = { ...githubTheme, description: 'Zeus', label: 'Zeus', name: 'zeus' }
     const dispose = registry.register({ area: THEMES_AREA, data: zeus, id: 'zeus' })
 
     renderProbe()

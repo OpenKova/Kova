@@ -11,7 +11,7 @@ import type { DashboardTheme, ThemePalette, ThemeTypography, ThemeLayout } from 
  * Theme names must stay in sync with the backend's
  * `_BUILTIN_DASHBOARD_THEMES` list in `kova_cli/web_server.py`.
  *
- * Presets that also ship on the desktop (midnight, mono)
+ * Presets that also ship on the desktop (mono)
  * take their colours from `@kova/shared` `THEME_PRESET_PALETTES` so both
  * surfaces render one palette; only typography/layout/overrides live here.
  */
@@ -79,28 +79,6 @@ export const defaultTheme: DashboardTheme = {
   typography: DEFAULT_TYPOGRAPHY,
   layout: DEFAULT_LAYOUT,
   terminalBackground: "#000000",
-};
-
-export const midnightTheme: DashboardTheme = {
-  name: "midnight",
-  label: "Midnight",
-  description: "Deep blue-violet with cool accents",
-  palette: {
-    ...webPresetFromShared(THEME_PRESET_PALETTES.midnight),
-    noiseOpacity: 0.8,
-  },
-  typography: {
-    ...DEFAULT_TYPOGRAPHY,
-    fontSans: `"Inter", ${SYSTEM_SANS}`,
-    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
-    fontUrl:
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
-    letterSpacing: "-0.005em",
-  },
-  layout: {
-    ...DEFAULT_LAYOUT,
-    radius: "0.75rem",
-  },
 };
 
 export const monoTheme: DashboardTheme = {
@@ -196,7 +174,6 @@ export const BUILTIN_THEMES: Record<string, DashboardTheme> = {
   default: defaultTheme,
   "default-large": defaultLargeTheme,
   "nous-blue": nousBlueTheme,
-  midnight: midnightTheme,
   mono: monoTheme,
   rose: roseTheme,
 };

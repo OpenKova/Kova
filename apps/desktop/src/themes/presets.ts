@@ -115,135 +115,6 @@ export const githubTheme: DesktopTheme = {
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
 
-/** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
-export const catppuccinTheme: DesktopTheme = {
-  name: 'catppuccin',
-  label: 'Catppuccin',
-  description: 'Soothing pastels — Latte and Mocha',
-  ...THEME_PRESET_PALETTES.catppuccin,
-  terminal: {
-    foreground: '#4c4f69',
-    cursor: '#dc8a78',
-    selectionBackground: '#acb0be',
-    black: '#5c5f77',
-    red: '#d20f39',
-    green: '#40a02b',
-    yellow: '#df8e1d',
-    blue: '#1e66f5',
-    magenta: '#ea76cb',
-    cyan: '#179299',
-    white: '#acb0be',
-    brightBlack: '#6c6f85',
-    brightRed: '#de293e',
-    brightGreen: '#49af3d',
-    brightYellow: '#eea02d',
-    brightBlue: '#456eff',
-    brightMagenta: '#fe85d8',
-    brightCyan: '#2d9fa8',
-    brightWhite: '#bcc0cc'
-  },
-  darkTerminal: {
-    foreground: '#cdd6f4',
-    cursor: '#f5e0dc',
-    selectionBackground: '#585b70',
-    black: '#45475a',
-    red: '#f38ba8',
-    green: '#a6e3a1',
-    yellow: '#f9e2af',
-    blue: '#89b4fa',
-    magenta: '#f5c2e7',
-    cyan: '#94e2d5',
-    white: '#a6adc8',
-    brightBlack: '#585b70',
-    brightRed: '#f37799',
-    brightGreen: '#89d88b',
-    brightYellow: '#ebd391',
-    brightBlue: '#74a8fc',
-    brightMagenta: '#f2aede',
-    brightCyan: '#6bd7ca',
-    brightWhite: '#bac2de'
-  }
-}
-
-/** Everforest — warm, low-contrast forest greens (sainnhe.everforest). */
-export const everforestTheme: DesktopTheme = {
-  name: 'everforest',
-  label: 'Everforest',
-  description: 'Warm, low-contrast forest greens',
-  ...THEME_PRESET_PALETTES.everforest,
-  terminal: {
-    foreground: '#5c6a72',
-    cursor: '#5c6a72',
-    black: '#5c6a72',
-    red: '#f85552',
-    green: '#8da101',
-    yellow: '#dfa000',
-    blue: '#3a94c5',
-    magenta: '#df69ba',
-    cyan: '#35a77c',
-    white: '#939f91',
-    brightBlack: '#5c6a72',
-    brightRed: '#f85552',
-    brightGreen: '#8da101',
-    brightYellow: '#dfa000',
-    brightBlue: '#3a94c5',
-    brightMagenta: '#df69ba',
-    brightCyan: '#35a77c',
-    brightWhite: '#f4f0d9'
-  },
-  darkTerminal: {
-    foreground: '#d3c6aa',
-    cursor: '#d3c6aa',
-    black: '#343f44',
-    red: '#e67e80',
-    green: '#a7c080',
-    yellow: '#dbbc7f',
-    blue: '#7fbbb3',
-    magenta: '#d699b6',
-    cyan: '#83c092',
-    white: '#d3c6aa',
-    brightBlack: '#859289',
-    brightRed: '#e67e80',
-    brightGreen: '#a7c080',
-    brightYellow: '#dbbc7f',
-    brightBlue: '#7fbbb3',
-    brightMagenta: '#d699b6',
-    brightCyan: '#83c092',
-    brightWhite: '#d3c6aa'
-  }
-}
-
-/**
- * Nous Alt — the hand-authored Nous from before the GitHub fork. Light is
- * glass neutrals with brand blue; dark is cream on mission-blue.
- */
-export const nousAltTheme: DesktopTheme = {
-  name: 'nous-alt',
-  label: 'Nous Alt',
-  description: 'Glass neutrals, cream on mission-blue',
-  ...THEME_PRESET_PALETTES['nous-alt'],
-  typography: {
-    fontSans: SYSTEM_SANS,
-    fontMono: SYSTEM_MONO,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
-  }
-}
-
-/**
- * Midnight — deep blue-violet, near-monotone. Dark only: it has no light
- * palette because the whole idea is the dark end of the spectrum.
- */
-export const midnightTheme: DesktopTheme = {
-  name: 'midnight',
-  label: 'Midnight',
-  description: 'Deep blue-violet with cool accents',
-  ...THEME_PRESET_PALETTES.midnight,
-  typography: {
-    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap'
-  }
-}
-
 /** Clean grayscale. Matches the CLI mono skin and dashboard mono theme. */
 export const monoTheme: DesktopTheme = {
   name: 'mono',
@@ -252,44 +123,18 @@ export const monoTheme: DesktopTheme = {
   ...THEME_PRESET_PALETTES.mono
 }
 
-/** Onyx — Mono without the gray: pure black surfaces, pure white text and
- *  hairlines, no gray fills. Dark only, like Mono. */
-export const onyxTheme: DesktopTheme = {
-  name: 'onyx',
-  label: 'Onyx',
-  description: 'Pure black and white — no gray',
-  ...THEME_PRESET_PALETTES.onyx
-}
-
-/** Cool slate blue for developers. Matches the CLI slate skin. */
-export const slateTheme: DesktopTheme = {
-  name: 'slate',
-  label: 'Slate',
-  description: 'Cool slate blue — focused developer theme',
-  ...THEME_PRESET_PALETTES.slate,
-  typography: {
-    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`
-  }
-}
-
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
   github: githubTheme,
-  catppuccin: catppuccinTheme,
-  everforest: everforestTheme,
-  'nous-alt': nousAltTheme,
-  midnight: midnightTheme,
-  mono: monoTheme,
-  onyx: onyxTheme,
-  slate: slateTheme
+  mono: monoTheme
 }
 
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'onyx'
+export const DEFAULT_SKIN_NAME = 'mono'
 
 /** Names that no longer resolve to a skin of their own. A stored pick of one
  *  falls back to DEFAULT_SKIN_NAME, and a cached backend theme under one is
  *  dropped (the reverted #130015 build cached the CLI `default` skin as a
  *  second "Classic Kova"). */
-export const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold', 'nous', 'classic', 'ember', 'cyberpunk', 'solarized'])
+export const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold', 'nous', 'classic', 'ember', 'cyberpunk', 'solarized', 'onyx', 'nous-alt', 'midnight', 'everforest', 'catppuccin', 'slate'])

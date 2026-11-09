@@ -14,8 +14,8 @@ const cases = [
     name: 'skin',
     pref: skinPref as unknown as Pref,
     fallback: DEFAULT_SKIN_NAME,
-    a: 'midnight',
-    b: 'catppuccin',
+    a: 'github',
+    b: 'mono',
     junk: 'nope'
   },
   { name: 'mode', pref: modePref as unknown as Pref, fallback: 'system', a: 'dark', b: 'light', junk: 'dusk' }
