@@ -1288,7 +1288,7 @@ export function ChatBar({
                 // slide: centered at 46% of the surface, docked at `top-full` shifted
                 // up by its own height — the same box as `bottom-0`, but animatable.
                 cn(
-                  'absolute left-1/2 transition-[top,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                  'absolute left-1/2 transition-[top,transform] duration-[240ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none',
                   centeredEmpty ? 'top-[46%] -translate-x-1/2 -translate-y-1/2' : 'top-full -translate-x-1/2 -translate-y-full'
                 )
           )}
@@ -1316,9 +1316,9 @@ export function ChatBar({
               className="flex flex-col items-center px-4 pb-5 text-center"
               data-slot="composer-hero"
             >
-              <BrandMark className="size-14" />
-              <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">{t.composer.heroTitle}</h1>
-              <p className="mt-1 max-w-md text-sm leading-relaxed text-(--ui-text-secondary)">{t.composer.heroSubtitle}</p>
+              <BrandMark className="size-16" />
+              <h1 className="mt-3 text-[32px] leading-[38px] font-semibold tracking-[-0.01em] text-foreground">{t.composer.heroTitle}</h1>
+              <p className="mt-1 max-w-[30rem] text-base leading-[1.5] text-(--ui-text-secondary)">{t.composer.heroSubtitle}</p>
             </div>
           )}
           {/* Aligned to the composer SURFACE, which sits inside the composer's
@@ -1364,7 +1364,7 @@ export function ChatBar({
           </StatusDrawerContent>
           <ComposerPrimitive.Root
             className={cn(
-              'group/composer relative w-full overflow-visible rounded-[28px]',
+              'group/composer relative w-full overflow-visible rounded-xl',
               poppedOut && 'bg-transparent',
               dragging && 'cursor-grabbing select-none touch-none',
               // Native Wayland HUD: setBounds cannot position a top-level
@@ -1588,7 +1588,7 @@ export function ChatBarFallback() {
   return (
     <div
       className={cn(
-        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-[28px] pt-2 pb-[var(--composer-shell-pad-block-end)]',
+        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-xl pt-2 pb-[var(--composer-shell-pad-block-end)]',
         'bg-linear-to-b from-transparent to-background/55'
       )}
       data-slot="composer-root"

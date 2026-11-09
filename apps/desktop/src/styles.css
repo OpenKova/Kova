@@ -2189,6 +2189,13 @@ body.guest-pointer-lock :is(webview, iframe) {
   --composer-fill: color-mix(in srgb, var(--dt-card) 88%, transparent);
 }
 
+/* OpenBot clone: focus is a dim grey border + 3px soft ring — never blue,
+   never a halo. Unlayered so it beats the utility ring on the surface. */
+[data-slot='composer-root']:focus-within [data-slot='composer-surface'] {
+  border-color: color-mix(in srgb, var(--ui-text-primary) 38%, transparent);
+  box-shadow: 0 0 0 3px var(--chrome-action-hover);
+}
+
 [data-slot='composer-root'][data-thread-scrolled-up] {
   --composer-fill: color-mix(in srgb, var(--dt-card) 80%, transparent);
 }
