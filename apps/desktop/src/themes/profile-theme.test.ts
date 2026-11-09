@@ -14,7 +14,7 @@ const cases = [
     name: 'skin',
     pref: skinPref as unknown as Pref,
     fallback: DEFAULT_SKIN_NAME,
-    a: 'ember',
+    a: 'midnight',
     b: 'catppuccin',
     junk: 'nope'
   },

@@ -6,10 +6,10 @@ import type { useTheme } from './context'
 import { skinToDesktopTheme } from './skin'
 
 // What the gateway and the Electron bridge report for a STOCK config
-// (`display.skin: default`): the CLI's classic gold skin, by name `default`.
+// (`display.skin: default`): the CLI's stock skin, by name `default`.
 const stockDefaultSkin = {
   name: 'default',
-  description: 'Classic Kova — gold and kawaii',
+  description: 'Stock skin',
   colors: { banner_text: '#FFF8DC', status_bar_bg: '#1a1a2e', ui_accent: '#FFBF00', banner_border: '#CD7F32' }
 }
 
@@ -58,7 +58,7 @@ async function launch(localSkin: typeof stockDefaultSkin | null) {
   return { api, bootPaint, connect }
 }
 
-describe('Classic Kova is an explicit Desktop pick, never inferred from stock config (#76579)', () => {
+describe('Onyx is the Desktop default, never inferred from stock config', () => {
   beforeEach(() => window.localStorage.clear())
 
   afterEach(() => {
@@ -71,62 +71,73 @@ describe('Classic Kova is an explicit Desktop pick, never inferred from stock co
   it.each([
     ['display.skin: default', stockDefaultSkin],
     ['display.skin unset', null]
-  ])('a stock user (%s) with no Desktop pick paints Nous on boot, connect and relaunch', async (_label, local) => {
+  ])('a stock user (%s) with no Desktop pick paints Onyx on boot, connect and relaunch', async (_label, local) => {
     let run = await launch(local)
-    expect(run.bootPaint).toBe('nous')
+    expect(run.bootPaint).toBe('onyx')
     run.connect()
     run.connect() // reconnect re-seed
-    expect(run.api.theme?.themeName).toBe('nous')
-    expect(paintedSkin()).toBe('nous')
+    expect(run.api.theme?.themeName).toBe('onyx')
+    expect(paintedSkin()).toBe('onyx')
 
     run = await launch(local)
-    expect(run.bootPaint).toBe('nous')
+    expect(run.bootPaint).toBe('onyx')
     run.connect()
-    expect(paintedSkin()).toBe('nous')
+    expect(paintedSkin()).toBe('onyx')
   })
 
-  it('a Classic pick paints gold/navy (dark mode) and survives connect, reconnect and relaunch; a later Nous pick sticks', async () => {
+  it('an Onyx pick paints pure black/white and survives connect, reconnect and relaunch; a later GitHub pick sticks', async () => {
     let run = await launch(stockDefaultSkin)
-    expect(run.api.theme?.availableThemes.find(t => t.name === 'classic')?.label).toBe('Classic Kova')
+    expect(run.api.theme?.availableThemes.find(t => t.name === 'onyx')?.label).toBe('Onyx')
 
     act(() => run.api.theme?.setMode('dark'))
-    act(() => run.api.theme?.setTheme('classic'))
-    expect(paintedSkin()).toBe('classic')
-    expect(cssVar('--theme-background-seed')).toBe('#1a1a2e')
-    expect(cssVar('--theme-primary').toLowerCase()).toBe('#ffbf00')
+    act(() => run.api.theme?.setTheme('onyx'))
+    expect(paintedSkin()).toBe('onyx')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
+    expect(cssVar('--theme-primary').toLowerCase()).toBe('#ffffff')
 
     run.connect()
     run.connect()
-    expect(run.api.theme?.themeName).toBe('classic')
+    expect(run.api.theme?.themeName).toBe('onyx')
 
     run = await launch(stockDefaultSkin)
-    expect(run.bootPaint).toBe('classic')
+    expect(run.bootPaint).toBe('onyx')
     run.connect()
-    expect(paintedSkin()).toBe('classic')
-    expect(cssVar('--theme-background-seed')).toBe('#1a1a2e')
+    expect(paintedSkin()).toBe('onyx')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
 
-    act(() => run.api.theme?.setTheme('nous'))
+    act(() => run.api.theme?.setTheme('github'))
     run = await launch(stockDefaultSkin)
     run.connect()
-    expect(run.bootPaint).toBe('nous')
-    expect(paintedSkin()).toBe('nous')
+    expect(run.bootPaint).toBe('github')
+    expect(paintedSkin()).toBe('github')
   })
 
-  it('/skin gold and /skin kova select Classic; /skin default stays the Desktop default (Nous)', async () => {
+  it('/skin gold, /skin nous and /skin default all land on the Desktop default (Onyx)', async () => {
     const run = await launch(stockDefaultSkin)
 
     act(() => void run.api.skin?.('gold'))
-    expect(run.api.theme?.themeName).toBe('classic')
+    expect(run.api.theme?.themeName).toBe('onyx')
 
     act(() => void run.api.skin?.('nous'))
     act(() => void run.api.skin?.('kova'))
-    expect(run.api.theme?.themeName).toBe('classic')
+    expect(run.api.theme?.themeName).toBe('onyx')
 
     act(() => void run.api.skin?.('default'))
-    expect(run.api.theme?.themeName).toBe('nous')
+    expect(run.api.theme?.themeName).toBe('onyx')
   })
 
-  it('a cache left by the reverted #130015 build (CLI `default` as "Classic Kova") shows ONE Classic and is purged', async () => {
+  it('removed themes no longer resolve and are not offered', async () => {
+    const run = await launch(stockDefaultSkin)
+    const names = (run.api.theme?.availableThemes ?? []).map(t => t.name)
+
+    for (const retired of ['nous', 'classic', 'ember', 'cyberpunk', 'solarized']) {
+      expect(names).not.toContain(retired)
+      act(() => void run.api.skin?.(retired))
+      expect(run.api.theme?.themeName).toBe('onyx')
+    }
+  })
+
+  it('a cache left by an older build (CLI `default` as "Classic Kova") shows no Classic theme and is purged', async () => {
     // Exactly what that build wrote: the converted CLI `default` skin, relabelled.
     window.localStorage.setItem(
       BACKEND_THEMES_KEY,
@@ -143,25 +154,24 @@ describe('Classic Kova is an explicit Desktop pick, never inferred from stock co
     run.connect()
 
     const themes = run.api.theme?.availableThemes ?? []
-    expect(themes.filter(t => t.label === 'Classic Kova').map(t => t.name)).toEqual(['classic'])
+    expect(themes.filter(t => t.label === 'Classic Kova').map(t => t.name)).toEqual([])
     expect(themes.some(t => t.name === 'default')).toBe(false)
-    expect(run.api.skin?.('list').match(/Classic Kova/g)).toHaveLength(1)
+    expect(run.api.skin?.('list')).not.toContain('Classic Kova')
     expect(JSON.parse(window.localStorage.getItem(BACKEND_THEMES_KEY) ?? '{}')).not.toHaveProperty('default')
   })
 
-  it('Classic follows the light/dark toggle: a light surface in light mode, gold on navy in dark, both readable', async () => {
+  it('Onyx paints pure black in dark mode and stays readable in light mode', async () => {
     const run = await launch(stockDefaultSkin)
-    act(() => run.api.theme?.setTheme('classic'))
+    act(() => run.api.theme?.setTheme('onyx'))
 
     act(() => run.api.theme?.setMode('light'))
     expect(window.document.documentElement.dataset.kovaMode).toBe('light')
-    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#f5f5f5')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#ffffff')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
-    expect(contrastRatio(cssVar('--theme-primary'), cssVar('--theme-sidebar-seed'))).toBeGreaterThanOrEqual(4.5)
 
     act(() => run.api.theme?.setMode('dark'))
     expect(window.document.documentElement.dataset.kovaMode).toBe('dark')
-    expect(cssVar('--theme-background-seed')).toBe('#1a1a2e')
+    expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#000000')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
   })
 })

@@ -11,7 +11,7 @@ import type { DashboardTheme, ThemePalette, ThemeTypography, ThemeLayout } from 
  * Theme names must stay in sync with the backend's
  * `_BUILTIN_DASHBOARD_THEMES` list in `kova_cli/web_server.py`.
  *
- * Presets that also ship on the desktop (midnight, ember, mono, cyberpunk)
+ * Presets that also ship on the desktop (midnight, mono)
  * take their colours from `@kova/shared` `THEME_PRESET_PALETTES` so both
  * surfaces render one palette; only typography/layout/overrides live here.
  */
@@ -103,31 +103,6 @@ export const midnightTheme: DashboardTheme = {
   },
 };
 
-export const emberTheme: DashboardTheme = {
-  name: "ember",
-  label: "Ember",
-  description: "Warm crimson and bronze — forge vibes",
-  palette: {
-    ...webPresetFromShared(THEME_PRESET_PALETTES.ember),
-    noiseOpacity: 1,
-  },
-  typography: {
-    ...DEFAULT_TYPOGRAPHY,
-    fontSans: `"Spectral", Georgia, "Times New Roman", serif`,
-    fontMono: `"IBM Plex Mono", ${SYSTEM_MONO}`,
-    fontUrl:
-      "https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap",
-  },
-  layout: {
-    ...DEFAULT_LAYOUT,
-    radius: "0.25rem",
-  },
-  colorOverrides: {
-    destructive: "#c92d0f",
-    warning: "#f97316",
-  },
-};
-
 export const monoTheme: DashboardTheme = {
   name: "mono",
   label: "Mono",
@@ -146,32 +121,6 @@ export const monoTheme: DashboardTheme = {
   layout: {
     ...DEFAULT_LAYOUT,
     radius: "0",
-  },
-};
-
-export const cyberpunkTheme: DashboardTheme = {
-  name: "cyberpunk",
-  label: "Cyberpunk",
-  description: "Neon green on black — matrix terminal",
-  palette: {
-    ...webPresetFromShared(THEME_PRESET_PALETTES.cyberpunk),
-    noiseOpacity: 1.2,
-  },
-  typography: {
-    ...DEFAULT_TYPOGRAPHY,
-    fontSans: `"Share Tech Mono", "JetBrains Mono", ${SYSTEM_MONO}`,
-    fontMono: `"Share Tech Mono", "JetBrains Mono", ${SYSTEM_MONO}`,
-    fontUrl:
-      "https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap",
-  },
-  layout: {
-    ...DEFAULT_LAYOUT,
-    radius: "0",
-  },
-  colorOverrides: {
-    success: "#00ff88",
-    warning: "#ffd700",
-    destructive: "#ff0055",
   },
 };
 
@@ -248,8 +197,6 @@ export const BUILTIN_THEMES: Record<string, DashboardTheme> = {
   "default-large": defaultLargeTheme,
   "nous-blue": nousBlueTheme,
   midnight: midnightTheme,
-  ember: emberTheme,
   mono: monoTheme,
-  cyberpunk: cyberpunkTheme,
   rose: roseTheme,
 };

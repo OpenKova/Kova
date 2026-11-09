@@ -2,7 +2,7 @@
  * Built-in desktop themes. Names match the CLI skins / dashboard presets.
  * Add new themes here — no code changes needed elsewhere.
  *
- * The palette-bearing skins (nous, catppuccin, everforest, solarized) are forks
+ * The palette-bearing skins (github, catppuccin, everforest) are forks
  * of their VS Code originals, converted by `buildThemeFromMarketplace` (see
  * ./install.ts) from the extensions below — the same path a Marketplace import
  * takes, so each is identical to installing the extension by hand and costs the
@@ -20,7 +20,6 @@
 
 import { THEME_PRESET_PALETTES } from '@kova/shared'
 
-import { skinToDesktopTheme } from './skin'
 import type { DesktopTheme, DesktopThemeTypography } from './types'
 
 // Color-emoji fonts to append to every stack as a last resort. None of the UI
@@ -115,67 +114,6 @@ export const githubTheme: DesktopTheme = {
 }
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
-
-/**
- * Nous — the canonical Kova desktop identity: GitHub's chrome carrying Nous
- * blue. Forked from github.github-vscode-theme (Light Default / Dark Default),
- * with only the accent family re-seeded; every neutral is upstream's.
- *
- * Two seeds, one blue. `#0053FD` is the brand color and reads at 5.4:1 on the
- * light sidebar, but only 3.6:1 on the near-black dark one — so dark carries
- * `#4a84fe`, the same hue (263°) lifted to clear AA at 5.9:1. The soft
- * surfaces below are mixed from those seeds in OKLab, which is what keeps a
- * saturated blue from drifting violet on its way to white.
- */
-export const nousTheme: DesktopTheme = {
-  name: 'nous',
-  label: 'Nous',
-  description: 'GitHub chrome, Nous blue accent',
-  ...THEME_PRESET_PALETTES.nous,
-  typography: {
-    fontSans: SYSTEM_SANS,
-    fontMono: SYSTEM_MONO,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
-  },
-  terminal: {
-    foreground: '#1f2328',
-    black: '#24292f',
-    red: '#cf222e',
-    green: '#116329',
-    yellow: '#4d2d00',
-    blue: '#0969da',
-    magenta: '#8250df',
-    cyan: '#1b7c83',
-    white: '#6e7781',
-    brightBlack: '#57606a',
-    brightRed: '#a40e26',
-    brightGreen: '#1a7f37',
-    brightYellow: '#633c01',
-    brightBlue: '#218bff',
-    brightMagenta: '#a475f9',
-    brightCyan: '#3192aa',
-    brightWhite: '#8c959f'
-  },
-  darkTerminal: {
-    foreground: '#e6edf3',
-    black: '#484f58',
-    red: '#ff7b72',
-    green: '#3fb950',
-    yellow: '#d29922',
-    blue: '#58a6ff',
-    magenta: '#bc8cff',
-    cyan: '#39c5cf',
-    white: '#b1bac4',
-    brightBlack: '#6e7681',
-    brightRed: '#ffa198',
-    brightGreen: '#56d364',
-    brightYellow: '#e3b341',
-    brightBlue: '#79c0ff',
-    brightMagenta: '#d2a8ff',
-    brightCyan: '#56d4dd',
-    brightWhite: '#ffffff'
-  }
-}
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
 export const catppuccinTheme: DesktopTheme = {
@@ -275,54 +213,6 @@ export const everforestTheme: DesktopTheme = {
   }
 }
 
-/** Solarized — Ethan Schoonover's fixed-contrast pair (ryanolsonx.solarized). */
-export const solarizedTheme: DesktopTheme = {
-  name: 'solarized',
-  label: 'Solarized',
-  description: 'Fixed-contrast light and dark',
-  ...THEME_PRESET_PALETTES.solarized,
-  terminal: {
-    foreground: '#657b83',
-    black: '#657b83',
-    red: '#dc322f',
-    green: '#859900',
-    yellow: '#b58900',
-    blue: '#268bd2',
-    magenta: '#d33682',
-    cyan: '#2aa198',
-    white: '#eee8d5',
-    brightBlack: '#657b83',
-    brightRed: '#cb4b16',
-    brightGreen: '#859900',
-    brightYellow: '#657b83',
-    brightBlue: '#839496',
-    brightMagenta: '#6c71c4',
-    brightCyan: '#93a1a1',
-    brightWhite: '#eee8d5'
-  },
-  darkTerminal: {
-    foreground: '#839496',
-    cursor: '#ffffff',
-    selectionBackground: '#ffffff40',
-    black: '#14181d',
-    red: '#dc322f',
-    green: '#859900',
-    yellow: '#b58900',
-    blue: '#268bd2',
-    magenta: '#d33682',
-    cyan: '#2aa198',
-    white: '#e5e5e5',
-    brightBlack: '#676767',
-    brightRed: '#dc322f',
-    brightGreen: '#859900',
-    brightYellow: '#b58900',
-    brightBlue: '#268bd2',
-    brightMagenta: '#d33682',
-    brightCyan: '#2aa198',
-    brightWhite: '#e5e5e5'
-  }
-}
-
 /**
  * Nous Alt — the hand-authored Nous from before the GitHub fork. Light is
  * glass neutrals with brand blue; dark is cream on mission-blue.
@@ -337,51 +227,6 @@ export const nousAltTheme: DesktopTheme = {
     fontMono: SYSTEM_MONO,
     fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
   }
-}
-
-// The converter's input: the keys it reads from `kova_cli/skin_engine.py`'s
-// `default` skin. Light is that skin's `light_colors` overlay (its goldenrod
-// ladder for white backgrounds; `banner_border` is not overridden there) with
-// one change: the ink. The CLI's `#5C4718` is a single-weight terminal color,
-// but Desktop sets secondary and tertiary text at 74% / 54% of it, which left
-// them at 4.2:1 / 2.7:1. A deeper ink of the same brown gives 6.5:1 / 3.5:1,
-// the levels Nous Light has.
-const CLASSIC_DARK_SKIN_COLORS = {
-  status_bar_bg: '#1a1a2e',
-  banner_text: '#FFF8DC',
-  ui_accent: '#FFBF00',
-  banner_border: '#CD7F32',
-  banner_dim: '#B8860B',
-  ui_error: '#ef5350',
-  completion_menu_bg: '#1a1a2e'
-}
-
-const CLASSIC_LIGHT_SKIN_COLORS = {
-  status_bar_bg: '#F5F5F5',
-  banner_text: '#2B2109',
-  ui_accent: '#D89B04',
-  banner_border: '#CD7F32',
-  banner_dim: '#B8860B',
-  ui_error: '#C62828',
-  completion_menu_bg: '#F5F5F5'
-}
-
-const classicPalette = (colors: Record<string, string>) => skinToDesktopTheme({ name: 'classic', colors })!.colors
-
-/**
- * Classic Kova — the CLI's stock `default` skin (gold on navy), offered as a
- * Desktop pick under its OWN id. Never `default`: stock config ships
- * `display.skin: default`, and Desktop reads that as "no pick" (→ nous), so a
- * user only ever gets Classic by choosing it (#76579). Both palettes go through
- * the converter a backend skin takes, so each mode paints what the CLI paints
- * in a dark or light terminal.
- */
-export const classicTheme: DesktopTheme = {
-  name: 'classic',
-  label: 'Classic Kova',
-  description: "Gold on navy, the CLI's original look",
-  colors: classicPalette(CLASSIC_LIGHT_SKIN_COLORS),
-  darkColors: classicPalette(CLASSIC_DARK_SKIN_COLORS)
 }
 
 /**
@@ -399,17 +244,6 @@ export const midnightTheme: DesktopTheme = {
   }
 }
 
-export const emberTheme: DesktopTheme = {
-  name: 'ember',
-  label: 'Ember',
-  description: 'Warm crimson and bronze — forge vibes',
-  ...THEME_PRESET_PALETTES.ember,
-  typography: {
-    fontMono: `"IBM Plex Mono", ${SYSTEM_MONO}`,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap'
-  }
-}
-
 /** Clean grayscale. Matches the CLI mono skin and dashboard mono theme. */
 export const monoTheme: DesktopTheme = {
   name: 'mono',
@@ -418,16 +252,13 @@ export const monoTheme: DesktopTheme = {
   ...THEME_PRESET_PALETTES.mono
 }
 
-/** Neon green on black. Matches the CLI cyberpunk skin and dashboard theme. */
-export const cyberpunkTheme: DesktopTheme = {
-  name: 'cyberpunk',
-  label: 'Cyberpunk',
-  description: 'Neon green on black — matrix terminal',
-  ...THEME_PRESET_PALETTES.cyberpunk,
-  typography: {
-    fontMono: `"Courier New", Courier, ${SYSTEM_MONO}`,
-    fontSans: `"Courier New", Courier, ${SYSTEM_MONO}`
-  }
+/** Onyx — Mono without the gray: pure black surfaces, pure white text and
+ *  hairlines, no gray fills. Dark only, like Mono. */
+export const onyxTheme: DesktopTheme = {
+  name: 'onyx',
+  label: 'Onyx',
+  description: 'Pure black and white — no gray',
+  ...THEME_PRESET_PALETTES.onyx
 }
 
 /** Cool slate blue for developers. Matches the CLI slate skin. */
@@ -442,27 +273,23 @@ export const slateTheme: DesktopTheme = {
 }
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
-  nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
   everforest: everforestTheme,
-  solarized: solarizedTheme,
   'nous-alt': nousAltTheme,
-  classic: classicTheme,
   midnight: midnightTheme,
-  ember: emberTheme,
   mono: monoTheme,
-  slate: slateTheme,
-  cyberpunk: cyberpunkTheme
+  onyx: onyxTheme,
+  slate: slateTheme
 }
 
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'nous'
+export const DEFAULT_SKIN_NAME = 'onyx'
 
 /** Names that no longer resolve to a skin of their own. A stored pick of one
  *  falls back to DEFAULT_SKIN_NAME, and a cached backend theme under one is
  *  dropped (the reverted #130015 build cached the CLI `default` skin as a
  *  second "Classic Kova"). */
-export const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold'])
+export const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold', 'nous', 'classic', 'ember', 'cyberpunk', 'solarized'])
