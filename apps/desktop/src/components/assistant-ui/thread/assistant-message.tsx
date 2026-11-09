@@ -1388,10 +1388,10 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
   )
 
   return (
-    <div className="relative flex w-full shrink-0 items-center justify-end gap-1.5">
+    <div className="relative flex w-full shrink-0 items-center justify-start gap-1.5">
       {durationS !== undefined && (
         <span
-          className="mr-auto select-none px-0.5 text-[0.6875rem] leading-5 tabular-nums text-muted-foreground"
+          className="select-none px-0.5 text-[0.6875rem] leading-5 tabular-nums text-muted-foreground"
           data-slot="aui_turn-duration"
           title={t.assistant.thread.turnDuration(formatElapsed(durationS))}
         >
@@ -1407,11 +1407,11 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
           // invisible by default (opacity-0 + pointer-events-none, reveals on
           // hover), so keeping it mounted reserves stable layout height with
           // no visual change during streaming.
-          'relative flex flex-row items-center justify-end gap-1.5 py-1.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100'
+          'relative flex flex-row items-center justify-start gap-1.5 py-1.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100'
         }
         data-slot="aui_msg-actions"
       >
-        <div className="aui-message-actions-desktop flex items-center justify-end gap-1.5">
+        <div className="aui-message-actions-desktop flex items-center justify-start gap-1.5">
           <MessageHoverTime className="mr-1 px-0.5" />
           {branchInNewChat && (
             <TooltipIconButton onClick={branchInNewChat} tooltip={copy.branchNewChat}>
@@ -1430,7 +1430,7 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
         {/* Mounted only on touch: each Radix menu root adds a document key
             listener, and the CSS already hides this cluster everywhere else. */}
         {touch && (
-          <div className="aui-message-actions-touch items-center justify-end gap-1">
+          <div className="aui-message-actions-touch items-center justify-start gap-1">
             {copyButton}
             <ActionsMenu
               ariaLabel={copy.moreActions}
