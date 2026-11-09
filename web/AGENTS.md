@@ -1,12 +1,12 @@
-# web/ + hermes_cli/web_routers/ — the dashboard (`kova dashboard` → `/chat`)
+# web/ + kova_cli/web_routers/ — the dashboard (`kova dashboard` → `/chat`)
 
-Applies on top of the root `AGENTS.md`. Backend routers: `hermes_cli/web_routers/*.py`, one file per
-dashboard surface, mounted by `hermes_cli/web_server.py` (+ `web_server_*.py` siblings). Frontend:
+Applies on top of the root `AGENTS.md`. Backend routers: `kova_cli/web_routers/*.py`, one file per
+dashboard surface, mounted by `kova_cli/web_server.py` (+ `web_server_*.py` siblings). Frontend:
 `web/src/`. Shared JSON-RPC/WS client: `apps/shared` (`@kova/shared`), also used by the desktop.
 
 ## The dashboard embeds the REAL `kova --tui` — not a rewrite
 
-`hermes_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `web_server.py`:
+`kova_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `web_server.py`:
 
 - `web/src/pages/ChatPage.tsx` mounts xterm.js `Terminal` with the WebGL renderer, `@xterm/addon-fit`
   (container-driven resize) and `@xterm/addon-unicode11` (wide-character widths).
@@ -35,13 +35,13 @@ launches the other. `serve` is the headless backend the desktop app spawns (`hea
 disables the SPA even if a stray `web_dist/` exists — only JSON-RPC/WS/API is reachable). The
 desktop has no build/runtime dependency on this frontend. Details: `apps/desktop/src/AGENTS.md`.
 What each surface (`serve`, `dashboard`, `webapp`) may do is one table,
-`hermes_cli/web_server_surface.py`; read it instead of comparing `ui_surface` strings.
+`kova_cli/web_server_surface.py`; read it instead of comparing `ui_surface` strings.
 
 ## Rules
 
 - Auth: every new REST route and WS endpoint uses the same session token; never a second scheme.
 - Routers are one-file-per-surface; a new surface is a new `web_routers/<surface>.py`, not a growing
   `web_server.py`.
-- Tests: Python in `tests/hermes_cli/` (routers, pty bridge); JS in the `web/` vitest suite. Python
+- Tests: Python in `tests/kova_cli/` (routers, pty bridge); JS in the `web/` vitest suite. Python
   tests must not assert about `package.json` / `.tsx` sources (root testing rules). Root TypeScript
   style rules apply.

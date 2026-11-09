@@ -78,7 +78,7 @@ kova-agent/
 ├── run_agent.py          # AIAgent facade; the turn loop lives in agent/turn_*.py
 ├── model_tools.py        # Tool orchestration, discover_builtin_tools(), handle_function_call()
 ├── toolsets.py           # TOOLSETS dict, _KOVA_CORE_TOOLS
-├── cli.py                # KovaCLI (REPL, slash dispatch) + hermes_cli/cli_*_mixin.py
+├── cli.py                # KovaCLI (REPL, slash dispatch) + kova_cli/cli_*_mixin.py
 ├── hermes_state.py       # SessionDB facade; hermes_state_*.py siblings
 ├── hermes_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
 ├── scripts/              # check, run_tests.sh, code_health/, ci/
@@ -92,8 +92,8 @@ all profile-aware via `get_hermes_home()`.
 
 Every former god file is a **facade** (public entry points + the names other packages import) plus
 **siblings** `<stem>_<topic>.py`, each owning one topic (`hermes_state.py`, `gateway/run.py`,
-`tools/mcp_tool.py`, `hermes_cli/kanban.py`, `hermes_cli/web_server.py`, `cli.py` →
-`hermes_cli/cli_*_mixin.py`, `run_agent.py` → `agent/turn_*.py`).
+`tools/mcp_tool.py`, `kova_cli/kanban.py`, `kova_cli/web_server.py`, `cli.py` →
+`kova_cli/cli_*_mixin.py`, `run_agent.py` → `agent/turn_*.py`).
 
 - **Find code by topic:** `grep -rn "def name" <dir>/<stem>_*.py`, not by reading the facade.
 - **Siblings late-import the facade** inside functions; never a module-level cycle.
@@ -111,8 +111,8 @@ Every former god file is a **facade** (public entry points + the names other pac
 - **No defensive clutter:** no wrappers or `try/except: pass` around code that cannot fail, no flags
   nobody sets, no dead code wired in without E2E proof. Comments keep the WHY, cut the WHAT.
 - **Never infer process identity from argv substrings;** use
-  `gateway.status.looks_like_gateway_command_line` / `hermes_cli.update_cmd._hermes_holder_subcommand`
-  (HX003; details `hermes_cli/AGENTS.md`).
+  `gateway.status.looks_like_gateway_command_line` / `kova_cli.update_cmd._hermes_holder_subcommand`
+  (HX003; details `kova_cli/AGENTS.md`).
 - **Never hardcode `~/.kova`:** `get_hermes_home()` for paths, `display_hermes_home()` for text
   (HX001). `_get_profiles_root()` is HOME-anchored on purpose.
 - **One process serves many profiles.** Code that runs outside a turn (boot probes, eviction,
@@ -129,7 +129,7 @@ Every former god file is a **facade** (public entry points + the names other pac
   table-driven dispatch over condition ladders; `src/app` routes, `src/store` atoms, `src/lib` pure
   helpers.
 - **Don't add core/plugin crossings:** core never imports a specific bundled plugin, and plugins
-  use only the published plugin API (`hermes_cli/data/plugin_api.json`, `ctx`). Existing crossings
+  use only the published plugin API (`kova_cli/data/plugin_api.json`, `ctx`). Existing crossings
   are baselined; `scripts/boundary_lint.py` fails CI on new ones. Details: `plugins/AGENTS.md`
   § Boundary lint.
 - **Commits and PRs:** rebase onto `main` before merging (a squash from a stale branch silently
@@ -144,14 +144,14 @@ Every former god file is a **facade** (public entry points + the names other pac
 | Area | Read | Covers |
 |---|---|---|
 | `run_agent.py`, `agent/` | `agent/AGENTS.md` | turn phases, caching and message-flow invariants, compression, model/aux resolution |
-| `cli.py`, `hermes_cli/` | `hermes_cli/AGENTS.md` | CLI mixins, slash registry, config system, skins, `kova update`, profiles / multiplex |
+| `cli.py`, `kova_cli/` | `kova_cli/AGENTS.md` | CLI mixins, slash registry, config system, skins, `kova update`, profiles / multiplex |
 | `gateway/` | `gateway/AGENTS.md` | adapters, message guards, streaming, notifications, token locks, § Profile scope |
 | `gateway/platforms/` new adapter | `gateway/platforms/ADDING_A_PLATFORM.md` | step-by-step adapter guide |
 | `tools/`, `toolsets.py`, `model_tools.py` | `tools/AGENTS.md` | adding tools, registry, toolsets, delegation, session-scoped surface tools |
-| `plugins/`, `hermes_cli/plugins*.py` | `plugins/AGENTS.md` | plugin kinds, native compat contract, in-tree policy, boundary lint |
+| `plugins/`, `kova_cli/plugins*.py` | `plugins/AGENTS.md` | plugin kinds, native compat contract, in-tree policy, boundary lint |
 | `plugin-catalog/` | `plugin-catalog/README.md` | catalog admission rules (mirrored in the developer guide; keep identical) |
 | `tui_gateway/`, `ui-tui/` | `tui_gateway/AGENTS.md` | process model, JSON-RPC transport, slash flow |
-| `web/`, `hermes_cli/web_routers/` | `web/AGENTS.md` | dashboard embeds the real TUI |
+| `web/`, `kova_cli/web_routers/` | `web/AGENTS.md` | dashboard embeds the real TUI |
 | `apps/desktop/` | `apps/desktop/AGENTS.md`, `apps/desktop/src/AGENTS.md` | `serve` backend, slash palette, Bot Mode |
 | `skills/`, `optional-skills/`, `agent/curator*.py` | `skills/AGENTS.md` | frontmatter, authoring standards, curator |
 | `cron/`, kanban | `cron/AGENTS.md` | scheduler invariants, job fields, kanban dispatcher |

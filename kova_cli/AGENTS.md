@@ -1,11 +1,11 @@
-# hermes_cli/ + cli.py — CLI, slash commands, config, skins, updater, profiles
+# kova_cli/ + cli.py — CLI, slash commands, config, skins, updater, profiles
 
 Applies on top of the root `AGENTS.md`. Long-form: `website/docs/developer-guide/cli-internals.md`.
 
 ## CLI architecture
 
 `cli.py` holds `KovaCLI` (REPL loop, config, slash dispatch); behaviour lives in mixins
-`hermes_cli/cli_commands_mixin.py`, `cli_stream_mixin.py`, `cli_status_bar_mixin.py`,
+`kova_cli/cli_commands_mixin.py`, `cli_stream_mixin.py`, `cli_status_bar_mixin.py`,
 `cli_billing_mixin.py`, `cli_tui_mixin.py` (widgets, keybindings, panels), `cli_tui_runtime_mixin.py`
 (run-loop phases: input dispatch, startup, signals, shutdown), `cli_init_mixin.py` (the `__init__`
 phases), ... Module-level helpers live in topical siblings that `cli.py` re-exports:
@@ -19,13 +19,13 @@ Moved bodies late-bind cli-level names via `from cli import ...` at call time, s
 handles input + autocomplete; `KawaiiSpinner` (`agent/display.py`) animates API calls and prints
 the `┊` activity feed. `load_cli_config()` in `cli.py` merges CLI defaults + user YAML.
 
-`hermes_cli/gateway.py` is the `kova gateway` facade (process discovery, PM-aware systemd unit
+`kova_cli/gateway.py` is the `kova gateway` facade (process discovery, PM-aware systemd unit
 generation/refresh, command dispatch); topical siblings re-exported by the facade include
 `gateway_launchd.py` (macOS LaunchAgent backend), `gateway_setup_wizard.py`
 (`kova gateway setup`: `_PLATFORMS` registry, status table, per-platform prompts, service offer),
 `gateway_windows*.py`, `gateway_supervised_restart.py`, `gateway_migrate*.py`, `gateway_multiplex_*.py`,
 `gateway_enroll.py`, `gateway_command_errors.py`. Sibling bodies read facade names through `_gw()`
-(late binding on `hermes_cli.gateway`), so monkeypatch on the facade; mutable state such as
+(late binding on `kova_cli.gateway`), so monkeypatch on the facade; mutable state such as
 `_resolved_launchd_domain` stays a facade global.
 `process_command()` resolves the canonical name via `resolve_command()` then dispatches through
 `KovaCLI._SLASH_DISPATCH` (`canonical -> (method name, pass_arg)`), falling back to a
@@ -33,13 +33,13 @@ generation/refresh, command dispatch); topical siblings re-exported by the facad
 Skill slash commands (`agent/skill_commands.py`) scan `~/.kova/skills/` and inject as a **user
 message**, never into the system prompt (prompt caching).
 
-Rules: all interactive menu-pickers use curses (`hermes_cli/curses_ui.py`; example
-`hermes_cli/tools_config.py`). Never emit `\033[K` (ANSI erase-to-EOL) in spinner/display code —
+Rules: all interactive menu-pickers use curses (`kova_cli/curses_ui.py`; example
+`kova_cli/tools_config.py`). Never emit `\033[K` (ANSI erase-to-EOL) in spinner/display code —
 it leaks as literal `?[K` under prompt_toolkit's `patch_stdout`; space-pad instead:
 `f"\r{line}{' ' * pad}"`. Wrapper CLIs extend via the protected hooks in `cli_tui_mixin.py`
 (`website/docs/developer-guide/extending-the-cli.md`), not by overriding `run()`.
 
-## Slash command registry (`hermes_cli/commands.py`)
+## Slash command registry (`kova_cli/commands.py`)
 
 `COMMAND_REGISTRY` (list of `CommandDef`) is the single source; everything derives from it: CLI
 dispatch (`resolve_command()`), gateway `GATEWAY_KNOWN_COMMANDS` + dispatch, `gateway_help_lines()`,
@@ -63,14 +63,14 @@ invalidation with `--now` opt-in (root invariant).
 
 ### Shared goal commands
 
-`hermes_cli/goal_command.py::dispatch_goal_command` owns `/goal` parsing and manager
+`kova_cli/goal_command.py::dispatch_goal_command` owns `/goal` parsing and manager
 mutations. CLI, messaging gateway, TUI/Desktop/dashboard and Desktop goal controls
 all delegate there; adapters only resolve sessions, authorize gate creation, render
 results, and schedule kickoff/continuation prompts. Async callers preserve ContextVars
 when running dispatch off-loop (drafting uses profile-scoped auxiliary credentials).
 Do not add a surface-specific goal parser. ACP has no goal command or goal loop yet.
 
-## Config system (`hermes_cli/config.py`)
+## Config system (`kova_cli/config.py`)
 
 - **config.yaml option:** add to `DEFAULT_CONFIG`. Bump `_config_version` ONLY to actively
   migrate/transform existing config (rename keys, restructure); new keys deep-merge automatically.
@@ -88,18 +88,18 @@ set/get/unset <NAME>` route any bare name registered in `OPTIONAL_ENV_VARS` / `_
   (or carrying a `setup_hidden_env` platform suffix) to `.env` via `config_env_routing.py` — the
   file the platform setup flows write — never to the top level of config.yaml.
 - **One writer seam.** Every write of a `config.yaml` (main or profile) goes through
-  `hermes_cli.config.atomic_config_write` (refuses deletion by omission) or the explicit
+  `kova_cli.config.atomic_config_write` (refuses deletion by omission) or the explicit
   `atomic_config_replace` full-state path (→ `utils.atomic_roundtrip_yaml_save`, ruamel
   round-trip): formatting survives, and the fail-closed unreadable-file guard runs first. Deliberate `pop()`/unset/migration paths use `atomic_config_replace`; additive
   writers stay on `atomic_config_write`. Never call
   `atomic_yaml_write` / `yaml.dump` / `yaml.safe_dump` on a config path — `scripts/check_config_yaml_writers.py`
-  (CI lint) rejects it, and `tests/hermes_cli/test_config_yaml_comment_preservation.py` guards each
+  (CI lint) rejects it, and `tests/kova_cli/test_config_yaml_comment_preservation.py` guards each
   path (#92554). The commented example blocks are appended only when the file is created.
 - **Reads** too go only through `config_backend.py`; see `developer-guide/config-backend.md`.
   In daemon, RPC and tick code catch `ConfigBackendUnavailable` explicitly: it is a `SystemExit`, so `except Exception` won't stop it.
 - **Three loaders — know which you're in:** `load_cli_config()` (CLI, `cli.py`); `load_config()`
-  (`kova tools/setup`, most subcommands, `hermes_cli/config.py`, merges `DEFAULT_CONFIG`);
-  `hermes_cli/config_effective.py::load_user_config_effective()` (gateway runtime via
+  (`kova tools/setup`, most subcommands, `kova_cli/config.py`, merges `DEFAULT_CONFIG`);
+  `kova_cli/config_effective.py::load_user_config_effective()` (gateway runtime via
   `gateway/run.py::_load_gateway_config`, TUI gateway `_load_cfg`, cron, `kova send`, doctor,
   `hermes_time`/`hermes_logging`: user file + managed overlay + `${VAR}` expansion + model-key
   canon, NO defaults — for presence-sensitive readers). If the CLI sees a key and the gateway
@@ -108,13 +108,13 @@ set/get/unset <NAME>` route any bare name registered in `OPTIONAL_ENV_VARS` / `_
 - **Every `DEFAULT_CONFIG` key has a runtime reader, and every reader a registry entry.** Both drift
   modes are silent: a registered key nothing reads (a knob that does nothing) and a reader of a key
   never registered (never shown, never migrated; new roots also go in `_KNOWN_ROOT_KEYS`). For a new
-  key: `rg -n '"<key>"' hermes_cli/config_defaults.py` AND `rg -n '<key>' --glob '!tests' .` both hit,
+  key: `rg -n '"<key>"' kova_cli/config_defaults.py` AND `rg -n '<key>' --glob '!tests' .` both hit,
   and one invariant test sets it in a temp `config.yaml` and asserts the behaviour through the loader
   the consuming surface uses. Under multiplex the process env never overrides a profile's YAML.
 - **Working directory:** CLI uses `os.getcwd()`; messaging uses `terminal.cwd`, bridged to
   `TERMINAL_CWD` for child tools.
 
-## Skin engine (`hermes_cli/skin_engine.py`)
+## Skin engine (`kova_cli/skin_engine.py`)
 
 Skins are **pure data** (`SkinConfig`); no code change to add one. `init_skin_from_config()` reads
 `display.skin` at startup; `get_active_skin()` (cached), `set_active_skin(name)` (`/skin`),
@@ -146,7 +146,7 @@ The stage-by-stage contract: `website/docs/developer-guide/cli-internals.md` § 
 
 ## Profiles (multi-instance)
 
-`_apply_profile_override()` in `hermes_cli/main.py` sets `KOVA_HOME` before any module import for
+`_apply_profile_override()` in `kova_cli/main.py` sets `KOVA_HOME` before any module import for
 single-profile commands (`kova -p x <cmd>`), so there `get_hermes_home()` scopes to the active
 profile. The multiplex gateway and the Desktop/dashboard `serve` backend instead bind the active
 profile per activity via a contextvar override while `os.environ["KOVA_HOME"]` keeps the launch
@@ -179,7 +179,7 @@ tool registry overlays) key on `hermes_constants.kova_home_key()`, never a singl
 no preflight blocker, migratable host → `True`; else `False` + a logged reason. Explicit values pass
 through. CLI/dashboard readers use `default_gateway_multiplexes` (live `served_profiles` record, then
 the explicit flag) — never the merged default, which would guess a verdict only the gateway makes.
-Migration from per-profile gateways: `hermes_cli/gateway_migrate.py` (`kova gateway migrate
+Migration from per-profile gateways: `kova_cli/gateway_migrate.py` (`kova gateway migrate
 --multiplex`, the only mode — `--standalone` is deleted and a per-profile fleet is not a supported
 target; table-driven `_PREFLIGHT_CHECKS`; manifest `<default>/gateway_migration.json` = UNFINISHED,
 a re-run resumes from it; a named profile's `gateway install|start|run` refuse without `--force` via
@@ -209,7 +209,7 @@ change to install/restart/status regenerates and diffs every kind; both user and
 recorded when both exist. Process liveness is `(pid, start_time)` or the canonical matchers
 (`gateway.status.live_gateway_pid_for_home`), never bare PID existence.
 
-## Nous free tier (`hermes_cli/anon_auth.py`)
+## Nous free tier (`kova_cli/anon_auth.py`)
 
 `anon_auth.run_sign_in()` is the one sign-in composition: it yields `SignInState`s that carry their
 own `.copy` / `.copy_terminal`, persists only after a completed promotion AND a token grant, and runs

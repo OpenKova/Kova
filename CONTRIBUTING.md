@@ -252,7 +252,7 @@ See [Package management](website/docs/reference/package-management.md) for PM co
 ```
 kova-agent/
 ├── run_agent.py              # AIAgent facade (~1.5k LOC) — the turn loop lives in agent/conversation_loop.py + agent/turn_*.py
-├── cli.py                    # KovaCLI class — interactive CLI orchestrator (~4.6k LOC + hermes_cli/cli_*_mixin.py)
+├── cli.py                    # KovaCLI class — interactive CLI orchestrator (~4.6k LOC + kova_cli/cli_*_mixin.py)
 ├── model_tools.py            # Tool orchestration (thin layer over tools/registry.py)
 ├── toolsets.py               # Tool groupings and presets (hermes-cli, hermes-telegram, etc.)
 ├── hermes_state.py           # SessionDB facade (~1.4k LOC); implementation in hermes_state_*.py (21 siblings) — FTS5 search, session titles
@@ -269,7 +269,7 @@ kova-agent/
 │   ├── model_metadata.py         # Model context lengths, token estimation
 │   └── trajectory.py             # Trajectory saving helpers
 │
-├── hermes_cli/               # CLI command implementations
+├── kova_cli/               # CLI command implementations
 │   ├── main.py                   # Entry point, argument parsing, command dispatch
 │   ├── cli_*_mixin.py            # KovaCLI mixins (slash commands, display, session, ...)
 │   ├── config.py                 # Config management, migration, env var definitions
@@ -713,13 +713,13 @@ All fields are optional — missing values inherit from the default skin.
 
 **Option B: Built-in skin**
 
-Add to `_BUILTIN_SKINS` dict in `hermes_cli/skin_engine.py`. Use the same schema as above but as a Python dict. Built-in skins ship with the package and are always available.
+Add to `_BUILTIN_SKINS` dict in `kova_cli/skin_engine.py`. Use the same schema as above but as a Python dict. Built-in skins ship with the package and are always available.
 
 **Activating:**
 - CLI: `/skin mytheme` or set `display.skin: mytheme` in config.yaml
 - Config: `display: { skin: mytheme }`
 
-See `hermes_cli/skin_engine.py` for the full schema and existing skins as examples.
+See `kova_cli/skin_engine.py` for the full schema and existing skins as examples.
 
 ---
 
@@ -772,7 +772,7 @@ that touches the OS, assume *any* platform can hit your code path.
 
    For process enumeration: PowerShell's `Get-CimInstance Win32_Process` is
    the modern replacement for `wmic process`. See
-   `hermes_cli/gateway.py::_scan_gateway_pids` for the pattern.
+   `kova_cli/gateway.py::_scan_gateway_pids` for the pattern.
    ```
 
 3. **File encoding.** Windows may save `.env` files in `cp1252`. Always
@@ -839,7 +839,7 @@ that touches the OS, assume *any* platform can hit your code path.
     process. `pythonw.exe` is the no-console variant. Combine with
     `CREATE_NO_WINDOW | DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP |
     CREATE_BREAKAWAY_FROM_JOB` in `subprocess.Popen(creationflags=...)`.
-    See `hermes_cli/gateway_windows.py::_spawn_detached` for the reference
+    See `kova_cli/gateway_windows.py::_spawn_detached` for the reference
     implementation.
 
 10. **`subprocess.Popen` with `.cmd` or `.bat` shims needs `shutil.which`
@@ -877,7 +877,7 @@ that touches the OS, assume *any* platform can hit your code path.
     (["schtasks", "/TR", some_cmd])` → schtasks itself parses `/TR`, AND
     the `some_cmd` string is re-parsed by `cmd.exe` when the task fires.
     Different parsers, different escape rules. Use two separate quoting
-    helpers and never cross them. See `hermes_cli/gateway_windows.py::
+    helpers and never cross them. See `kova_cli/gateway_windows.py::
     _quote_cmd_script_arg` and `_quote_schtasks_arg` for the reference
     pair.
 

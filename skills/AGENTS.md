@@ -66,7 +66,7 @@ in the `kova-agent-dev` skill.
 Background maintenance that tracks usage on agent-created skills and auto-archives stale ones;
 archives go to `~/.kova/skills/.archive/` and are restorable. Core `agent/curator.py` (review
 loop, auto-transitions, LLM review prompt) + `agent/curator_backup.py` (pre-run tar.gz snapshots);
-CLI `hermes_cli/curator.py` → `kova curator status|run|pause|resume|pin|unpin|archive|restore|
+CLI `kova_cli/curator.py` → `kova curator status|run|pause|resume|pin|unpin|archive|restore|
 prune|backup|rollback`; telemetry `tools/skill_usage.py` owns `~/.kova/skills/.usage.json`
 (`use_count`, `view_count`, `patch_count`, `last_activity_at`, `state` active/stale/archived,
 `pinned`). Config `curator:` — `enabled, interval_hours, min_idle_hours, stale_after_days,

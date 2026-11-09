@@ -7,7 +7,7 @@ Applies on top of the root `AGENTS.md`. Authoring guide + canonical compat contr
 ## Plugins never touch core (Teknium, May 2026)
 
 Plugins live in their own directory and work within the ABCs / hooks / `ctx` surface we provide.
-A plugin MUST NOT modify `run_agent.py`, `cli.py`, `gateway/run.py`, `hermes_cli/main.py`, etc.
+A plugin MUST NOT modify `run_agent.py`, `cli.py`, `gateway/run.py`, `kova_cli/main.py`, etc.
 If it needs a capability the framework lacks, widen the **generic** plugin surface (new hook, new
 ctx method) and have the plugin use it — never hardcode plugin-specific logic into core (PR #5295
 removed 95 lines of hardcoded honcho argparse from `main.py`). Plugin setup goes through
@@ -19,7 +19,7 @@ command. A hook with no concrete consumer is speculative infrastructure and is r
 - **No new in-tree memory providers (May 2026).** `plugins/memory/` is closed (byterover,
   retaindb stay until their Oct 15 2026 removal). hindsight (Sep 2026), honcho, supermemory,
   mem0, openviking and holographic (Oct 2026) moved to the plugin catalog — `plugin-catalog/<name>.yaml`, auto-installed by
-  `hermes_cli/memory_provider_migration.py` for homes still configured for them. Host-side code a
+  `kova_cli/memory_provider_migration.py` for homes still configured for them. Host-side code a
   catalog provider still relies on (the `honcho_host_block` config storage kind, profile clone /
   rename / update-sync hooks) resolves the provider's modules through
   `plugins.memory.import_provider_module`, never a `plugins.memory.<name>` import. Generic seams
@@ -32,7 +32,7 @@ command. A hook with no concrete consumer is speculative infrastructure and is r
   `plugin-catalog/homeassistant.yaml`; Spotify toolset → `plugin-catalog/spotify.yaml`; Singularity
   terminal backend → `plugin-catalog/singularity.yaml`) keep their
   names/config/env and get a row in
-  `hermes_cli/left_core_migration.py::LEFT_CORE` (catalog plugin + read-only "this home uses it"
+  `kova_cli/left_core_migration.py::LEFT_CORE` (catalog plugin + read-only "this home uses it"
   predicate); `kova update` and agent/gateway start install the plugin for homes that used it.
   Installing and converting core-era state are separate steps: the toolset-scope conversion runs
   once per home and row (`_left_core_scoped` in config.yaml) even when the plugin is already there.
@@ -76,9 +76,9 @@ installed plugin from the same check at `update`, `enable` and load (`gate_manif
 provenance lives on the installer-owned `.install-metadata.json` record (`catalog` block, sha =
 checked-out commit), NEVER in the tree: the in-tree `.kova-catalog.json` is a convenience copy the
 Desktop reads for "Install here"; Python never trusts it (a repo can ship a forged one).
-Code: `hermes_cli/plugin_catalog.py` (loader, live refresh from
+Code: `kova_cli/plugin_catalog.py` (loader, live refresh from
 `/docs/api/plugin-catalog.json` published by the docs build, in-tree fallback),
-`hermes_cli/plugins_cmd_catalog.py` (resolution, `.kova-catalog.json` provenance sidecar,
+`kova_cli/plugins_cmd_catalog.py` (resolution, `.kova-catalog.json` provenance sidecar,
 search/info/validate, re-pin on `update`, dashboard/TUI payloads). Never add a second name index:
 bare names resolve through the catalog or error.
 
@@ -86,7 +86,7 @@ bare names resolve through the catalog or error.
 
 | Kind | Where | Discovery | Notes |
 |---|---|---|---|
-| General | `plugins/<name>/`, `~/.kova/plugins/`, `./.kova/plugins/`, pip entry points | `PluginManager` (`hermes_cli/plugins.py`), later-wins | `register(ctx)` registers hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), CLI subcommands (`ctx.register_cli_command` — argparse tree wired into `kova` at startup, no `main.py` change), language packs (`provides_locales` in the manifest auto-registers `locales/<lang>[.tui|.desktop].yaml` via `ctx.register_locale_dir`; manifest-only packs need no `__init__.py`; `hermes_cli/plugin_validate_locales.py` validates them) |
+| General | `plugins/<name>/`, `~/.kova/plugins/`, `./.kova/plugins/`, pip entry points | `PluginManager` (`kova_cli/plugins.py`), later-wins | `register(ctx)` registers hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), CLI subcommands (`ctx.register_cli_command` — argparse tree wired into `kova` at startup, no `main.py` change), language packs (`provides_locales` in the manifest auto-registers `locales/<lang>[.tui|.desktop].yaml` via `ctx.register_locale_dir`; manifest-only packs need no `__init__.py`; `kova_cli/plugin_validate_locales.py` validates them) |
 | Memory provider | `plugins/memory/<name>/` | `plugins/memory/__init__.py`: bundled → `$KOVA_HOME/plugins/` → `./.kova/plugins/` (opt-in `KOVA_ENABLE_PROJECT_PLUGINS`) → `hermes_agent.memory_providers` entry points; **bundled-first** | Activated by name via `memory.provider`, so a dropped-in dir must not shadow a shipped one (reverse of general later-wins). Enumerates without importing. Implements `MemoryProvider` ABC (`agent/memory_provider.py`), orchestrated by `agent/memory_manager.py`: `sync_turn`, `prefetch`, `shutdown`, optional `post_setup`. `cli.py` with `register_cli(subparser)` is wired by `discover_plugin_cli_commands()` — only for the ACTIVE provider, so `kova --help` stays clean |
 | Model provider | `plugins/model-providers/<name>/` | `providers/__init__.py._discover_providers()`, **lazy**, on first `get_provider_profile()`/`list_providers()`; bundled → `$KOVA_HOME/plugins/model-providers/` → legacy `providers/<name>.py` | `__init__.py` calls `providers.register_provider(ProviderProfile(...))` at load; **last-writer-wins** so a user plugin overrides a bundled profile. `PluginManager` records `kind: model-provider` manifests but does NOT import them (would double-instantiate); manifests without `kind:` are auto-coerced by source heuristic (`register_provider` + `ProviderProfile`) |
 | Context engine / image-gen / delegation / others | `plugins/context_engine/`, `plugins/image_gen/`, `plugins/delegation/`, ... | ABC + orchestrator + per-plugin directory | Plug into `agent/context_engine.py`, `agent/image_gen_provider.py`, `agent/delegation_provider.py` (`plugins/delegation/default` IS today's delegation routing) |
@@ -98,7 +98,7 @@ bare names resolve through the catalog or error.
 tool) and `run_agent.py` (lifecycle). A non-forced `discover_plugins()` short-circuits on `_discovered`: every
 mid-run load path (install/enable/update on any surface, `reload-plugins` verb) runs
 `discover_plugins(force=True)`, and `PluginManager.on_plugin_loaded` fires from inside that sweep for the
-newly loaded plugins with an activation summary (`hermes_cli/plugins_activation.py`: handlers live now;
+newly loaded plugins with an activation summary (`kova_cli/plugins_activation.py`: handlers live now;
 tools/prompt next session; `deferred.mcp_servers` until `mcp.reload`). Never emit that event from an RPC. Auxiliary LLM calls (titling, compression, MoA, vision, ...)
 fire `pre_auxiliary_call`/`post_auxiliary_call` from `agent/auxiliary_hooks.py` (payload = the
 `*_api_request` shape + `aux_task`); they never fire the turn-scoped `pre/post_api_request` (#79733). When a plugin changes a default, add a migration guard keyed
@@ -119,7 +119,7 @@ Platform plugins never mutate `os.environ`: YAML goes to `PlatformConfig.extra` 
 ## Plugin host boundary (`plugins.isolation: host`)
 
 `in_process` (default) imports user plugins into Kova. `host` runs every non-bundled plugin in a
-per-profile host process (`hermes_cli/plugin_host.py` parent side, `plugin_host_child.py` child,
+per-profile host process (`kova_cli/plugin_host.py` parent side, `plugin_host_child.py` child,
 `plugin_host_wire.py` framed JSON protocol). The child hands plugins a `RemotePluginContext`; Kova
 registers proxies (tools, hooks, commands, provider objects as subclasses of the ABC it checks).
 Invariants:
@@ -127,7 +127,7 @@ Invariants:
 - **Every user-code import path routes to the host or refuses** — general plugins
   (`plugins_loader`), memory / context engine / cron providers (`load_instance`), model-provider
   profiles (`plugin_host_profiles.py`: credential-free extraction cached by file fingerprint, because
-  discovery runs while `hermes_cli.config`/`auth` import; overrides run by name in the host), dashboard
+  discovery runs while `kova_cli.config`/`auth` import; overrides run by name in the host), dashboard
   APIs (ASGI bridge). `plugins/plugin_loader.load_plugin_module` refuses any other synthetic-namespace
   import. A new user-code loader MUST do the same.
 - **What cannot cross is one table:** `plugin_isolation.HOST_UNSUPPORTED_CTX_METHODS` (live gateway /
@@ -168,7 +168,7 @@ native `api:` match, or version literals on unrelated payloads. Documented surfa
 
 ## Boundary lint (`scripts/boundary_lint.py`)
 
-CI fails when a bundled plugin imports a core name that is not in `hermes_cli/data/plugin_api.json`,
+CI fails when a bundled plugin imports a core name that is not in `kova_cli/data/plugin_api.json`,
 or core imports a specific bundled plugin, more often than the committed baseline records. Fix it
 with a name already on that list, a `ctx` method or discovery. If nothing listed fits, add the seam
 in its own PR first, naming the plugin that needs it: prefer a `ctx` method or hook; otherwise list
@@ -185,7 +185,7 @@ count sticks. Never run it just to turn CI green.
 PR #102117 moved internals into `<stem>_<topic>` siblings. The temporary compat layer that kept the
 old import paths alive for external plugins was removed after its 2026-09-14 window; an old path now
 raises `ImportError`, surfaced as the plugin's load error in `kova plugins list`. Plugins build on
-`ctx` and the documented ABCs. Never add re-export shims for an internal move. `hermes_cli/plugin_compat.py`
+`ctx` and the documented ABCs. Never add re-export shims for an internal move. `kova_cli/plugin_compat.py`
 survives only as three inert stubs that already-running pre-removal updaters import.
 
 ## Tests

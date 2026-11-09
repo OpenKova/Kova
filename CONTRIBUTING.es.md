@@ -135,7 +135,7 @@ kova-agent/
 │   ├── model_metadata.py         # Longitudes de contexto del modelo, estimación de tokens
 │   └── trajectory.py             # Ayudantes para guardar trayectorias
 │
-├── hermes_cli/               # Implementaciones de comandos CLI
+├── kova_cli/               # Implementaciones de comandos CLI
 │   ├── main.py                   # Punto de entrada, análisis de argumentos, despacho de comandos
 │   ├── config.py                 # Gestión de configuración, migración, definiciones de variables de entorno
 │   ├── setup.py                  # Asistente de configuración interactivo
@@ -429,7 +429,7 @@ Todos los campos son opcionales — los valores faltantes se heredan de la skin 
 
 **Opción B: Skin integrada**
 
-Añade al dict `_BUILTIN_SKINS` en `hermes_cli/skin_engine.py`. Usa el mismo esquema que arriba pero como dict de Python.
+Añade al dict `_BUILTIN_SKINS` en `kova_cli/skin_engine.py`. Usa el mismo esquema que arriba pero como dict de Python.
 
 **Activar:**
 - CLI: `/skin mitema` o establece `display.skin: mitema` en config.yaml
