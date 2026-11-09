@@ -1,135 +1,150 @@
-# Kova Design Contract — OpenBot clone v1
+# Kova Design Contract — OpenClaw clone v1
 
-Kova's desktop design language, cloned from **OpenBot** (`nightly-labs/openbot`,
-`packages/brand/src/tokens.css` + `tokens-light.css`, desktop renderer in
-`src/renderer`, shared UI in `packages/ui`). Where this file and the legacy
-Hermes `DESIGN.md` disagree, this file wins for anything visual.
+Kova's desktop design language, cloned from **OpenClaw's Control UI design
+system** (`ui/docs/design-system/`: README, color-tokens, glass-surfaces,
+motion, accessibility) and its chat composer (`ui/src/styles/chat/`). The
+OpenBot clone of this contract is parked in `DESIGN-KOVA-OPENBOT.md`. Where
+this file and the legacy Hermes `DESIGN.md` disagree, this file wins for
+anything visual.
 
-OpenBot's system in one paragraph: a dark-first **neutral** palette (near-black
-canvas, one step lighter surfaces), **hairline borders you can barely see**,
-**flat cards with no shadow** (shadow only on overlays), a single **hue-210
-blue accent**, **Inter** in six type steps, small radii (12px cards, 22px
-bubbles), instant hover paint (0ms enter), and short 120–240ms motion on one
-ease. Light mode is the same system inverted — raised surfaces lighter than
-the canvas, borders as translucent ink. Focus is **neutral grey, never a blue
-halo**.
+OpenClaw's system in one paragraph: **dark-first glass** on a deep charcoal
+base (`#0e1015`), a **signature red accent** (`#ff5c5c`) used with restraint,
+**frosted surfaces instead of solid panels**, depth through layered
+backgrounds instead of heavy borders, and **crisp spring motion** (100ms
+micro-interactions, 180ms standard, 300ms page-level). Light mode is a warm
+paper palette with a terracotta accent. Every text token passes WCAG AA on
+its background.
 
 ## Philosophy
 
-1. **Prompt-first.** The transcript + prompt bar are the product.
-2. **Flat, neutral, quiet.** Surfaces differ by fill step (#1a1a1a → #212121
-   → #242424), not by borders or shadows. A card casts no shadow; only
-   overlays (menus, dialogs) lift.
-3. **One accent.** Hue-210 blue `#007cf7` for actions/links; status colors
-   (green/amber/red) only for status.
-4. **Brand is the robot.** The Kova mark (`BrandMark`) in the topbar and empty
-   states. No decorative sparkles.
-5. **Dark-first, light-correct.** Every token has a light value with AA
-   contrast; dark values never leak into light surfaces.
+1. **Glass, not solid.** Surfaces use `backdrop-filter` blur (12px,
+   saturate 1.6) over semi-transparent fills. No flat opaque panels in the
+   main chrome. Browsers without `backdrop-filter` get the semi-opaque base
+   via `@supports` — layout never breaks.
+2. **Depth through layering.** The background scale (`--bg` → `--bg-accent`
+   → `--bg-elevated` → `--bg-hover`) communicates hierarchy without heavy
+   borders. Borders stay at `#1e2028` default, stronger only when active.
+3. **Accent with restraint.** Signature red for primary actions only (send,
+   active tab, focus ring); teal `#14b8a6` for secondary/status. Never a
+   large filled background.
+4. **Motion serves meaning.** Animations telegraph state changes — centered
+   prompt docks down, composer expands — never decoration alone.
+5. **Accessible by default.** Focus-visible rings everywhere, ≥4.5:1 text
+   contrast, `prefers-reduced-motion` suppresses all non-essential motion.
+6. **Brand is the robot.** The Kova mark (`BrandMark`) in the topbar and
+   empty states.
 
-## Tokens (OpenBot values → Kova token names)
+## Tokens (OpenClaw values → Kova token names)
 
-| Use | Kova token | Dark | Light |
+| Use | OpenClaw token | Dark | Light |
 |---|---|---|---|
-| Canvas | `--ui-bg-*` ladder | `#1a1a1a` | `#f5f5f6` |
-| Window frame (darker than the card) | `--ui-bg-chrome` | `#0d0d0d` | `#e8e8eb` |
-| Surface / raised | `--dt-card` | `#212121` / `#242424` | `#ffffff` / `#fcfcfc` |
-| Control / hover / active | `--ui-control-*` | `#212121` / `#242424` / `#2a2a2a` | `#ffffff` / `#f0f0f2` / `#e8e8eb` |
-| Hairline border | `--dt-input` / `--ui-stroke-*` | `rgba(255,255,255,0.035)` (strong 0.045) | `rgba(20,20,20,0.07)` (strong 0.10) |
-| Text primary / secondary / muted / dim | `--ui-text-*` | `#ffffff` / `#dcdcdc` / `#979797` / `#6a6a6a` | `#141414` / `#3a3a3c` / `#6b6b70` / `#8e8e93` |
-| Placeholder | — | `#bfbfbf` | `#5c5c61` |
-| Accent / hover / text | `--ui-accent` family | `#007cf7` / `#1f8fff` / `#42a0ff` | `#007cf7` / `#006ad4` / `#0064c8` |
-| Focus border | — | `--openbot-text-dim` grey | grey |
-| Success / warning / danger | status tokens | `#31cf76` / `#ff9412` / `#fd2f3b` | `#1fa85a` / `#f08a00` / `#e8222d` |
+| Page root | `--bg` | `#0e1015` | `#faf9f7` (warm paper) |
+| Sidebar / secondary | `--bg-accent` | `#13151b` | `#f4f1ec` |
+| Raised / modals | `--bg-elevated` | `#191c24` | `#ffffff` |
+| Hover / muted fills | `--bg-hover` | `#1f2330` | `#efebe4` |
+| Card / composer fill | `--card` | `#161920` | `#ffffff` |
+| Text on cards | `--card-foreground` | `#f0f0f2` | `#211e1a` |
+| Body text | `--text` | `#bcbcc0` (~10:1) | — |
+| Strong text | `--text-strong` | `#f4f4f5` (~17:1) | — |
+| Muted / placeholder | `--muted` | `#8b8b94` (~5.6:1) | — |
+| Accent (red) | `--accent` | `#ff5c5c` | `#bd4531` (terracotta) |
+| Accent hover / glow | `--accent-hover` / `--accent-glow` | `#ff7070` / 20% red | — |
+| Accent 2 (teal) | `--accent-2` | `#14b8a6` | — |
+| Borders | `--border` / `--border-strong` | `#1e2028` / `#2e3040` | `#e8e4dc` warm |
+| Focus ring | `--ring` | `#ff5c5c` + glow | accent family |
 
-Never raw hex in feature code — always the token. No drop shadows on cards in
-either theme (in light they read as a halo; raised surfaces keep a 1px ring).
+Never raw hex in feature code — always the token. No `--accent-subtle` as
+text (fails contrast); no mixing teal and green for success; `--danger` is
+for errors only.
 
-## Type scale (Inter; six steps, paired leading)
+## Glass tiers
 
-`12/16 · 13/18 · 14/20 · 16/22 · 18/24 · 24/30`, display `32/38` for empty
-states and full-bleed screens. Weights 400/500/600/700; headings tighten
-(`-0.01em` at display size). Mono: ui-monospace stack.
+| Tier | Used for | Value |
+|---|---|---|
+| 1 — Navigation chrome | topbar, sidebar rail | `bg` at 82% + `blur(12px) saturate(1.6)` |
+| 2 — Card / input | composer, modals, popovers | card fill + 1px `--border` + `blur(12px) saturate(1.6)`; popovers 8px, tooltips 14px |
 
-## Radius, controls, icons
+Never nest glass more than 2 levels; never blur beyond 16px outside modal
+overlays; always ship the `-webkit-` prefix and the `@supports` fallback.
 
-| Surface | Radius |
-|---|---|
-| Cards, composer, panels | `12px` (OpenBot `radius-lg`) |
-| Popovers/menus | `12px` |
-| Dialogs | `30px` modal — Kova dialogs keep `rounded-[24px]` until migrated |
-| Bubbles | `22px` |
-| Pills, icon buttons, chips | `999px` |
+## Radius & type
 
-Controls: 24 / 28 / 32 / 36 / 40px steps. Icons: stroke 2 at 16px, 1.5 at
-≥18px (Kova keeps Tabler/Codicon; the weight rule is the clone, not the
-library). Scrollbar 8px.
+- Radii: `10px` (md), `14px` (lg — cards/popovers), composer `20px`,
+  menus `16px`, pills `999px`.
+- Type: Kova's existing UI stack; headings `text-strong`, body `text`,
+  metadata `muted`. Keep the 6-step scale (12–24px) + 32px display.
 
 ## Shell
 
 ```
 ┌─────────────────────────────────────────────┐
-│  topbar: logo · tabs · actions              │
+│  topbar (glass tier 1): logo · tabs · acts  │
 ├────────┬────────────────────────────────────┤
 │ rail   │  transcript (message flow)         │
+│ (glass)│                                    │
 │        │  ┌──────────────────────────────┐  │
-│        │  │  prompt bar (flat card)      │  │
+│        │  │  composer (glass tier 2)     │  │
 │        │  │  message…                    │  │
 │        │  │  [+ attach][model pill] ⬆   │  │
 │        │  └──────────────────────────────┘  │
 └────────┴────────────────────────────────────┘
 ```
 
-- Sidebar is a quiet rail (list rows, no bordered cards).
-- Panes attach beneath the topbar, one hairline per panel — no two-level boxes.
+- Sidebar and topbar are glass tier 1; panes attach beneath the topbar with
+  one hairline per panel — no two-level boxes.
 
 ## The prompt bar
 
-One flat card — no shadow, ever.
+One glass card — the app's signature.
 
-- **Geometry**: `border-[0.5px]` hairline; radius `12px`; fill = surface step;
-  padding 10px; grows from a ~96px resting height with the eased resize curve.
-- **Focus**: border goes dim grey + a 3px soft ring (hover-fill token) — never
-  blue, never a halo.
+- **Geometry**: radius `20px`; card fill + 1px `--border`; backdrop blur
+  12px saturate 1.6 (semi-opaque `@supports` fallback); soft depth shadow
+  only — never a heavy elevation.
+- **Focus**: accent-colored ring with glow —
+  `0 0 0 2px var(--bg), 0 0 0 3px accent@80%, 0 0 16px accent-glow` — the
+  accent, not grey. Composer border/shadow transitions at 100ms.
 - **Structure**: message text at top full-bleed; one control row inside the
-  bottom edge — left: `+` attach (28px circle, muted icon), center: model pill
-  (`rounded-full`), right: round send (inverted surface circle, arrow-up).
-  Voice/mic left of send as a 28px circle.
+  bottom edge — left: `+` attach (28px circle, muted icon), center: model
+  pill (`999px`, soft fill), right: **round send in signature red**
+  (arrow-up glyph). Voice/mic left of send as a 28px circle.
 - **States**: busy — send becomes a small square stop glyph on the same
   circle; error — inline `ErrorState`, never a second banner card.
 - **Centered → docked (empty state)**: while the chat has no messages, the
   whole dock — hero (BrandMark 64px + title 32px semibold + subtitle 16px
-  muted, max 30rem) + prompt bar + suggestion chips — sits centered (~46% of
-  the surface). The first send slides it to the bottom as one motion
-  (240ms, `cubic-bezier(0.23,1,0.32,1)`, `motion-reduce` off) and it stays
-  docked. Loading, resume-exhausted, and guided-setup surfaces never center.
-  Suggestion chips fill the draft and focus the input; they never auto-send.
+  muted) + prompt bar + suggestion chips — sits centered (~46% of the
+  surface). The first send slides it to the bottom as one motion
+  (300ms, `cubic-bezier(0.4,0,0.2,1)` in-out — it travels A→B) and it
+  stays docked. Loading, resume-exhausted, and guided-setup surfaces never
+  center. Suggestion chips fill the draft and focus the input; they never
+  auto-send.
 - **Placeholder**: muted, sentence-case — "Ask Kova anything".
 
 ## Chat messages
 
 - Assistant turns are columnar and uncolored; **user bubbles** are `22px`
-  radius on the inverted surface (`surface-light`), right-aligned, capped
-  width — a bubble, never a box.
-- Tool calls are quiet chips (icon + line + duration), expanding in place into
-  one `12px` surface — never nested boxes.
-- Code blocks: `12px`, one hairline, no inner header boxes.
+  radius on the inverted surface, right-aligned, capped width.
+- Tool calls are quiet chips (icon + line + duration), expanding into one
+  `14px` glass surface — never nested boxes.
+- Code blocks: `14px`, one hairline, no inner header boxes.
 - Avatar: robot mark for the assistant; initials in soft `999px` chips.
 
 ## Buttons & chips
 
 - One `Button` primitive; variants `default`/`secondary`/`outline`/`ghost`.
-- Icon controls are circles (28px default); text actions are `999px` pills.
-- Tooltips name the control; kebabs and close X get `aria-label` only.
+- Icon controls are circles (28px); text actions are `999px` pills.
+- Primary actions use the signature red fill (white text, AA); everything
+  else stays neutral.
 
 ## Motion
 
-- Hover paints **instantly** (0ms enter); returns ease out.
-- Durations: fast 120ms, normal 160ms, slow 200ms, overlay 240ms.
-- Ease: `cubic-bezier(0.23, 1, 0.32, 1)` out; `cubic-bezier(0.77, 0, 0.175, 1)`
-  in-out. No `transition-all` on hot interactions.
-- Transcript streams without layout jumps; `prefers-reduced-motion` kills
-  everything beyond fades.
+- Scale: fast `100ms` (hover, focus, icon swap), normal `180ms` (menus,
+  tabs, input expand), slow `300ms` (sheets, page-level).
+- Ease: `cubic-bezier(0.16, 1, 0.3, 1)` out (default), `cubic-bezier(0.4, 0, 0.2, 1)`
+  in-out only for point-to-point travel. Never `linear` for enter/exit.
+- `prefers-reduced-motion` suppresses everything beyond instant state
+  changes (the global reset already owns this).
+- Shimmer only via the two shared families (skeleton 2s / text 2.4s); no
+  per-surface keyframes; no duration over 500ms for chrome.
 
 ## Empty / error / boot
 
@@ -139,17 +154,16 @@ One flat card — no shadow, ever.
 
 ## Iconography & imagery
 
-- Tabler for chrome, Codicon for editor/tool/status vocabulary, Kova mark for
-  brand moments. Icon stroke 2 at 16px (1.5 at ≥18px).
-- The shared Kova robot only — no generated hero art, no gradients beyond the
-  app's own ambient tint.
+- Tabler for chrome, Codicon for editor/tool/status vocabulary, Kova mark
+  for brand moments (stroke 2 at 16px).
+- The shared Kova robot only — no generated hero art.
 
 ## Checklist before shipping a change
 
-- [ ] Flat card: no shadow, 0.5px hairline, 12px radius
-- [ ] Prompt bar reads as one flat object (input + row + send inside)
+- [ ] Glass tier correct (nav = tier 1, card/input = tier 2), `@supports` fallback present
+- [ ] Prompt bar reads as one glass object (input + row + red send inside)
 - [ ] Tokens, never literals; `Button` only; no one-off radii/shadows
-- [ ] Renders in light *and* dark without repapering
-- [ ] Locale strings updated (`en` source; other locales fall back)
-- [ ] Hover paints in the same frame; reduced-motion respected
-- [ ] Library icons only (Tabler/Codicon), stroke-weight rule kept
+- [ ] Renders in light *and* dark without repapering (warm paper + terracotta in light)
+- [ ] Locale strings in `en` (other locales fall back)
+- [ ] Focus ring visible (accent + glow); reduced-motion respected
+- [ ] Library icons only (Tabler/Codicon), brand mark only for brand moments

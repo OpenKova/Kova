@@ -11,14 +11,13 @@ export const GHOST_ICON_BTN = cn(
   'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
 )
 
-// Send/voice-conversation primary: solid foreground-on-background circle
-// (reads as black-on-white in light mode, white-on-black in dark mode) to
-// match the reference composer's high-contrast CTA. Keeps the pill itself
-// neutral and lets the action visually dominate the row.
+// Send/voice-conversation primary: solid signature-accent circle (OpenClaw
+// clone — the send is the one red action in the row). Keeps the rest of the
+// row neutral and lets the action visually dominate it.
 export const PRIMARY_ICON_BTN = cn(
   'size-(--composer-control-primary-size,var(--composer-control-size)) shrink-0 rounded-full p-0',
-  'bg-foreground text-background hover:bg-foreground/90',
-  'disabled:bg-foreground/30 disabled:text-background disabled:opacity-100'
+  'bg-(--ui-accent) text-white hover:bg-(--ui-accent)/90',
+  'disabled:bg-(--ui-accent)/30 disabled:text-white disabled:opacity-100'
 )
 
 /** A toggle that is currently ON — dictation, spoken replies, the wake word. */

@@ -1288,7 +1288,7 @@ export function ChatBar({
                 // slide: centered at 46% of the surface, docked at `top-full` shifted
                 // up by its own height — the same box as `bottom-0`, but animatable.
                 cn(
-                  'absolute left-1/2 transition-[top,transform] duration-[240ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none',
+                  'absolute left-1/2 transition-[top,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none',
                   centeredEmpty ? 'top-[46%] -translate-x-1/2 -translate-y-1/2' : 'top-full -translate-x-1/2 -translate-y-full'
                 )
           )}
@@ -1364,7 +1364,7 @@ export function ChatBar({
           </StatusDrawerContent>
           <ComposerPrimitive.Root
             className={cn(
-              'group/composer relative w-full overflow-visible rounded-xl',
+              'group/composer relative w-full overflow-visible rounded-[20px]',
               poppedOut && 'bg-transparent',
               dragging && 'cursor-grabbing select-none touch-none',
               // Native Wayland HUD: setBounds cannot position a top-level
@@ -1588,7 +1588,7 @@ export function ChatBarFallback() {
   return (
     <div
       className={cn(
-        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-xl pt-2 pb-[var(--composer-shell-pad-block-end)]',
+        'group/composer absolute bottom-0 left-1/2 z-30 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 rounded-[20px] pt-2 pb-[var(--composer-shell-pad-block-end)]',
         'bg-linear-to-b from-transparent to-background/55'
       )}
       data-slot="composer-root"

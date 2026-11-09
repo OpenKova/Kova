@@ -2189,11 +2189,15 @@ body.guest-pointer-lock :is(webview, iframe) {
   --composer-fill: color-mix(in srgb, var(--dt-card) 88%, transparent);
 }
 
-/* OpenBot clone: focus is a dim grey border + 3px soft ring — never blue,
-   never a halo. Unlayered so it beats the utility ring on the surface. */
+/* OpenClaw clone: focus is the accent ring with glow (--focus-glow):
+   2px bg gap + 3px accent@80% + 16px accent glow. Unlayered so it beats
+   the utility ring on the surface. */
 [data-slot='composer-root']:focus-within [data-slot='composer-surface'] {
-  border-color: color-mix(in srgb, var(--ui-text-primary) 38%, transparent);
-  box-shadow: 0 0 0 3px var(--chrome-action-hover);
+  border-color: var(--ui-accent);
+  box-shadow:
+    0 0 0 2px var(--dt-background),
+    0 0 0 3px color-mix(in srgb, var(--ui-accent) 80%, transparent),
+    0 0 16px color-mix(in srgb, var(--ui-accent) 20%, transparent);
 }
 
 [data-slot='composer-root'][data-thread-scrolled-up] {

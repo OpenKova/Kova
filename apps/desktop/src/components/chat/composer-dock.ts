@@ -20,10 +20,10 @@ export const composerInputBacking = cn(
 
 /** The composer surface's hairline ring. Plugin composers (Bot Mode rooms) wear it too,
  *  so every input surface in the app reads as the same composer. */
-// OpenBot clone: flat card — 0.5px hairline, no shadow. Elevation is for
-// overlays only; the composer reads as one surface step above the canvas.
+// OpenClaw clone (glass tier 2): card fill + 1px border + soft depth shadow.
+// The blur lives on composerSurfaceGlass / the input backing, not the ring.
 export const composerSurfaceRing =
-  'border-[0.5px] border-[color-mix(in_srgb,var(--dt-composer-ring)_calc(14%*var(--composer-ring-strength)),var(--dt-input))] shadow-none'
+  'border border-[color-mix(in_srgb,var(--dt-composer-ring)_calc(14%*var(--composer-ring-strength)),var(--dt-input))] shadow-[0_8px_32px_-12px_rgba(0,0,0,0.45)]'
 
 /** Backdrop treatment for non-input composer chrome. Harmless when the fill
  *  goes opaque (drawer open) — nothing shows through to blur. */
