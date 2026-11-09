@@ -683,6 +683,12 @@ def fetch_openrouter_models(
     except Exception:
         remote = None
     fallback = list(remote) if remote else list(OPENROUTER_MODELS)
+    # The remote manifest lags behind new SKUs (stealth rotations in particular); keep the
+    # snapshot's entries too — the live filter below still drops anything OpenRouter is
+    # not carrying right now, so an absent SKU stays absent without hiding a live one.
+    for entry in OPENROUTER_MODELS:
+        if all(entry[0] != mid for mid, _ in fallback):
+            fallback.append(entry)
 
     live = _fetch_live_catalog_index(_OPENROUTER_CATALOG_URL, timeout, _urlopen_model_catalog_request)
     if live is None:
