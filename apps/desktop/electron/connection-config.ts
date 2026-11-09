@@ -743,7 +743,7 @@ function localPrimaryRequestScope(opts: ProfileRouteOptions): boolean | null {
   }
 
   // Action-status polls MUST land on the same backend as the endpoints that
-  // spawned them: `_spawn_hermes_action` registers the (often dynamic, e.g.
+  // spawned them: `_spawn_kova_action` registers the (often dynamic, e.g.
   // `skills-install-<slug>-<hash>`) action name only in the spawning
   // process's memory. Every action-spawning route above scopes to the
   // primary, so the poll family follows — a pooled-backend poll 404s with
