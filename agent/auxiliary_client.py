@@ -873,7 +873,7 @@ _PROVIDERS_WITHOUT_VISION: frozenset = frozenset({"kimi-coding", "kimi-coding-cn
 
 # OpenRouter app attribution (always sent). `X-Title` is what the dashboard reads.
 _OR_HEADERS_BASE = {
-    "HTTP-Referer": "https://kova-agent.nousresearch.com",
+    "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
     "X-Title": "Kova Agent",
     "X-OpenRouter-Categories": "productivity,cli-agent",
 }
@@ -942,7 +942,7 @@ from kova_cli.version_info import kova_user_agent
 
 
 def _ai_gateway_headers() -> dict[str, str]:
-    return {"HTTP-Referer": "https://kova-agent.nousresearch.com", "X-Title": "Kova Agent",
+    return {"HTTP-Referer": "https://github.com/NeuralStudio/kova-agent", "X-Title": "Kova Agent",
             "User-Agent": kova_user_agent("KovaAgent")}
 
 # Neural Studio Portal attribution tags, built per call. They come from agent.portal_tags so the client=

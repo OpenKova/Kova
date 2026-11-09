@@ -782,7 +782,7 @@ def load_kova_dotenv(
     return loaded
 
 
-load_kova_dotenv = load_kova_dotenv  # legacy alias
+load_hermes_dotenv = load_kova_dotenv  # legacy alias
 
 
 def _reapply_terminal_config_bridge(home_path: Path) -> None:

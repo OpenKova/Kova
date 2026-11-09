@@ -10,7 +10,7 @@ from providers import register_provider
 from providers.base import OMIT_TEMPERATURE, LazyHeaders, ProviderProfile
 
 _HEADERS = {
-    "HTTP-Referer": "https://kova-agent.nousresearch.com",
+    "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
     "X-Title": "Kova Agent",
     "User-Agent": lambda: kova_user_agent("KovaAgent"),
     # Exclude brotli: httpx's brotlicffi backend has a streaming decode bug on
