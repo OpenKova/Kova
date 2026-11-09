@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -64,10 +63,7 @@ export function ContextMenu({
             </Button>
           </DropdownMenuTrigger>
         </Tip>
-        <DropdownMenuContent align="start" className={cn('w-60', composerPanelCard)} side="top" sideOffset={6}>
-          <DropdownMenuLabel className="px-2 pb-0.5 pt-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-tertiary)">
-            {c.attachLabel}
-          </DropdownMenuLabel>
+        <DropdownMenuContent align="start" className={cn('w-60 p-1.5', composerPanelCard)} side="top" sideOffset={6}>
           <ContextMenuItem disabled={!onPickFiles} icon={FileText} onSelect={onPickFiles}>
             {c.files}
           </ContextMenuItem>
@@ -97,7 +93,7 @@ export function ContextMenu({
           {attachmentProviders.length > 0 && <DropdownMenuSeparator />}
           {attachmentProviders.map(provider => (
             <DropdownMenuItem
-              className="text-[length:var(--conversation-tool-font-size)] focus:bg-(--ui-bg-tertiary)"
+              className="rounded-xl px-2.5 py-2 text-[length:var(--conversation-tool-font-size)] focus:bg-(--ui-control-hover-background)"
               key={provider.key}
               onSelect={() => void provider.run({ insertText: onInsertText })}
             >
@@ -108,7 +104,7 @@ export function ContextMenu({
 
           <DropdownMenuSeparator />
 
-          <div className="px-2 py-1 text-[0.7rem] text-muted-foreground/80">
+          <div className="px-2.5 py-1.5 text-[0.7rem] text-muted-foreground/80">
             {c.tipPre}
             <Kbd size="sm">@</Kbd>
             {c.tipPost}
@@ -139,7 +135,7 @@ function PromptSnippetsDialog({ onInsertText, onOpenChange, open }: PromptSnippe
             return (
               <li key={key}>
                 <button
-                  className="group/snippet flex w-full cursor-pointer items-start gap-2.5 rounded-md border border-transparent px-2.5 py-2 text-left transition-colors hover:border-(--ui-stroke-tertiary) hover:bg-(--ui-control-hover-background) focus-visible:border-(--ui-stroke-tertiary) focus-visible:bg-(--ui-control-hover-background) focus-visible:outline-hidden"
+                  className="group/snippet flex w-full cursor-pointer items-start gap-2.5 rounded-xl border border-transparent px-2.5 py-2 text-left transition-colors hover:border-(--ui-stroke-tertiary) hover:bg-(--ui-control-hover-background) focus-visible:border-(--ui-stroke-tertiary) focus-visible:bg-(--ui-control-hover-background) focus-visible:outline-hidden"
                   onClick={() => {
                     onInsertText(snippet.text)
                     onOpenChange(false)
@@ -167,7 +163,7 @@ export function ContextMenuItem({ children, disabled, icon: Icon, onSelect }: Co
   return (
     // Override font size + highlight to match the / · @ completion rows exactly.
     <DropdownMenuItem
-      className="text-[length:var(--conversation-tool-font-size)] focus:bg-(--ui-bg-tertiary)"
+      className="rounded-xl px-2.5 py-2 text-[length:var(--conversation-tool-font-size)] focus:bg-(--ui-control-hover-background)"
       disabled={disabled}
       onSelect={onSelect}
     >
