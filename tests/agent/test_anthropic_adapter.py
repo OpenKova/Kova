@@ -87,7 +87,7 @@ class TestBuildAnthropicClient:
             )
             kwargs = mock_sdk.Anthropic.call_args[1]
             headers = kwargs["default_headers"]
-            assert headers["HTTP-Referer"] == "https://github.com/NeuralStudio/kova-agent"
+            assert headers["HTTP-Referer"] == "https://kova-agent.neuralstudio.in/"
             assert headers["X-Title"] == "Kova Agent"
             from kova_cli.version_info import get_version_info
             assert headers["User-Agent"] == f"KovaAgent/{get_version_info().base_version}"

@@ -15,7 +15,7 @@ from datetime import UTC
 # Attribution headers (same values as OpenRouter / Vercel / Fireworks); via
 # default_headers so they survive model switches and credential rotation.
 _ATTRIBUTION_HEADERS = {
-    "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
+    "HTTP-Referer": "https://kova-agent.neuralstudio.in/",
     "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
     "User-Agent": lambda: kova_user_agent("KovaAgent"),
 }

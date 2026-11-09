@@ -172,7 +172,7 @@ _IMAGE_API_INTS = (
 _ATTRIBUTION_HEADERS = {
     "Content-Type": "application/json",
     # OpenRouter attribution headers (harmless against Neural Studio Portal).
-    "HTTP-Referer": "https://github.com/NeuralStudio/kova-agent",
+    "HTTP-Referer": "https://kova-agent.neuralstudio.in/",
     "X-Title": "Kova Agent", "X-OpenRouter-Title": "Kova Agent",
 }
 
