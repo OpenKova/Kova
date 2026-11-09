@@ -38,6 +38,8 @@ export interface ChatBarState {
 
 export interface ChatBarProps {
   busy: boolean
+  /** Empty transcript: the dock sits centered (hero + prompt) until the first send. */
+  centeredEmpty?: boolean
   disabled: boolean
   focusKey?: string | null
   /** Durable scope for the current sessionless new-chat lifecycle. */

@@ -95,6 +95,13 @@ One floating rounded card — the app's signature.
 - **Entrance**: fades/scales in over ~150 ms; typing never re-paints
   heavy chrome (keep backdrop blur off the hot surface).
 - **Placeholder**: muted, sentence-case — "Ask Kova anything".
+- **Centered → docked (empty state)**: while the chat has no messages, the whole
+  dock — hero (BrandMark + heading + subtitle), prompt bar, suggestion chips —
+  sits centered at ~46% of the surface (Codex/OpenClaw new-chat). The first
+  send slides it down to the bottom as one motion (top/transform, 300 ms,
+  `motion-reduce` off) and it stays docked for the conversation. Loading,
+  resume-exhausted, and guided-setup surfaces never center. Suggestion chips
+  fill the draft and focus the input; they never auto-send.
 
 ## Chat messages
 

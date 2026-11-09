@@ -14,6 +14,7 @@ import { useTourMarker } from '@/app/chat/tour-marker'
 import type { GatewayRequester } from '@/app/contrib/types'
 import { useHudComposerDrag } from '@/app/hud/composer-drag'
 import { useBusyInputMode } from '@/app/session/hooks/use-busy-input-mode'
+import { BrandMark } from '@/components/brand-mark'
 import { composerFloatingStrip, composerInputBacking, composerSurfaceRing } from '@/components/chat/composer-dock'
 import { useSetupChatView } from '@/components/onboarding/first-run/assembly'
 import { OnboardingSkip } from '@/components/onboarding/skip-setup'
@@ -132,6 +133,7 @@ function controlRowGridClass(singleColumn: boolean, stacked: boolean): string {
 
 export function ChatBar({
   busy,
+  centeredEmpty = false,
   cwd,
   disabled,
   focusKey,
@@ -1280,8 +1282,17 @@ export function ChatBar({
         <div
           className={cn(
             'group/composer-dock z-30 flex flex-col',
-            poppedOut ? 'fixed max-w-[calc(100vw-1.5rem)]' : 'absolute bottom-0 left-1/2 max-w-full -translate-x-1/2'
+            poppedOut
+              ? 'fixed max-w-[calc(100vw-1.5rem)]'
+              : // Top-anchored (not bottom) so the empty->started move animates as one
+                // slide: centered at 46% of the surface, docked at `top-full` shifted
+                // up by its own height — the same box as `bottom-0`, but animatable.
+                cn(
+                  'absolute left-1/2 transition-[top,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                  centeredEmpty ? 'top-[46%] -translate-x-1/2 -translate-y-1/2' : 'top-full -translate-x-1/2 -translate-y-full'
+                )
           )}
+          data-centered-empty={centeredEmpty && !poppedOut ? '' : undefined}
           data-popped-out={poppedOut ? '' : undefined}
           data-slot="composer-dock"
           data-thread-scrolled-up={scrolledUp ? '' : undefined}
@@ -1300,6 +1311,16 @@ export function ChatBar({
               : undefined
           }
         >
+          {centeredEmpty && !poppedOut && (
+            <div
+              className="flex flex-col items-center px-4 pb-5 text-center"
+              data-slot="composer-hero"
+            >
+              <BrandMark className="size-14" />
+              <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">{t.composer.heroTitle}</h1>
+              <p className="mt-1 max-w-md text-sm leading-relaxed text-(--ui-text-secondary)">{t.composer.heroSubtitle}</p>
+            </div>
+          )}
           {/* Aligned to the composer SURFACE, which sits inside the composer's
               5px transparent grab margin — so both strips carry the same inset
               and share one left edge with it. */}
@@ -1524,6 +1545,23 @@ export function ChatBar({
               </div>
             </div>
           </ComposerPrimitive.Root>
+          {centeredEmpty && !poppedOut && (
+            <div className="flex flex-wrap items-center justify-center gap-2 px-2 pt-3" data-slot="composer-hero-suggestions">
+              {t.composer.heroSuggestions.map(suggestion => (
+                <button
+                  className="cursor-pointer rounded-full border border-border/65 bg-(--composer-fill) px-3.5 py-1.5 text-xs font-normal text-(--ui-text-secondary) shadow-sm transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground"
+                  key={suggestion}
+                  onClick={() => {
+                    insertText(suggestion)
+                    focusInput()
+                  }}
+                  type="button"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
           {/* Underside: chrome-free strip BELOW the composer. Outside the root
               for the same reason as the micro actions — it must not fall inside
               the pop-out drag region. Same px as the strip above, so the two

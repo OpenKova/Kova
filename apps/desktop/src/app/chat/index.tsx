@@ -57,6 +57,7 @@ import { isAuxiliaryWindow, isMainWindow } from '@/store/windows'
 import { primaryRouteSelectedSessionId, routeSessionId } from '../routes'
 import { titlebarHeaderBaseClass, titlebarHeaderShadowClass, titlebarHeaderTitleClass } from '../shell/titlebar'
 
+import { shouldCenterComposer } from './centered-empty'
 import { ChatDropOverlay } from './chat-drop-overlay'
 import { dropOverlayKind, useShowChatBar } from './chat-surface-state'
 import { ChatSwapOverlay, ChatSyncBadge } from './chat-swap-overlay'
@@ -691,6 +692,17 @@ const ChatViewContent = memo(function ChatViewContent({
 
   const threadKey = selectedSessionId || activeSessionId || (isRoutedSessionView ? location.pathname : 'new')
 
+  // Codex-style empty state: no messages yet (and nothing loading/running)
+  // centers the prompt bar with its hero; the first send docks it at the bottom.
+  const centeredEmpty = shouldCenterComposer({
+    busy,
+    loadingSession,
+    messagesEmpty,
+    resumeExhausted,
+    setupChat,
+    showChatBar
+  })
+
   const chatBarState = useChatBarState({
     activeGatewayProfile,
     activeSessionId,
@@ -796,7 +808,7 @@ const ChatViewContent = memo(function ChatViewContent({
             clampToComposer={showChatBar}
             cwd={currentCwd}
             gateway={gateway}
-            intro={showIntro ? { personality: introPersonality, seed: introSeed } : undefined}
+            intro={!centeredEmpty && showIntro ? { personality: introPersonality, seed: introSeed } : undefined}
             loading={threadLoading}
             onBranchInNewChat={onBranchInNewChat}
             onCancel={haltRun}
@@ -838,6 +850,7 @@ const ChatViewContent = memo(function ChatViewContent({
             <Suspense fallback={<ChatBarFallback />}>
               <ChatBar
                 busy={busy}
+                centeredEmpty={centeredEmpty}
                 cwd={currentCwd}
                 disabled={!gatewayOpen}
                 focusKey={activeSessionId}

@@ -2928,6 +2928,9 @@ export interface Translations extends NoticeTranslations {
     placeholderFollowUp: string
     newSessionPlaceholders: readonly string[]
     followUpPlaceholders: readonly string[]
+    heroTitle: string
+    heroSubtitle: string
+    heroSuggestions: readonly string[]
     startVoice: string
     openDirective: string
     queueMessage: string

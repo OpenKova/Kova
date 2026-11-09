@@ -3329,6 +3329,13 @@ export const en: Translations = {
       'Ask anything',
       'Start with a goal'
     ],
+    heroTitle: 'What should Kova do?',
+    heroSubtitle: 'Ask anything, or start from a suggestion below.',
+    heroSuggestions: [
+      'Fix a bug',
+      'Build a feature',
+      'Explain this repo'
+    ],
     followUpPlaceholders: [
       'Send a follow-up',
       'Add more context',
