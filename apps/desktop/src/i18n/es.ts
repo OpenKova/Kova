@@ -3636,11 +3636,11 @@ export const esOverrides = {
     },
     profileRail: 'Barra de perfiles',
     nav: {
-      'new-session': 'Nueva sesión',
+      'new-session': 'Nuevo chat',
       capabilities: 'Capacidades',
       messaging: 'Mensajería',
       artifacts: 'Artefactos',
-      cron: 'Tareas programadas'
+      cron: 'Programadas'
     },
     searchAria: 'Buscar sesiones',
     searchPlaceholder: 'Buscar sesiones…',

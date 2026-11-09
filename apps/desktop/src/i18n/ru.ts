@@ -2448,11 +2448,11 @@ export const ruOverrides = {
       actions: 'Действия с группой'
     },
     nav: {
-      'new-session': 'Новый сеанс',
+      'new-session': 'Новый чат',
       capabilities: 'Возможности',
       messaging: 'Сообщения',
       artifacts: 'Артефакты',
-      cron: 'Запланированные задачи'
+      cron: 'Запланировано'
     },
     searchAria: 'Поиск сеансов',
     searchPlaceholder: 'Поиск сеансов…',

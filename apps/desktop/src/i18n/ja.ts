@@ -2196,11 +2196,11 @@ export const jaOverrides = {
       actions: 'グループの操作'
     },
     nav: {
-      'new-session': '新しいセッション',
+      'new-session': '新しいチャット',
       capabilities: 'スキルとツール',
       messaging: 'メッセージング',
       artifacts: 'アーティファクト',
-      cron: 'スケジュール済みジョブ'
+      cron: 'スケジュール'
     },
     searchAria: 'セッションを検索',
     searchPlaceholder: 'セッションを検索…',

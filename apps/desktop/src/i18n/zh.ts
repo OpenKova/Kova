@@ -3110,11 +3110,11 @@ export const zhOverrides = {
       actions: '分组操作'
     },
     nav: {
-      'new-session': '新建会话',
+      'new-session': '新建聊天',
       capabilities: '技能与工具',
       messaging: '消息平台',
       artifacts: '产物',
-      cron: '定时任务'
+      cron: '已排期'
     },
     searchAria: '搜索会话',
     searchPlaceholder: '搜索会话…',

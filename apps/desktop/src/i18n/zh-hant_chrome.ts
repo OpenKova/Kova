@@ -83,11 +83,11 @@ export const zhHantChrome = {
       actions: '群組動作'
     },
     nav: {
-      'new-session': '新工作階段',
+      'new-session': '新增聊天',
       capabilities: '技能與工具',
       messaging: '訊息平台',
       artifacts: '成品',
-      cron: '排程工作'
+      cron: '已排程'
     },
     searchAria: '搜尋工作階段',
     searchPlaceholder: '搜尋工作階段…',

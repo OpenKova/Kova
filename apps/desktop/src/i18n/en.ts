@@ -2539,6 +2539,8 @@ export const en: Translations = {
     hintGatewayStopped: 'Start the gateway from the status bar to connect.',
     credentialsSet: 'Credentials set',
     needsSetup: 'Needs setup',
+    connect: 'Connect',
+    configure: 'Configure',
     gatewayStopped: 'Messaging gateway stopped',
     getCredentials: 'Get your credentials',
     openSetupGuide: 'Open setup guide',
@@ -3210,11 +3212,11 @@ export const en: Translations = {
     },
     profileRail: 'Profile rail',
     nav: {
-      'new-session': 'New session',
+      'new-session': 'New chat',
       capabilities: 'Capabilities',
       messaging: 'Messaging',
       artifacts: 'Artifacts',
-      cron: 'Scheduled jobs'
+      cron: 'Scheduled'
     },
     searchAria: 'Search sessions',
     searchPlaceholder: 'Search sessions…',

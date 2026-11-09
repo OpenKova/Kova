@@ -2290,6 +2290,8 @@ export interface Translations extends NoticeTranslations {
     hintGatewayStopped: string
     credentialsSet: string
     needsSetup: string
+    connect: string
+    configure: string
     gatewayStopped: string
     getCredentials: string
     openSetupGuide: string

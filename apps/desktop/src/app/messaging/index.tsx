@@ -39,7 +39,7 @@ import { $gatewayRestarting, runGatewayRestart, watchGatewayRestartOutcome } fro
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
-import { DetailColumn, ListColumn, MasterDetail } from '../master-detail'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { PageSearchShell } from '../page-search-shell'
 import { CREDENTIAL_CONTROL_CLASS } from '../settings/credential-key-ui'
 import { credentialPreview } from '../settings/helpers'
@@ -175,6 +175,9 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   const [saving, setSaving] = useState<string | null>(null)
   const platformIds = useMemo(() => platforms?.map(p => p.id) ?? [], [platforms])
   const [selectedId, setSelectedId] = useRouteEnumParam('platform', platformIds, platformIds[0] ?? '')
+  // The setup popup: a card click opens it for that platform; the route
+  // selection stays the source of truth for which platform is shown.
+  const [setupOpen, setSetupOpen] = useState(false)
 
   const restartGatewayNow = useCallback(async () => {
     // runGatewayRestart never rejects: it toasts the failure and settles the
@@ -578,26 +581,89 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           {/* Which profile's gateway this page configures (hidden for
               single-profile users). */}
           <SettingsProfileScope className="border-b border-(--ui-stroke-secondary) px-3 py-2" />
-          <div className="min-h-0 flex-1">
-            <MasterDetail>
-              <ListColumn>
-                <ul className="space-y-1">
-                  {visiblePlatforms.map(platform => (
-                    <li key={platform.id}>
-                      <PlatformRow
-                        active={selected?.id === platform.id}
-                        onSelect={() => setSelectedId(platform.id)}
-                        pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
-                        platform={platform}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </ListColumn>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+            {restartNeeded && (
+              <Alert className="mb-3" variant="warning">
+                <AlertTriangle />
+                <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                  <span>{m.restartNeeded}</span>
+                  <Button
+                    disabled={gatewayRestarting}
+                    onClick={() => void restartGatewayNow()}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <RefreshCw className={gatewayRestarting ? 'animate-spin' : undefined} />
+                    {gatewayRestarting ? m.restarting : m.restartNow}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {visiblePlatforms.map(platform => (
+                <li key={platform.id}>
+                  <PlatformCard
+                    onOpen={() => {
+                      setSelectedId(platform.id)
+                      setSetupOpen(true)
+                    }}
+                    pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
+                    platform={platform}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
 
-              <DetailColumn
-                actionBar={
-                  selected && (
+          <Dialog onOpenChange={setSetupOpen} open={setupOpen && Boolean(selected)}>
+            <DialogContent className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-0 overflow-hidden p-0">
+              <DialogTitle className="sr-only">{selected?.name ?? ''}</DialogTitle>
+              {selected && (
+                <>
+                  <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                    {/* The grid banner is inert while this dialog is open, so
+                        the same notice renders here (one visible at a time). */}
+                    {restartNeeded && (
+                      <Alert className="mb-3" variant="warning">
+                        <AlertTriangle />
+                        <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                          <span>{m.restartNeeded}</span>
+                          <Button
+                            disabled={gatewayRestarting}
+                            onClick={() => void restartGatewayNow()}
+                            size="sm"
+                            variant="secondary"
+                          >
+                            <RefreshCw className={gatewayRestarting ? 'animate-spin' : undefined} />
+                            {gatewayRestarting ? m.restarting : m.restartNow}
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <PlatformDetail
+                      approved={approvedByPlatform[selected.id] ?? []}
+                      approving={approving}
+                      edits={edits[selected.id] || {}}
+                      onApprove={user => void handleApprove(user)}
+                      onClear={key => void handleClear(selected, key)}
+                      onEdit={(key, value) =>
+                        setEdits(current => ({
+                          ...current,
+                          [selected.id]: {
+                            ...(current[selected.id] || {}),
+                            [key]: value
+                          }
+                        }))
+                      }
+                      onRevoke={setPendingRevoke}
+                      onTelegramApplied={result => void handleTelegramApplied(result)}
+                      pending={pendingByPlatform[selected.id] ?? []}
+                      platform={selected}
+                      saving={saving}
+                      scopeProfile={scopeProfile}
+                    />
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3 border-t border-(--ui-stroke-secondary) px-5 py-3">
                     <PlatformActionBar
                       hasEdits={hasChanges(platformChanges(selected, edits[selected.id] || {}))}
                       onSave={() => void handleSave(selected)}
@@ -605,53 +671,11 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                       platform={selected}
                       saving={saving}
                     />
-                  )
-                }
-              >
-                {restartNeeded && (
-                  <Alert variant="warning">
-                    <AlertTriangle />
-                    <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
-                      <span>{m.restartNeeded}</span>
-                      <Button
-                        disabled={gatewayRestarting}
-                        onClick={() => void restartGatewayNow()}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        <RefreshCw className={gatewayRestarting ? 'animate-spin' : undefined} />
-                        {gatewayRestarting ? m.restarting : m.restartNow}
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
-                {selected && (
-                  <PlatformDetail
-                    approved={approvedByPlatform[selected.id] ?? []}
-                    approving={approving}
-                    edits={edits[selected.id] || {}}
-                    onApprove={user => void handleApprove(user)}
-                    onClear={key => void handleClear(selected, key)}
-                    onEdit={(key, value) =>
-                      setEdits(current => ({
-                        ...current,
-                        [selected.id]: {
-                          ...(current[selected.id] || {}),
-                          [key]: value
-                        }
-                      }))
-                    }
-                    onRevoke={setPendingRevoke}
-                    onTelegramApplied={result => void handleTelegramApplied(result)}
-                    pending={pendingByPlatform[selected.id] ?? []}
-                    platform={selected}
-                    saving={saving}
-                    scopeProfile={scopeProfile}
-                  />
-                )}
-              </DetailColumn>
-            </MasterDetail>
-          </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
@@ -670,32 +694,37 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   )
 }
 
-function PlatformRow({
-  active,
-  onSelect,
+function PlatformCard({
+  onOpen,
   pendingCount,
   platform
 }: {
-  active: boolean
-  onSelect: () => void
+  onOpen: () => void
   pendingCount: number
   platform: MessagingPlatformInfo
 }) {
   const { t } = useI18n()
+  const m = t.messaging
 
   return (
-    <button
-      className={cn(
-        'row-hover flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:text-foreground',
-        active ? 'bg-(--ui-row-active-background) text-foreground' : 'text-(--ui-text-secondary)'
-      )}
-      onClick={onSelect}
-      type="button"
-    >
-      <PlatformAvatar platformId={platform.id} platformName={platform.name} />
-      <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-        <span className="truncate text-[length:var(--conversation-text-font-size)] font-normal">{platform.name}</span>
-        <span className="flex shrink-0 items-center gap-1.5">
+    <div className="relative flex h-full items-center gap-3 rounded-xl border border-(--ui-stroke-quaternary) bg-(--ui-bg-elevated) p-3.5 transition-colors hover:bg-(--chrome-action-hover)">
+      <PlatformAvatar className="size-9 shrink-0 rounded-[9px]" platformId={platform.id} platformName={platform.name} />
+
+      <div className="grid min-w-0 flex-1 gap-0.5">
+        <button
+          className="w-fit max-w-full truncate text-left text-[0.8125rem] font-semibold text-(--ui-text-primary) outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-hidden focus-visible:after:ring-[0.1875rem] focus-visible:after:ring-ring/50"
+          onClick={onOpen}
+          type="button"
+        >
+          {platform.name}
+        </button>
+        {platform.description ? (
+          <p className="line-clamp-2 text-[0.72rem] leading-snug text-(--ui-text-secondary)">{platform.description}</p>
+        ) : null}
+      </div>
+
+      <div className="relative z-10 flex shrink-0 flex-col items-end gap-1">
+        <span className="flex items-center gap-1.5 text-[0.6875rem] text-(--ui-text-secondary)">
           {/* Someone is waiting to be let in — the only way this page tells
               you so before you open the platform. */}
           {pendingCount > 0 && (
@@ -709,10 +738,14 @@ function PlatformRow({
               {pendingCount}
             </span>
           )}
+          <span className="truncate">{stateLabel(platform.state, m)}</span>
           <StatusDot tone={platformStatusTone(platform)} />
         </span>
-      </span>
-    </button>
+        <Button onClick={onOpen} size="xs" variant={platform.configured ? 'outline' : 'secondary'}>
+          {platform.configured ? m.configure : m.connect}
+        </Button>
+      </div>
+    </div>
   )
 }
 

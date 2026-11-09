@@ -6,8 +6,10 @@
 // `dt-portal-scrollbar` reproduces the thin themed scrollbar from
 // `.scrollbar-dt` for portaled overlays (Radix renders under document.body,
 // outside #root's scope). See styles.css.
+// Kova design (DESIGN-KOVA.md): solid card matching the prompt box — opaque
+// fill, 16px radius, hairline border, soft shadow. No translucent glass.
 export const menuSurfaceClass =
-  'dt-portal-scrollbar rounded-lg border border-(--ui-stroke-secondary) bg-[color-mix(in_srgb,var(--ui-bg-elevated)_96%,transparent)] p-1 text-[length:var(--conversation-text-font-size)] text-popover-foreground shadow-md backdrop-blur-md'
+  'dt-portal-scrollbar rounded-[16px] border border-border/65 bg-(--dt-card) p-1.5 text-[length:var(--conversation-text-font-size)] text-popover-foreground shadow-[0_12px_32px_-12px_rgba(0,0,0,0.5)]'
 
 export const menuMotionClass =
   'data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95'
@@ -16,7 +18,7 @@ export const menuMotionClass =
 // Radix rows take real focus (`focus:`), cmdk rows stay behind the input and
 // mark `data-selected="true"`.
 export const menuItemClass =
-  "relative flex items-center gap-2 rounded-md px-2 py-1 text-xs focus-visible:outline-hidden select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5"
+  "relative flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs focus-visible:outline-hidden select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5"
 
 export const menuItemFocusClass = 'focus:bg-(--ui-control-active-background) focus:text-foreground'
 

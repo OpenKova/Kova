@@ -157,6 +157,25 @@ One glass card — the app's signature.
 - Shimmer only via the two shared families (skeleton 2s / text 2.4s); no
   per-surface keyframes; no duration over 500ms for chrome.
 
+## Menus & popovers
+
+- Every floating menu (dropdowns, selects, context menus, command-picker
+  popovers) paints the **solid card**: opaque `--dt-card` fill, `16px`
+  radius, hairline border, soft depth shadow — the same object as the
+  prompt box and the `+` attach menu. Never translucent glass, never the
+  old 8px Hermes rectangle.
+- Rows are `12px`-rounded with comfortable padding and a control-hover
+  highlight; submenus share the card.
+
+## Directory pages (Messaging, Connectors, Capabilities)
+
+- Apps/platforms render as a **card grid** (2–3 columns): brand mark,
+  name, one-line description, status + state word on the right, and a
+  Connect/Configure action.
+- Selecting a card opens a **popup dialog** with the full setup/detail
+  flow (credentials, toggles, save action in the dialog footer) — never a
+  competing two-pane page.
+
 ## Empty / error / boot
 
 - Empty chat = the centered hero above (avatar + title + one muted line).

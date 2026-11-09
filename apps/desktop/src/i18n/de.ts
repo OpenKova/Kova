@@ -3648,11 +3648,11 @@ export const deOverrides = {
     },
     profileRail: 'Profil-Leiste',
     nav: {
-      'new-session': 'Neue Session',
+      'new-session': 'Neuer Chat',
       capabilities: 'Fähigkeiten',
       messaging: 'Messaging',
       artifacts: 'Artefakte',
-      cron: 'Geplante Jobs'
+      cron: 'Geplant'
     },
     searchAria: 'Sessions durchsuchen',
     searchPlaceholder: 'Sessions durchsuchen…',

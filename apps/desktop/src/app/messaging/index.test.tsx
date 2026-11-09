@@ -127,6 +127,13 @@ async function renderMessaging() {
   return result!
 }
 
+// The setup UI lives in a popup now: open a platform's card to reach its detail.
+async function openPlatform(name = 'Microsoft Teams') {
+  await act(async () => {
+    fireEvent.click(await screen.findByRole('button', { name }))
+  })
+}
+
 describe('MessagingView profile scope', () => {
   it('names the active profile explicitly instead of sending an unscoped request', async () => {
     $settingsScopeOverride.set(null)
@@ -144,7 +151,7 @@ describe('MessagingView profile scope', () => {
 
 describe('MessagingView status filter', () => {
   const rowNames = (container: HTMLElement) =>
-    [...container.querySelectorAll('ul > li > button')].map(row => row.querySelector('.truncate')?.textContent)
+    [...container.querySelectorAll('ul > li')].map(row => row.querySelector('button')?.textContent)
 
   it('offers a tab only for tones some platform is in, and narrows the list to that tone', async () => {
     getMessagingPlatforms.mockResolvedValue({
@@ -171,6 +178,7 @@ describe('MessagingView enable switch', () => {
     getMessagingPlatforms.mockResolvedValue({ platforms: [platform({ enabled: true })] })
 
     await renderMessaging()
+    await openPlatform()
 
     const toggle = await screen.findByRole('switch', { name: 'Disable Microsoft Teams' })
     expect(toggle.closest('label')?.textContent).toBe('Enabled')
@@ -210,6 +218,7 @@ describe('MessagingView enable switch', () => {
 
     $settingsScopeOverride.set(null)
     await renderMessaging()
+    await openPlatform('Telegram')
 
     // The previous profile's redacted token is visible as the placeholder.
     expect(await screen.findByPlaceholderText(oldToken)).not.toBeNull()
@@ -306,6 +315,7 @@ describe('MessagingView setup-guide link', () => {
     getMessagingPlatforms.mockResolvedValue({ platforms: [platform({ docs_url: '' })] })
 
     await renderMessaging()
+    await openPlatform()
 
     expect((await screen.findAllByText('Microsoft Teams')).length).toBeGreaterThan(0)
     expect(screen.queryByText('Open setup guide')).toBeNull()
@@ -316,6 +326,7 @@ describe('MessagingView setup-guide link', () => {
     getMessagingPlatforms.mockResolvedValue({ platforms: [platform({ docs_url: docsUrl })] })
 
     await renderMessaging()
+    await openPlatform()
 
     const link = await screen.findByText('Open setup guide')
     await act(async () => {
@@ -344,6 +355,7 @@ describe('MessagingView pairing', () => {
     approvePairing.mockResolvedValue({ ok: true, user: { user_id: '7712345', user_name: 'Bee' } })
 
     await renderMessaging()
+    await openPlatform()
 
     const approve = await screen.findByRole('button', { name: 'Approve' })
     await act(async () => {
@@ -361,6 +373,7 @@ describe('MessagingView pairing', () => {
     approvePairing.mockRejectedValue(new Error('500 boom'))
 
     await renderMessaging()
+    await openPlatform()
 
     await act(async () => {
       fireEvent.click(await screen.findByRole('button', { name: 'Approve' }))
@@ -390,6 +403,7 @@ describe('MessagingView pairing', () => {
     getPairing.mockResolvedValue({ approved: [], pending: [] })
 
     await renderMessaging()
+    await openPlatform()
     await act(async () => {
       $changeEventsAvailable.set(true)
     })
@@ -434,6 +448,7 @@ describe('MessagingView restart banner', () => {
     runGatewayRestart.mockResolvedValueOnce(false).mockResolvedValueOnce(true)
 
     await renderMessaging()
+    await openPlatform()
 
     fireEvent.change(await screen.findByLabelText('Token'), { target: { value: 'secret-1' } })
     await act(async () => {
@@ -485,6 +500,7 @@ describe('MessagingView allowlist editor', () => {
   it('shows each saved ID in its own visible box and saves add/remove edits as one list', async () => {
     getMessagingPlatforms.mockResolvedValue({ platforms: [platform({ env_vars: [allowlist()] })] })
     await renderMessaging()
+    await openPlatform()
 
     await screen.findByLabelText('Allowed users 1')
     expect(entries().map(el => [(el as HTMLInputElement).type, (el as HTMLInputElement).value])).toEqual([
@@ -511,6 +527,7 @@ describe('MessagingView allowlist editor', () => {
       platforms: [platform({ env_vars: [allowlist({ redacted_value: '«redacted:111»', value: '111' })] })]
     })
     await renderMessaging()
+    await openPlatform()
 
     await screen.findByLabelText('Allowed users 1')
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
@@ -556,6 +573,7 @@ describe('MessagingView Telegram quick setup', () => {
 
     try {
       await renderMessaging()
+      await openPlatform('Telegram')
 
       await act(async () => {
         fireEvent.click(await screen.findByRole('button', { name: /Create with QR/ }))

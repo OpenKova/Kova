@@ -3656,11 +3656,11 @@ export const frOverrides = {
     },
     profileRail: 'Barre des profils',
     nav: {
-      'new-session': 'Nouvelle session',
+      'new-session': 'Nouveau chat',
       capabilities: 'Capacités',
       messaging: 'Messagerie',
       artifacts: 'Artefacts',
-      cron: 'Tâches planifiées'
+      cron: 'Planifiées'
     },
     searchAria: 'Rechercher des sessions',
     searchPlaceholder: 'Rechercher des sessions…',

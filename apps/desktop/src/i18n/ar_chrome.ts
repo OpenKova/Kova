@@ -192,11 +192,11 @@ export const arChrome = {
       actions: 'إجراءات المجموعة'
     },
     nav: {
-      'new-session': 'جلسة جديدة',
+      'new-session': 'محادثة جديدة',
       capabilities: 'المهارات',
       messaging: 'المراسلة',
       artifacts: 'العناصر',
-      cron: 'المهام المجدولة'
+      cron: 'مجدولة'
     },
     searchAria: 'البحث في الجلسات',
     searchPlaceholder: 'البحث في الجلسات...',
