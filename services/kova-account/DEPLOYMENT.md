@@ -53,10 +53,11 @@ check succeeds.
 
 - Keep one service instance and keep the persistent disk attached; backups are
   still required for account and username recovery.
-- The public endpoints need rate limiting at the ingress for
-  `/v1/auth/challenge`, `/v1/auth/google`, and `/v1/auth/exchange` before broad
-  release. The service intentionally has no permissive CORS policy; Desktop
-  requests originate from Electron.
+- The service rate-limits authentication attempts by client IP. Render provides
+  `CF-Connecting-IP` at its public edge; any alternate ingress must overwrite
+  that header with the verified client address. Do not forward a client-supplied
+  value as trusted identity. The service intentionally has no permissive CORS
+  policy; Desktop requests originate from Electron.
 - Rotate `KOVA_ACCOUNT_SESSION_PEPPER` only with a planned session reset; old
   session tokens will no longer validate.
 - Monitor `/health` for process liveness and `/ready` for configuration and

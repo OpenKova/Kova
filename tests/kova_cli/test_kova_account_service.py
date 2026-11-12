@@ -135,6 +135,24 @@ def test_auth_challenge_returns_short_lived_nonce(tmp_path, monkeypatch):
     assert payload["expires_at"] == 1_800_000_000 + service.CHALLENGE_TTL_SECONDS
 
 
+def test_auth_challenge_is_rate_limited_per_client_ip(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "accounts.sqlite3"))
+    monkeypatch.setenv("KOVA_ACCOUNT_SESSION_PEPPER", "test-secret-" * 3)
+    now = 1_800_000_000
+    monkeypatch.setattr(service, "time", SimpleNamespace(time=lambda: now))
+    first_ip = {"CF-Connecting-IP": "203.0.113.10"}
+
+    for _ in range(service.AUTH_RATE_LIMITS["challenge"]):
+        assert client.post("/v1/auth/challenge", headers=first_ip).status_code == 200
+
+    limited = client.post("/v1/auth/challenge", headers=first_ip)
+    assert limited.status_code == 429
+    assert limited.headers["retry-after"] == str(service.AUTH_RATE_WINDOW_SECONDS)
+    assert client.post(
+        "/v1/auth/challenge", headers={"CF-Connecting-IP": "203.0.113.11"}
+    ).status_code == 200
+
+
 def test_readiness_requires_service_configuration_and_database(tmp_path, monkeypatch):
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "accounts.sqlite3"))
     monkeypatch.setenv("KOVA_ACCOUNT_SESSION_PEPPER", "test-secret-" * 3)

@@ -12,19 +12,17 @@ by Kova Desktop, `KOVA_ACCOUNT_SESSION_PEPPER` with a random deployment secret,
 and `DATABASE_PATH` with a persistent SQLite file path. Generate a session
 pepper with at least 32 bytes. Do not expose the
 development server to the network. Production requires HTTPS, a persistent
-database volume with backups, a trusted reverse proxy, and deployment-specific
-rate limiting before the endpoint is made public.
+database volume with backups, and a trusted reverse proxy. The API applies
+per-client limits to sign-in endpoints; the reverse proxy must supply a
+verified `CF-Connecting-IP` header (Render does this at its public edge).
 
 Build the container from the repository root with
 `docker build -f services/kova-account/Dockerfile -t kova-account .`. Mount a
 persistent volume at `/data`, configure `DATABASE_PATH=/data/accounts.sqlite3`,
 configure both `GOOGLE_CLIENT_ID` and `KOVA_ACCOUNT_SESSION_PEPPER`, and publish
 it only behind the HTTPS reverse proxy. The service itself does not terminate
-TLS or provide deployment rate limiting; use a managed HTTPS ingress with
-rate-limit rules for `/v1/auth/challenge`, `/v1/auth/google`, and
-`/v1/auth/exchange`. Keep SQLite on a single service instance with durable
-backups; migrate to a shared transactional database before running multiple
-service instances.
+TLS. Keep SQLite on a single service instance with durable backups; migrate to
+a shared transactional database before running multiple service instances.
 
 ## API
 

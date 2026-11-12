@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Iterator
 
 import jwt
-from fastapi import Depends, FastAPI, Header, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from jwt import PyJWKClient
 from pydantic import BaseModel, Field
 
@@ -25,6 +25,10 @@ USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
 RESERVED_USERNAMES = {"admin", "administrator", "api", "kova", "root", "support", "system"}
 CHALLENGE_TTL_SECONDS = 300
 SESSION_TTL_SECONDS = 60 * 60 * 24 * 30
+AUTH_RATE_WINDOW_SECONDS = 60
+AUTH_RATE_LIMITS = {"challenge": 15, "google": 10, "exchange": 10}
+
+
 def _database_path() -> Path:
     return Path(os.environ.get("DATABASE_PATH", "./kova-accounts.sqlite3"))
 
@@ -92,6 +96,13 @@ def _database() -> sqlite3.Connection:
             created_at INTEGER NOT NULL
         );
         CREATE INDEX IF NOT EXISTS sessions_account_id ON sessions(account_id);
+        CREATE TABLE IF NOT EXISTS auth_rate_limits (
+            client_hash TEXT NOT NULL,
+            action TEXT NOT NULL,
+            window_start INTEGER NOT NULL,
+            request_count INTEGER NOT NULL,
+            PRIMARY KEY(client_hash, action, window_start)
+        );
         """
     )
     return db
@@ -121,6 +132,45 @@ def _profile(row: sqlite3.Row) -> dict[str, object]:
         "picture_url": row["picture_url"],
         "username": row["username"],
     }
+
+
+def _client_address(request: Request) -> str:
+    forwarded = request.headers.get("cf-connecting-ip", "").strip()
+    try:
+        return ipaddress.ip_address(forwarded).compressed
+    except ValueError:
+        remote = request.client.host if request.client else "unknown"
+        try:
+            return ipaddress.ip_address(remote).compressed
+        except ValueError:
+            return remote[:255]
+
+
+def _enforce_auth_rate_limit(request: Request, action: str) -> None:
+    limit = AUTH_RATE_LIMITS[action]
+    now = int(time.time())
+    window_start = now - now % AUTH_RATE_WINDOW_SECONDS
+    client_hash = _digest(f"auth-rate:{_client_address(request)}")
+    with _connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute(
+            "DELETE FROM auth_rate_limits WHERE window_start<?",
+            (window_start - 3600,),
+        )
+        row = db.execute(
+            "INSERT INTO auth_rate_limits(client_hash,action,window_start,request_count) VALUES(?,?,?,1) "
+            "ON CONFLICT(client_hash,action,window_start) DO UPDATE SET request_count=request_count+1 "
+            "RETURNING request_count",
+            (client_hash, action, window_start),
+        ).fetchone()
+        db.commit()
+    if row["request_count"] > limit:
+        retry_after = window_start + AUTH_RATE_WINDOW_SECONDS - now
+        raise HTTPException(
+            429,
+            "Too many sign-in attempts. Wait before trying again.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 def _google_claims(encoded: str, nonce: str) -> dict[str, object]:
@@ -210,7 +260,8 @@ def ready() -> dict[str, str]:
 
 
 @app.post("/v1/auth/challenge")
-def create_challenge() -> dict[str, object]:
+def create_challenge(request: Request) -> dict[str, object]:
+    _enforce_auth_rate_limit(request, "challenge")
     challenge_id = secrets.token_urlsafe(32)
     nonce = secrets.token_urlsafe(32)
     expires = int(time.time()) + CHALLENGE_TTL_SECONDS
@@ -224,7 +275,8 @@ def create_challenge() -> dict[str, object]:
 
 
 @app.post("/v1/auth/google")
-def sign_in_google(payload: GoogleLogin) -> dict[str, object]:
+def sign_in_google(payload: GoogleLogin, request: Request) -> dict[str, object]:
+    _enforce_auth_rate_limit(request, "google")
     now = int(time.time())
     with _connection() as db:
         db.execute("BEGIN IMMEDIATE")
@@ -274,7 +326,8 @@ def sign_in_google(payload: GoogleLogin) -> dict[str, object]:
 
 
 @app.post("/v1/auth/exchange")
-def exchange_code(payload: CodeExchange) -> dict[str, object]:
+def exchange_code(payload: CodeExchange, request: Request) -> dict[str, object]:
+    _enforce_auth_rate_limit(request, "exchange")
     if not re.fullmatch(r"[A-Za-z0-9._~-]{43,128}", payload.code_verifier):
         raise HTTPException(400, "PKCE verifier is invalid.")
     expected_challenge = base64.urlsafe_b64encode(hashlib.sha256(payload.code_verifier.encode("ascii")).digest()).rstrip(b"=").decode("ascii")
