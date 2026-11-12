@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -18,7 +18,14 @@ let preload
 // NODE_OPTIONS) makes that child print its argv instead of starting the app.
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'kova-electron-entry-'))
-  await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true })
+  const accountServiceUrl = process.env.KOVA_ACCOUNT_SERVICE_URL
+  process.env.KOVA_ACCOUNT_SERVICE_URL = 'https://accounts.kova.example'
+  try {
+    await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true })
+  } finally {
+    if (accountServiceUrl === undefined) delete process.env.KOVA_ACCOUNT_SERVICE_URL
+    else process.env.KOVA_ACCOUNT_SERVICE_URL = accountServiceUrl
+  }
   bundle = join(root, 'dist/electron-main.mjs')
   preload = join(root, 'preload.mjs')
   writeFileSync(
@@ -57,6 +64,10 @@ beforeAll(async () => {
 }, 120_000)
 
 afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+test('the Electron bundle uses the configured public Kova account service URL', () => {
+  expect(readFileSync(bundle, 'utf8')).toContain('https://accounts.kova.example')
+})
 
 function launch(env, config, extraEnv = {}) {
   const home = mkdtempSync(join(root, 'home-'))

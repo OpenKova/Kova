@@ -381,7 +381,7 @@ describe('ChatSidebar section labels', () => {
     expect(screen.queryByText('Sessions')).toBeNull()
   })
 
-  it('keeps the "Sessions" label when grouping is on but no projects exist', () => {
+  it('hides the Sessions label when grouping is on but no projects exist', () => {
     // The source-filter toggle with an empty tree: the section lists plain
     // chat sessions, so heading it "Projects" mislabeled them (#62537).
     setSidebarAgentsGrouped(true)
@@ -390,11 +390,11 @@ describe('ChatSidebar section labels', () => {
 
     renderSidebar('/', 'chat')
 
-    expect(screen.getByText('Sessions')).toBeTruthy()
+    expect(screen.queryByText('Sessions')).toBeNull()
     expect(screen.queryByText('Projects')).toBeNull()
   })
 
-  it('keeps the "Sessions" label when the grouped tree is only the synthetic Home bucket', () => {
+  it('hides the Sessions label when the grouped tree is only the synthetic Home bucket', () => {
     // No real projects — every session fell into Home. A lone Home bucket is
     // the flat session list wearing a project costume, not a switcher.
     setSidebarAgentsGrouped(true)
@@ -403,7 +403,7 @@ describe('ChatSidebar section labels', () => {
 
     renderSidebar('/', 'chat')
 
-    expect(screen.getByText('Sessions')).toBeTruthy()
+    expect(screen.queryByText('Sessions')).toBeNull()
     expect(screen.queryByText('Projects')).toBeNull()
   })
 })

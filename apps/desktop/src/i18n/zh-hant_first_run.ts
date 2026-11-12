@@ -1,6 +1,21 @@
 import type { FirstRunCopy } from './types_first_run'
 
 export const zhHantFirstRun: FirstRunCopy = {
+  account: {
+    title: '建立 Kova 帳戶',
+    description: '使用 Google 建立 Kova 個人資料並設定使用者名稱。這與 AI 模型供應商的登入彼此獨立。',
+    privacy: 'Kova 身分、電子郵件和使用者名稱會在裝置間同步。聊天、模型存取權和代理個人資料僅保留在此裝置。',
+    signIn: '使用 Google 繼續',
+    username: '選擇使用者名稱',
+    usernamePlaceholder: '你的名稱',
+    usernameHint: '使用 3–24 個字母、數字或底線。使用者名稱必須唯一。',
+    saveUsername: '儲存使用者名稱',
+    continue: '繼續設定',
+    notNow: '暫時不要',
+    working: '處理中…',
+    signOut: '登出',
+    unavailable: '此版本目前尚未提供 Kova 帳戶設定。'
+  },
   beats: {
     name: '名字',
     theme: '強調色',

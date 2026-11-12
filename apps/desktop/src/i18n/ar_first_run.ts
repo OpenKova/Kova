@@ -1,6 +1,21 @@
 import type { FirstRunCopy } from './types_first_run'
 
 export const arFirstRun: FirstRunCopy = {
+  account: {
+    title: 'أنشئ حساب Kova',
+    description: 'استخدم Google لإنشاء ملف Kova واختيار اسم مستخدم. هذا منفصل عن تسجيل الدخول إلى موفر نماذج الذكاء الاصطناعي.',
+    privacy: 'تتم مزامنة هوية Kova والبريد الإلكتروني واسم المستخدم بين الأجهزة. تبقى المحادثات والوصول إلى النماذج وملفات الوكلاء على هذا الجهاز.',
+    signIn: 'المتابعة باستخدام Google',
+    username: 'اختر اسم مستخدم',
+    usernamePlaceholder: 'اسمك',
+    usernameHint: 'استخدم من 3 إلى 24 حرفاً أو رقماً أو شرطة سفلية. أسماء المستخدمين فريدة.',
+    saveUsername: 'حفظ اسم المستخدم',
+    continue: 'متابعة الإعداد',
+    notNow: 'ليس الآن',
+    working: 'جارٍ التنفيذ…',
+    signOut: 'تسجيل الخروج',
+    unavailable: 'إعداد حساب Kova غير متاح في هذا الإصدار بعد.'
+  },
   beats: {
     name: 'الاسم',
     theme: 'لون التمييز',

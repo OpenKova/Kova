@@ -30,6 +30,13 @@ const uiPreferencesSnapshot = ipcRenderer.sendSync('kova:ui-preferences:snapshot
 import { unwrapExpectedNotFound } from './api-expected-404'
 
 contextBridge.exposeInMainWorld('kovaDesktop', {
+  account: {
+    status: () => ipcRenderer.invoke('kova:account:status'),
+    signIn: () => ipcRenderer.invoke('kova:account:sign-in'),
+    refresh: () => ipcRenderer.invoke('kova:account:refresh'),
+    setUsername: username => ipcRenderer.invoke('kova:account:username', username),
+    signOut: () => ipcRenderer.invoke('kova:account:sign-out')
+  },
   glassSupported: translucencySupport?.glass === true,
   translucencySupported: translucencySupport?.translucency === true,
   // Launch-flag fact: the app was started with --local, so the renderer may

@@ -34,6 +34,13 @@ export type DesktopMachineProfile = MachineProfile
 declare global {
   interface Window {
     kovaDesktop: {
+      account?: {
+        status: () => Promise<{ configured: boolean; profile: KovaAccountProfile | null }>
+        signIn: () => Promise<{ profile: KovaAccountProfile }>
+        refresh: () => Promise<KovaAccountProfile | null>
+        setUsername: (username: string) => Promise<KovaAccountProfile>
+        signOut: () => Promise<void>
+      }
       // Resolve a backend connection. Omit `profile` (or pass the primary) for
       // the window's backend; pass a named profile to dial/reuse that profile's
       // cached gateway descriptor.
@@ -797,6 +804,14 @@ declare global {
       onOpenFindBarRequested?: (callback: () => void) => () => void
     }
   }
+}
+
+export interface KovaAccountProfile {
+  id: string
+  email: string
+  google_name: string
+  picture_url: string | null
+  username: string | null
 }
 
 export interface KovaPluginFolderGrant {

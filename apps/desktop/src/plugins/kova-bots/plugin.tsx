@@ -21,10 +21,13 @@ import {
   host,
   LocalizedTabTitle,
   PALETTE_AREA,
+  ROUTES_AREA,
+  SIDEBAR_NAV_AREA,
   SIDEBAR_PROFILE_GROUP_HEADER_AREA,
   translateNow
 } from '@kova/plugin-sdk'
-import type { ChatEmptyProps, PluginContext, ProfileGroupRoute } from '@kova/plugin-sdk'
+import type { ChatEmptyProps, PluginContext, ProfileGroupRoute, SidebarNavContribution } from '@kova/plugin-sdk'
+import { useEffect } from 'react'
 
 import { startFaceClock, stopFaceClock } from './avatar'
 import {
@@ -87,6 +90,16 @@ import { startHideSweepScheduler } from './session-sweep'
 import { bumpBotOpenGeneration, getBotOpenGeneration, ID, setPluginCtx } from './shared'
 import type { GroupChat, RosterRow } from './types'
 import { loadBotSections } from './user-sections'
+
+function BotsRoute() {
+  useEffect(() => {
+    $botsPaneVisible.set(true)
+
+    return () => $botsPaneVisible.set(false)
+  }, [])
+
+  return <BotsPane />
+}
 
 // ── plugin ───────────────────────────────────────────────────────────────────
 
@@ -442,62 +455,32 @@ export default {
       area: SIDEBAR_PROFILE_GROUP_HEADER_AREA,
       data: { render: (route: ProfileGroupRoute) => <ProfileGroupScreenPortal route={route} /> }
     })
-    ctx.register({
-      id: 'pane',
-      area: 'panes',
-      // `title` is sampled at register (module import, before the locale has
-      // loaded) — the tab renders `tabTitle` below so BOTS follows the locale.
-      title: translateNow('common.bots'),
-      // dock: explicit adoption gesture — CENTER-STACK into the sessions zone
-      // so the sidebar grows a SESSIONS | BOTS tab strip instead of splitting
-      // two cramped panes down the column. Center is safe now: insertAtGroup
-      // pins the zone's header explicitly shown on a center gain (and it
-      // stays shown once the zone has stacked), so the sessions pane can
-      // never vanish behind a stripless Bots tab — the lone-pane auto-hide
-      // trap this dock used to work around with a 'bottom' split.
-      // enforce: standing invariant, not a one-shot migration — the pane
-      // re-homes into the sessions strip at EVERY boot it isn't already
-      // there, whatever tokens or user placement an older install persisted.
-      // The one-time heal ('sessions-tab-v1') burned its token even when its
-      // guards skipped the move, so exactly the users who had fought the old
-      // stacked layout (dragged panes → $userPlacedPanes) stayed stacked
-      // forever. Owner's order: SESSIONS | BOTS is always a tab strip.
-      // An intra-session drag still sticks until the next launch (the
-      // invariant runs at adoption time only — see enforceDockedPanes in the
-      // tree store).
-      // collapsible: the pane lives in the sessions zone, so it must LEAVE
-      // the grid with that zone below the sidebar-collapse breakpoint. The
-      // sessions pane collapses alone without this flag. The zone then keeps
-      // a stranded BOTS tab on screen. The narrow edge overlay mirrors the
-      // zone's tab strip, so the pane stays reachable while collapsed.
-      data: {
-        placement: 'left',
-        width: '260px',
-        collapsible: true,
-        hideOnly: true,
-        tabTitle: () => <LocalizedTabTitle select={t => t.common.bots} />,
-        tabTitleText: () => translateNow('common.bots'),
-        dock: {
-          pane: 'sessions',
-          pos: 'center',
-          enforce: true
-        }
+    ctx.registerMany([
+      {
+        id: 'bots-page',
+        area: ROUTES_AREA,
+        data: { path: '/bots' },
+        render: () => <BotsRoute />
       },
-      render: () => <BotsPane />
-    })
+      {
+        id: 'bots-nav',
+        area: SIDEBAR_NAV_AREA,
+        data: {
+          codicon: 'robot',
+          label: translateNow('common.bots'),
+          path: '/bots',
+          placement: 'bottom'
+        } satisfies SidebarNavContribution
+      }
+    ])
 
     // Routines — its OWN tiling pane splitting the workspace's right edge
     // (NOT the collapsible right sidebar; placement 'right' is that sidebar's
     // role and hides the pane until "Show Right Sidebar").
     //
-    // Registered ONLY while Bot Mode is on screen: the pane exists while the
-    // Bots pane is visible (its zone's active tab, or a lone pane in a
-    // stacked pre-heal layout) and unregisters when the user tabs back to
-    // Sessions — no Cronjobs tile squatting beside the chat outside Bot Mode.
+    // Registered only while the Bots page is on screen.
     // `ctx.register` returns the disposer that makes this cheap; the tree
     // keeps the pane's spot, so re-registering re-adopts it where it was.
-    // host.paneVisibility is feature-detected: older desktops without the SDK
-    // export keep the always-registered behavior.
     const registerRoutinesPane = (restoreDismissed: boolean) => {
       const dispose = ctx.register({
         id: 'routines',
@@ -540,9 +523,8 @@ export default {
       return dispose
     }
 
-    if (typeof host.paneVisibility === 'function') {
-      // The contribution-scoped pane id (`register` prefixes `${ID}:`).
-      const $sidebarVisible = host.paneVisibility(`${ID}:pane`)
+    {
+      const $sidebarVisible = $botsPaneVisible
       let unregisterRoutines: null | (() => void) = null
       // Armed by each Bots-tab entry, spent by the first registration after it.
       let restoreDismissedOnRegister = true
@@ -571,8 +553,6 @@ export default {
       }
 
       const stopSidebarSync = $sidebarVisible.listen(visible => {
-        $botsPaneVisible.set(Boolean(visible))
-
         if (visible) {
           restoreDismissedOnRegister = true
 
@@ -721,8 +701,6 @@ export default {
           stopReclaimSync?.()
         })
       }
-    } else {
-      registerRoutinesPane(true)
     }
 
     // A bot's chat before it has spoken: core's splash is Kova' wordmark and

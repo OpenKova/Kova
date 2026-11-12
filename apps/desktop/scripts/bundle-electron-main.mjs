@@ -40,7 +40,9 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
   // Defaults must run before bundled modules resolve paths or onboarding flags.
   // Dev bundles leave the environment alone so source-tree resolution keeps working.
   const envBanner = dev ? '' : environmentDefaultsBanner(process.env.KOVA_BUNDLE_ENV_JSON || '{}')
-  const define = {}
+  const define = {
+    'process.env.KOVA_ACCOUNT_SERVICE_URL': JSON.stringify(process.env.KOVA_ACCOUNT_SERVICE_URL || ''),
+  }
   let bakedStamp = null
   if (!dev) {
     if (!stamp) throw new Error('A prepared install stamp is required')

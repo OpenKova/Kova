@@ -158,6 +158,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 import { SidebarCronJobsSection } from './cron-jobs-section'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
+import { KovaAccountCard } from './kova-account-card'
 import { SidebarLoadMoreRow } from './load-more-row'
 import { orderByIds, reconcileOrderIds, resolveManualSessionOrderIds, sameIds } from './order'
 import { filterSessionsByProfileScope } from './profile-scope'
@@ -438,7 +439,8 @@ export function ChatSidebar({
             label: data.label,
             icon: (props: { className?: string }) => <Codicon name={codicon} {...props} />,
             route: data.path,
-            tier: data.tier
+            tier: data.tier,
+            placement: data.placement
           }
         ]
       }),
@@ -455,10 +457,17 @@ export function ChatSidebar({
   // disposes its contribution and the rows come straight back.
   const navPrefs = useContributions(SIDEBAR_NAV_PREFS_AREA)
 
-  const navItems = useMemo(
-    () => applySidebarNavPrefs([...SIDEBAR_NAV, ...contributedNav].filter(shownInMode(interfaceMode)), navPrefs),
-    [contributedNav, interfaceMode, navPrefs]
-  )
+  const { navItems, footerNavItems } = useMemo(() => {
+    const visible = applySidebarNavPrefs(
+      [...SIDEBAR_NAV, ...contributedNav].filter(shownInMode(interfaceMode)),
+      navPrefs
+    )
+
+    return {
+      navItems: visible.filter(item => item.placement !== 'bottom'),
+      footerNavItems: visible.filter(item => item.placement === 'bottom')
+    }
+  }, [contributedNav, interfaceMode, navPrefs])
 
   const panesFlipped = useStore($panesFlipped)
   const grouping = useStore($sidebarGrouping)
@@ -1261,8 +1270,7 @@ export function ChatSidebar({
   // project row, or a tree still resolving (the loading state keeps the label
   // stable instead of flapping to "Sessions" and back). The synthetic Home
   // bucket alone is just the flat session list wearing a project costume —
-  // with no real projects the section lists plain chat sessions, so it keeps
-  // the "Sessions" label (#62537).
+  // with no real projects the section lists plain chats without a section title.
   const hasProjectRows = projectModel.some(node => !node.isNoProject)
 
   const sessionsLabel =
@@ -1270,7 +1278,7 @@ export function ChatSidebar({
       ? enteredProject.label
       : worktreeGroupingActive && (hasProjectRows || projectTreeLoading)
         ? s.projects.sectionLabel
-        : s.sessions
+        : ''
 
   // Mirror the section's skeleton gate (projectsLoading + nothing to show yet):
   // while the skeleton is up there's no point also spinning the header count.
@@ -1604,6 +1612,28 @@ export function ChatSidebar({
       </SidebarMenuButton>
     </Tip>
   )
+
+  const footerNavButtons = footerNavItems.map(item => {
+    const Icon = item.icon
+    const active = currentView === 'extension' && pathname === item.route
+
+    return (
+      <Tip key={item.id} label={item.label}>
+        <SidebarMenuButton
+          aria-current={active ? 'page' : undefined}
+          aria-label={item.label}
+          className={cn(
+            'size-6 justify-center rounded-full bg-transparent p-0 text-(--ui-text-tertiary) hover:!bg-(--ui-control-hover-background) hover:text-foreground focus-visible:!bg-(--ui-control-hover-background)',
+            active && 'bg-(--ui-control-active-background) text-foreground'
+          )}
+          onClick={() => onNavigate(item)}
+          type="button"
+        >
+          <Icon className="size-3.5" />
+        </SidebarMenuButton>
+      </Tip>
+    )
+  })
 
   return (
     <Sidebar
@@ -2092,14 +2122,16 @@ export function ChatSidebar({
       <SidebarFooter
         className={cn('p-2', sidebarOpen ? 'items-start' : 'items-center')}
       >
+        <KovaAccountCard compact={!sidebarOpen} />
         {profileRailVisible && (
           <div className={cn('mb-1 w-full min-w-0 px-0.5 pt-0.5', !sidebarOpen && 'hidden')}>
-            <ProfileRail afterHome={<>{commandCenterButton}{settingsButton}</>} />
+            <ProfileRail afterHome={<>{commandCenterButton}{footerNavButtons}{settingsButton}</>} />
           </div>
         )}
         {(!sidebarOpen || !profileRailVisible) && (
           <div className="flex items-center gap-1">
             {commandCenterButton}
+            {footerNavButtons}
             {settingsButton}
           </div>
         )}

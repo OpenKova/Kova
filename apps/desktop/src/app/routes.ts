@@ -136,6 +136,8 @@ export interface SidebarNavContribution {
   path: string
   /** `'advanced'` keeps the row out of Simple mode; unset shows it everywhere. */
   tier?: InterfaceTier
+  /** Render in the sidebar utility row beside Settings. */
+  placement?: 'top' | 'bottom'
 }
 
 // ── Contributed profile-group header — the `sidebar.profileGroup.header` area ─

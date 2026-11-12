@@ -1,6 +1,21 @@
 import type { FirstRunCopy } from './types_first_run'
 
 export const jaFirstRun: FirstRunCopy = {
+  account: {
+    title: 'Kova アカウントを作成',
+    description: 'Google を使って Kova プロフィールを作成し、ユーザー名を設定します。AI モデルプロバイダーへのサインインとは別のものです。',
+    privacy: 'Kova ID、メールアドレス、ユーザー名がデバイス間で同期されます。チャット、モデルへのアクセス、エージェントプロフィールはこのデバイスに保存されます。',
+    signIn: 'Google で続行',
+    username: 'ユーザー名を設定',
+    usernamePlaceholder: 'your_name',
+    usernameHint: '3～24 文字の英字、数字、アンダースコアを使用してください。ユーザー名は一意です。',
+    saveUsername: 'ユーザー名を保存',
+    continue: 'セットアップを続ける',
+    notNow: '今はしない',
+    working: '処理中…',
+    signOut: 'ログアウト',
+    unavailable: 'このビルドでは Kova アカウントをまだ設定できません。'
+  },
   beats: {
     name: '名前',
     theme: 'アクセントカラー',

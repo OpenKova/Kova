@@ -312,9 +312,8 @@ import {
   tightenSecretFileMode,
   writeSecretFileAtomic
 } from './hardening'
-import { isKovaProcess } from './kova-process'
 import { assertNotPassiveSpawn } from './host-backend-singleton'
-import { KOVA_HUB_FALLBACK_ORIGIN, KOVA_HUB_ORIGIN, isKovaHubClipboardWrite } from './hub-iframe-policy'
+import { isKovaHubClipboardWrite, KOVA_HUB_FALLBACK_ORIGIN, KOVA_HUB_ORIGIN } from './hub-iframe-policy'
 import { requestHudClose } from './hud-close'
 import { cursorPointInWindow } from './hud-cursor'
 import { startHudGameOverlayWatch } from './hud-game-overlay'
@@ -329,6 +328,9 @@ import { linuxOzoneBackend, resolveHudWindowing } from './hud-windowing'
 import { INSTALL_STAMP, installShape } from './install-stamp'
 import type { InstallStamp } from './install-stamp'
 import { createKeepAwakeController } from './keep-awake-controller'
+import { kovaAccountApiUrl, type KovaAccountProfile, type KovaAccountSession, normalizeKovaAccountServiceUrl, runKovaAccountLogin } from './kova-account'
+import { KOVA_ACCOUNT_GOOGLE_CLIENT_ID, KOVA_ACCOUNT_SERVICE_URL } from './kova-account-config'
+import { isKovaProcess } from './kova-process'
 import { launchBuildIdentity } from './launch-build-identity'
 import { applyLaunchProfileOverride, parseLaunchProfile } from './launch-profile'
 import { fetchLinkTitle, resolveFaviconCached } from './link-metadata'
@@ -5223,7 +5225,7 @@ function fetchJson(url, token, options: any = {}) {
               ...headersForRemoteRequest(url),
               ...(options.headers || {}),
               'Content-Type': contentType,
-              ...(nativeHeaders || { 'X-Kova-Session-Token': token }),
+              ...(nativeHeaders || (token ? { 'X-Kova-Session-Token': token } : {})),
               // RFC 8252 native flow authenticates the gated gateway with a bearer
               // token instead of the loopback session-token header. When
               // ``options.bearer`` is set we send Authorization: Bearer <token>;
@@ -16449,6 +16451,7 @@ const streamThrottle = createStreamThrottle(undefined, undefined, {
   // normal idle throttling contract.
   keepFullscreenPainting: process.platform === 'linux' && linuxOzoneBackend(process.env, process.argv) === 'wayland'
 })
+
 registerStreamWorkClock(ipcMain, sender => BrowserWindow.fromWebContents(sender))
 
 function isAnyTurnInFlight() {
@@ -16475,9 +16478,11 @@ ipcMain.on('kova:active-work', (event, payload) => {
       event.sender.off('destroyed', forget)
       event.sender.off('render-process-gone', forget)
       activeWorkByWebContents.delete(id)
+
       if (owner) {
         streamThrottle.setVoiceActive(owner, false)
       }
+
       updateStreamThrottleFromActiveWork()
     }
 
@@ -16491,9 +16496,11 @@ ipcMain.on('kova:active-work', (event, payload) => {
   const work = normalizeActiveWork(payload)
   activeWorkByWebContents.set(id, work)
   lastActiveWorkSeen = work
+
   if (owner?.webContents === event.sender && event.senderFrame === event.sender.mainFrame) {
     streamThrottle.setVoiceActive(owner, payload?.voiceActive === true)
   }
+
   updateStreamThrottleFromActiveWork()
 })
 
@@ -16818,6 +16825,118 @@ ipcMain.handle('kova:openExternal', async (_event, url) => {
 
   if (result.ok === false && result.reason === 'invalid') {
     throw new Error('Invalid external URL')
+  }
+})
+
+// Kova identity is separate from provider sign-in and agent profiles. The
+// opaque account session stays in Electron and is encrypted with the OS store.
+const KOVA_ACCOUNT_SESSION_PATH = path.join(app.getPath('userData'), 'kova-account-session.json')
+let kovaAccountSession: KovaAccountSession | null = null
+
+function readKovaAccountSession(): KovaAccountSession | null {
+  if (kovaAccountSession) {return kovaAccountSession}
+
+  try {
+    const record = JSON.parse(fs.readFileSync(KOVA_ACCOUNT_SESSION_PATH, 'utf8'))
+    const plaintext = safeStorage.decryptString(Buffer.from(String(record.value || ''), 'base64'))
+    const parsed = JSON.parse(plaintext) as KovaAccountSession
+
+    if (typeof parsed.session_token !== 'string' || !parsed.profile) {return null}
+    kovaAccountSession = parsed
+
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function saveKovaAccountSession(value: KovaAccountSession | null): void {
+  if (!value) {
+    kovaAccountSession = null
+
+    try { fs.rmSync(KOVA_ACCOUNT_SESSION_PATH, { force: true }) } catch { /* best-effort local cleanup */ }
+
+    return
+  }
+
+  if (!safeStorage.isEncryptionAvailable()) {throw new Error('OS keychain encryption is unavailable; Kova account sign-in cannot be saved securely.')}
+  const encrypted = safeStorage.encryptString(JSON.stringify(value)).toString('base64')
+  fs.mkdirSync(path.dirname(KOVA_ACCOUNT_SESSION_PATH), { recursive: true })
+  fs.writeFileSync(KOVA_ACCOUNT_SESSION_PATH, JSON.stringify({ encoding: 'safeStorage', value: encrypted }), { mode: 0o600 })
+
+  kovaAccountSession = value
+}
+
+async function kovaAccountRequest(method: string, pathname: string, body?: unknown, token?: string): Promise<any> {
+  if (!KOVA_ACCOUNT_SERVICE_URL) {throw new Error('Kova account sign-in is not configured for this build.')}
+  const url = kovaAccountApiUrl(normalizeKovaAccountServiceUrl(KOVA_ACCOUNT_SERVICE_URL), pathname)
+
+  return fetchJson(url, null, { method, body, timeoutMs: 15_000, headers: token ? { Authorization: `Bearer ${token}` } : {} })
+}
+
+ipcMain.handle('kova:account:status', async () => ({
+  configured: Boolean(KOVA_ACCOUNT_SERVICE_URL && KOVA_ACCOUNT_GOOGLE_CLIENT_ID),
+  profile: readKovaAccountSession()?.profile ?? null
+}))
+
+ipcMain.handle('kova:account:sign-in', async () => {
+  const session = await runKovaAccountLogin({
+    serviceUrl: KOVA_ACCOUNT_SERVICE_URL,
+    googleClientId: KOVA_ACCOUNT_GOOGLE_CLIENT_ID,
+    openExternal: async url => {
+      const result = await openExternalUrl(url)
+
+      if (result.ok === false) {throw new Error(result.reason === 'failed' ? result.message : 'Invalid browser sign-in URL.')}
+    },
+    postJson: (url, body) => postJsonNoAuth(url, body, { timeoutMs: 15_000 })
+  })
+
+  saveKovaAccountSession(session)
+
+  return { profile: session.profile }
+})
+
+ipcMain.handle('kova:account:refresh', async () => {
+  const session = readKovaAccountSession()
+
+  if (!session) {return null}
+
+  try {
+    const response = await kovaAccountRequest('GET', '/v1/me', undefined, session.session_token)
+    const profile = response?.profile as KovaAccountProfile | undefined
+
+    if (profile) {saveKovaAccountSession({ ...session, profile })}
+
+    return profile ?? null
+  } catch (error) {
+    if (readStatusCode(error) === 401) {
+      saveKovaAccountSession(null)
+
+      return null
+    }
+
+    throw error
+  }
+})
+
+ipcMain.handle('kova:account:username', async (_event, rawUsername) => {
+  const username = String(rawUsername || '').trim()
+  const session = readKovaAccountSession()
+
+  if (!session) {throw new Error('Sign in to your Kova account first.')}
+  const response = await kovaAccountRequest('PUT', '/v1/me/username', { username }, session.session_token)
+
+  if (!response?.profile) {throw new Error('Kova Account Service returned an invalid profile.')}
+  saveKovaAccountSession({ ...session, profile: response.profile })
+
+  return response.profile
+})
+
+ipcMain.handle('kova:account:sign-out', async () => {
+  const session = readKovaAccountSession()
+
+  if (session) {
+    try { await kovaAccountRequest('DELETE', '/v1/auth/session', undefined, session.session_token) } finally { saveKovaAccountSession(null) }
   }
 })
 

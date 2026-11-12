@@ -10,7 +10,7 @@
 
 import { useStore } from '@nanostores/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { type CSSProperties, lazy, type ReactNode, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { type CSSProperties, lazy, type ReactNode, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
@@ -24,6 +24,7 @@ import { GatewayConnectingOverlay } from '@/components/gateway-connecting-overla
 import { NotificationStack } from '@/components/notifications'
 import { DesktopOnboardingOverlay } from '@/components/onboarding'
 import { firstRunIntro } from '@/components/onboarding/first-run/kickoff'
+import { KovaAccountFirstRun } from '@/components/onboarding/kova-account-first-run'
 import { OnboardingEnd } from '@/components/onboarding/onboarding-end'
 import { $newSessionTabAction, registerPaneCloser } from '@/components/pane-shell/tree/store'
 import { setWorkspaceScope } from '@/components/pane-shell/workspace-scope'
@@ -46,6 +47,7 @@ import { $activeConnectionId } from '@/store/connections'
 import { $cronReviewRequest, setCronFocusJobId } from '@/store/cron'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { $interfaceMode, shownInMode } from '@/store/interface-mode'
+import { KOVA_ACCOUNT_PROMPT_DISMISSED_KEY, shouldPromptForKovaAccount } from '@/store/kova-account'
 import { $pinnedSessionIds, pinSession, restoreWorktree, unpinSession } from '@/store/layout'
 import { notifyError } from '@/store/notifications'
 import { markOnboardingDecided } from '@/store/onboarding-presence'
@@ -221,14 +223,50 @@ function useRouteRequestNavigation(navigate: ReturnType<typeof useNavigate>): vo
 // The main window asks the backend whether first-run onboarding is due and opens it with main's
 // intro around it; every other window never runs it, so its first-run surfaces are free at once.
 // Settings' Run onboarding again opens its chat through the same opener.
-function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResume, gatewayOpen: boolean): void {
+function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResume, gatewayOpen: boolean) {
+  const [identityStep, setIdentityStep] = useState<'checking' | 'prompt' | 'ready'>('checking')
+
   useEffect(() => {
     if (!isMainWindow()) {
       markOnboardingDecided()
-    } else if (gatewayOpen) {
+      setIdentityStep('ready')
+
+      return
+    }
+
+    if (!gatewayOpen) {return}
+    const account = window.kovaDesktop?.account
+
+    if (!account) {
+      setIdentityStep('ready')
+
+      return
+    }
+
+    let cancelled = false
+    void account.refresh().catch(() => null).then(() => account.status()).then(status => {
+      if (cancelled) {return}
+      let dismissed = false
+
+      try {
+        dismissed = window.localStorage.getItem(KOVA_ACCOUNT_PROMPT_DISMISSED_KEY) === '1'
+      } catch {
+        dismissed = false
+      }
+
+      setIdentityStep(shouldPromptForKovaAccount(status, dismissed) ? 'prompt' : 'ready')
+    }).catch(() => {
+      if (!cancelled) {setIdentityStep('ready')}
+    })
+
+    return () => { cancelled = true }
+  }, [gatewayOpen])
+
+  useEffect(() => {
+    if (isMainWindow() && gatewayOpen && identityStep === 'ready') {
       void decideOnboarding(request, open, { intro: firstRunIntro() })
     }
-  }, [gatewayOpen, open, request])
+  }, [gatewayOpen, identityStep, open, request])
 
   useEffect(() => {
     if (!isMainWindow()) {
@@ -239,6 +277,18 @@ function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResum
 
     return () => $onboardingChatOpener.set(null)
   }, [open])
+
+  const continueToSetup = useCallback(() => {
+    try {
+      window.localStorage.setItem(KOVA_ACCOUNT_PROMPT_DISMISSED_KEY, '1')
+    } catch {
+      // The account prompt is still skippable if the browser storage is unavailable.
+    }
+
+    setIdentityStep('ready')
+  }, [])
+
+  return { continueToSetup, identityStep }
 }
 
 // Recovery actions raised by toast buttons (Restart Kova, Open Billing, cron
@@ -658,7 +708,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     [navigate, resumeSession]
   )
 
-  useFirstRunOnboarding(requestGateway, adoptSessionRoute, gatewayState === 'open')
+  const firstRunAccount = useFirstRunOnboarding(requestGateway, adoptSessionRoute, gatewayState === 'open')
 
   // "New project" DRAG completion: the dialog created a project that was
   // dropped onto a chat zone (tab-strip slot / pane edge / pane center). Open
@@ -1280,8 +1330,14 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       <RemoteDisplayBanner />
       {!isAuxiliaryWindow() && <DesktopInstallOverlay />}
       {!isAuxiliaryWindow() && (
+        <KovaAccountFirstRun
+          onContinue={firstRunAccount.continueToSetup}
+          open={firstRunAccount.identityStep === 'prompt'}
+        />
+      )}
+      {!isAuxiliaryWindow() && (
         <DesktopOnboardingOverlay
-          enabled={gatewayState === 'open'}
+          enabled={gatewayState === 'open' && firstRunAccount.identityStep === 'ready'}
           onCompleted={() => {
             void refreshKovaConfig()
             void refreshCurrentModel()

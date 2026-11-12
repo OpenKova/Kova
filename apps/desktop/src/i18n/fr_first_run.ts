@@ -1,6 +1,21 @@
 import type { FirstRunCopy } from './types_first_run'
 
 export const frFirstRun: FirstRunCopy = {
+  account: {
+    title: 'Créer votre compte Kova',
+    description: 'Utilisez Google pour créer un profil Kova et choisir un nom d’utilisateur. Cette connexion est distincte de celle d’un fournisseur de modèles d’IA.',
+    privacy: 'Votre identité Kova, votre e-mail et votre nom d’utilisateur sont synchronisés entre vos appareils. Les discussions, l’accès aux modèles et les profils d’agents restent sur cet appareil.',
+    signIn: 'Continuer avec Google',
+    username: 'Choisir un nom d’utilisateur',
+    usernamePlaceholder: 'votre_nom',
+    usernameHint: '3 à 24 lettres, chiffres ou tirets bas. Les noms d’utilisateur sont uniques.',
+    saveUsername: 'Enregistrer le nom',
+    continue: 'Continuer la configuration',
+    notNow: 'Pas maintenant',
+    working: 'Traitement…',
+    signOut: 'Se déconnecter',
+    unavailable: 'La création d’un compte Kova n’est pas encore disponible dans cette version.'
+  },
   beats: {
     name: 'Nom',
     theme: "Couleur d'accent",

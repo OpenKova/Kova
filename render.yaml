@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: kova-account
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./services/kova-account/Dockerfile
+    dockerContext: .
+    healthCheckPath: /ready
+    disk:
+      name: kova-account-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "8787"
+      - key: DATABASE_PATH
+        value: /data/accounts.sqlite3
+      - key: GOOGLE_CLIENT_ID
+        value: 384082919847-e1s4gi0cmcabsfii5dsvdsir42t9odqb.apps.googleusercontent.com
+      - key: KOVA_ACCOUNT_SESSION_PEPPER
+        generateValue: true

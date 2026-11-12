@@ -8,8 +8,8 @@ import { SidebarPanelLabel } from '@/app/shell/sidebar-label'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { SidebarGroup, SidebarGroupContent } from '@/components/ui/sidebar'
 import type { KovaGitWorktree } from '@/global'
-import type { SessionInfo } from '@/kova'
 import { useI18n } from '@/i18n'
+import type { SessionInfo } from '@/kova'
 import { flattenSessionsWithBranches } from '@/lib/session-branch-tree'
 import {
   groupEntriesByRecency,
@@ -72,6 +72,8 @@ function SidebarSectionHeader({
   icon,
   collapsible = true
 }: SidebarSectionHeaderProps) {
+  const { t } = useI18n()
+
   const labelBody = (
     <>
       {icon}
@@ -85,20 +87,24 @@ function SidebarSectionHeader({
       {collapsible ? (
         <button
           aria-expanded={open}
+          aria-label={label || t.sidebar.sessions}
           // min-w-0 lets the label truncate at narrow sidebar widths instead of
           // pushing the header's trailing action icons out of view.
           className={cn(
             'group/section-label flex w-fit min-w-0 items-center gap-1 rounded-sm bg-transparent text-left leading-none',
+            !label && 'min-h-4 flex-1',
             SIDEBAR_FOCUS_VISIBLE
           )}
           onClick={onToggle}
           type="button"
         >
-          {labelBody}
-          <DisclosureCaret
-            className="text-(--ui-text-tertiary) opacity-0 transition group-hover/section-label:opacity-100 group-focus-visible/section-label:opacity-100"
-            open={open}
-          />
+          {label && labelBody}
+          {label && (
+            <DisclosureCaret
+              className="text-(--ui-text-tertiary) opacity-0 transition group-hover/section-label:opacity-100 group-focus-visible/section-label:opacity-100"
+              open={open}
+            />
+          )}
         </button>
       ) : (
         <div className="flex w-fit min-w-0 items-center gap-1 leading-none">{labelBody}</div>
