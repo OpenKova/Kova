@@ -14,6 +14,7 @@ import { useContributions } from '@/contrib/react/use-contributions'
 import { guardGuestPointers } from '@/lib/guest-pointer-guard'
 import { rafCoalesce } from '@/lib/raf-coalesce'
 import { cn } from '@/lib/utils'
+import { SIDEBAR_COMPACT_WIDTH } from '@/store/layout'
 import { $paneStates, type PaneStateSnapshot, setPaneHeightOverride, setPaneWidthOverride } from '@/store/panes'
 
 import { $layoutEditMode, $layoutEditRevealsHidden } from '../../edit-mode'
@@ -669,7 +670,18 @@ export function TreeSplit({
   const tracks = node.children.map((child, i) => {
     const minimized = isMinimized(child)
     const collapsed = isCollapsed(child) || sideGone(i)
-    const track = minimized || collapsed ? null : fixedTrackSize(child, axis, trackCtx)
+
+    const compactSidebar =
+      axis === 'row' &&
+      allPaneIds(child).includes('sessions') &&
+      overrides.sessions?.widthOverride === SIDEBAR_COMPACT_WIDTH
+
+    const track = minimized || collapsed
+      ? null
+      : compactSidebar
+        ? `${SIDEBAR_COMPACT_WIDTH}px`
+        : fixedTrackSize(child, axis, trackCtx)
+
     const sizing = minimized || collapsed ? null : sizingFor(child, track)
     // Narrow-collapse UNMOUNTS (the edge overlay owns the live instance) — but
     // only for panes the breakpoint collapsed, not ones a chrome toggle hid.
@@ -744,7 +756,11 @@ export function TreeSplit({
 
         return (
           <div
-            className="relative flex min-h-0 min-w-0"
+            className={cn(
+              'relative flex min-h-0 min-w-0',
+              horizontal && allPaneIds(child).includes('sessions') &&
+                'transition-[flex-basis] duration-200 ease-linear motion-reduce:transition-none'
+            )}
             key={child.id}
             style={
               collapsed

@@ -69,7 +69,6 @@ export type SetTitlebarToolGroup = (id: string, tools: readonly TitlebarTool[], 
 interface TitlebarControlsProps extends ComponentProps<'div'> {
   leftTools?: readonly TitlebarTool[]
   tools?: readonly TitlebarTool[]
-  onOpenSettings: () => void
 }
 
 /** Overlay count on a titlebar glyph. Hidden when count is 0/undefined. */
@@ -131,7 +130,7 @@ function useSidebarEdges(): { left: SidebarEdge; right: SidebarEdge } {
   }
 }
 
-export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }: TitlebarControlsProps) {
+export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControlsProps) {
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
@@ -194,17 +193,6 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
   // Static system tools — always pinned to the screen's right edge so the
   // left titlebar stays free for tabs (#107351).
   const systemTools: TitlebarTool[] = [
-    {
-      ...TITLEBAR_FIXED_TOOLS.settings,
-      actionId: 'nav.settings',
-      icon: <TitlebarIcon name="settings-gear" />,
-      id: 'settings',
-      label: t.titlebar.openSettings,
-      onSelect: () => {
-        triggerHaptic('open')
-        onOpenSettings()
-      }
-    },
     {
       ...TITLEBAR_FIXED_TOOLS.hud,
       // No `title`: TitlebarToolButton passes `title` to TipKeybindLabel as a

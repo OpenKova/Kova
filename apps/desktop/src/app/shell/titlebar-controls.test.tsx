@@ -33,7 +33,7 @@ function renderControls(pathname: string, props?: { leftTools?: TitlebarTool[]; 
     <MemoryRouter initialEntries={[pathname]}>
       <I18nProvider configClient={null} initialLocale="en">
         <NavigateProbe />
-        <TitlebarControls leftTools={props?.leftTools} onOpenSettings={() => {}} tools={props?.tools} />
+        <TitlebarControls leftTools={props?.leftTools} tools={props?.tools} />
       </I18nProvider>
     </MemoryRouter>
   )

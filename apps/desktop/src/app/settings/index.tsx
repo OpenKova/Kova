@@ -1,24 +1,33 @@
+import './settings-overview.css'
+
 import { useStore } from '@nanostores/react'
 import { type ComponentType, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 
+import { Button } from '@/components/ui/button'
 import { codiconIcon } from '@/components/ui/codicon'
 import { KbdCombo } from '@/components/ui/kbd'
 import { Tip } from '@/components/ui/tooltip'
-import { getKovaConfigDefaults, getKovaConfigRecord, saveKovaConfig } from '@/kova'
 import { useI18n } from '@/i18n'
+import { getKovaConfigDefaults, getKovaConfigRecord, saveKovaConfig } from '@/kova'
 import { triggerHaptic } from '@/lib/haptics'
 import {
   Archive,
   BarChart3,
   Bell,
+  Box,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
   Cpu,
   Download,
   Globe,
   Info,
   Keyboard,
   KeyRound,
+  Monitor,
   Network,
+  Palette,
   RefreshCw,
   Search,
   Settings2,
@@ -72,6 +81,7 @@ import { vaultOwnerKey, VaultSettings } from './vault-settings'
 import { useWebAccessAvailable, WebAccessSettings } from './web-access-settings'
 
 const SETTINGS_VIEWS: readonly SettingsViewId[] = [
+  'home',
   ...SECTIONS.map(s => `config:${s.id}` as SettingsViewId),
   'providers',
   'gateway',
@@ -120,7 +130,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     }
   }, [navigate, search])
 
-  const [activeView] = useRouteEnumParam('tab', SETTINGS_VIEWS, 'config:model' as SettingsViewId)
+  const [activeView] = useRouteEnumParam('tab', SETTINGS_VIEWS, 'home' as SettingsViewId)
 
   useEffect(() => recordFeatureUse(settingsArea(activeView)), [activeView])
   const params = new URLSearchParams(search)
@@ -253,10 +263,17 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     }
   }, [activeView, setActiveView, webAccessAvailable])
 
-  const navGroups: OverlayNavGroup[] = useMemo(
+  const allNavGroups: OverlayNavGroup[] = useMemo(
     () =>
       (
         [
+          {
+            active: activeView === 'home',
+            icon: Settings2,
+            id: 'home',
+            label: t.titlebar.openSettings,
+            onSelect: () => setActiveView('home')
+          },
           ...SECTIONS.flatMap(s => {
             const view = `config:${s.id}` as SettingsViewId
 
@@ -474,6 +491,54 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     ]
   )
 
+  const navGroups: OverlayNavGroup[] = useMemo(() => {
+    const home = allNavGroups.find(group => group.id === 'home')
+    const byId = new Map(allNavGroups.map(group => [group.id, group]))
+
+    const categories = [
+      { icon: Box, id: 'category:ai', ids: ['config:model', 'providers', 'keys'], label: t.settings.overview.ai },
+      {
+        icon: Monitor,
+        id: 'category:workspace',
+        ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'],
+        label: t.settings.overview.workspace
+      },
+      {
+        icon: Palette,
+        id: 'category:personalize',
+        ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'],
+        label: t.settings.overview.personalize
+      },
+      {
+        icon: Brain,
+        id: 'category:agent',
+        ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'],
+        label: t.settings.overview.agent
+      },
+      { icon: Info, id: 'category:account', ids: ['billing', 'about'], label: t.settings.overview.account }
+    ]
+
+    return [
+      ...(home ? [home] : []),
+      ...categories.map(category => {
+        const children = category.ids.flatMap(id => {
+          const group = byId.get(id)
+
+          return group ? [group] : []
+        })
+
+        return {
+          active: children.some(child => child.active),
+          children,
+          icon: category.icon,
+          id: category.id,
+          label: category.label,
+          onSelect: () => children[0]?.onSelect()
+        }
+      })
+    ]
+  }, [allNavGroups, t.settings.overview])
+
   const activeGroup = navGroups.find(group => group.active)
   const activeChild = activeGroup?.children?.find(child => child.active)
 
@@ -501,21 +566,16 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // Fake search pill riding the card's top edge, dead-center and half off it.
-  // Clicking (or just typing) opens the ⌘K palette scoped to settings; while
-  // the palette is up the pill hands over to it — grows slightly and fades,
-  // then fades back when the palette closes. It sits outside the raised card,
-  // so it needs its own opaque glass surface to mask the content underneath.
+  // Keep search at the top of the settings rail, above its first destination.
   const searchCombo = bindingsFor('nav.commandPalette')[0]
   const paletteOpen = useStore($commandPaletteOpen)
 
   const searchPill = (
     <button
       className={cn(
-        'flex h-(--titlebar-control-height) items-center gap-1.5 rounded-full border border-(--ui-stroke-secondary) bg-(--ui-chat-surface-background) px-2.5 text-(--ui-text-tertiary) shadow-sm transition-all duration-200 ease-out hover:text-foreground motion-reduce:transition-none',
-        paletteOpen && 'pointer-events-none scale-110 opacity-0'
+        'row-hover flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-(--ui-text-tertiary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground',
+        paletteOpen && 'pointer-events-none opacity-0'
       )}
-      data-glass-opaque=""
       onClick={() => {
         triggerHaptic('open')
         openCommandPalettePage('settings')
@@ -525,7 +585,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     >
       <Search className="size-3" />
       <span className="text-xs">{t.settings.search.pill}</span>
-      {searchCombo && <KbdCombo combo={searchCombo} size="sm" variant="ghost" />}
+      {searchCombo && <KbdCombo className="ml-auto" combo={searchCombo} size="sm" variant="ghost" />}
     </button>
   )
 
@@ -564,6 +624,12 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
   const activeSettingsContent = SubpageView ? (
     <SubpageView subpage={subpage} />
+  ) : activeView === 'home' ? (
+    <SettingsOverview
+      groups={allNavGroups}
+      overview={t.settings.overview}
+      title={t.titlebar.openSettings}
+    />
   ) : activeView.startsWith('config:') ? (
     <ConfigSettings
       activeSectionId={activeView.slice('config:'.length)}
@@ -602,13 +668,34 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   )
 
   return (
-    <OverlayView closeLabel={t.settings.closeSettings} edgeBadge={searchPill} onClose={onClose}>
+    <OverlayView
+      closeLabel={t.settings.closeSettings}
+      mode="card"
+      onClose={onClose}
+      rootClassName="settings-glass-panel"
+      titlebarActions={
+        <Button
+          aria-label={t.common.back}
+          className="text-(--ui-text-tertiary) hover:text-foreground"
+          onClick={onClose}
+          size="sm"
+          variant="ghost"
+        >
+          <ChevronLeft />
+          {t.common.back}
+        </Button>
+      }
+    >
       <OverlaySplitLayout>
-        <OverlayNav footer={navFooter} groups={navGroups} />
+        <OverlayNav
+          footer={navFooter}
+          groups={navGroups}
+          header={<div className="mb-1" data-settings-search-header="">{searchPill}</div>}
+        />
 
         <OverlayMain className="px-0 pb-0">
           <SettingsBreadcrumbContext.Provider value>
-            {activeGroup && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
+            {activeGroup && activeView !== 'home' && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
             {needsSubpageRedirect ? (
               <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
             ) : (
@@ -622,3 +709,63 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 }
 
 export { SettingsView as SettingsPage }
+
+function SettingsOverview({
+  groups,
+  overview,
+  title
+}: {
+  groups: OverlayNavGroup[]
+  overview: { intro: string; ai: string; workspace: string; personalize: string; agent: string; account: string }
+  title: string
+}) {
+  const categories = [
+    { ids: ['config:model', 'providers', 'keys'], label: overview.ai },
+    { ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'], label: overview.workspace },
+    { ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'], label: overview.personalize },
+    { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'], label: overview.agent },
+    { ids: ['billing', 'about'], label: overview.account }
+  ]
+
+  return (
+    <div className="settings-overview flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto pb-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-(--ui-stroke-tertiary) pb-5">
+        <div>
+          <p className="mb-1 text-xs font-medium uppercase tracking-[0.14em] text-(--ui-text-tertiary)">Kova</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+          <p className="mt-1 text-sm text-(--ui-text-secondary)">{overview.intro}</p>
+        </div>
+      </header>
+
+      <div className="settings-overview-grid grid grid-cols-2 gap-x-10 gap-y-7">
+        {categories.map(category => {
+          const items = category.ids.flatMap(id => {
+            const group = groups.find(candidate => candidate.id === id)
+
+            return group ? [group] : []
+          })
+
+          return (
+            <section className="min-w-0" key={category.label}>
+              <h2 className="mb-2 text-sm font-semibold text-foreground">{category.label}</h2>
+              <div className="flex flex-col gap-0.5">
+                {items.map(item => (
+                  <button
+                    className="group row-hover flex min-h-10 w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-(--ui-text-secondary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground"
+                    key={item.id}
+                    onClick={item.onSelect}
+                    type="button"
+                  >
+                    <item.icon className="size-4 shrink-0 text-(--ui-text-tertiary) group-hover:text-(--kova-signature-accent)" />
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <ChevronRight className="size-4 shrink-0 text-(--ui-text-quaternary) transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

@@ -560,6 +560,7 @@ export interface Translations extends NoticeTranslations {
     muteHaptics: string
     unmuteHaptics: string
     openSettings: string
+    openCommandCenter: string
     openStarmap: string
     enterHud: string
     exitHud: string
@@ -601,6 +602,7 @@ export interface Translations extends NoticeTranslations {
 
   settings: {
     subpages: Record<string, string>
+    overview: { intro: string; ai: string; workspace: string; personalize: string; agent: string; account: string }
     closeSettings: string
     exportConfig: string
     importConfig: string
@@ -2220,6 +2222,10 @@ export interface Translations extends NoticeTranslations {
     statTokens: string
     statCost: string
     actualCost: (cost: string) => string
+    usageOverview: string
+    usageOverviewHint: (days: number) => string
+    statApiCallsHint: string
+    conversationsInPeriod: string
     loadingUsage: string
     noUsage: (period: number) => string
     retry: string

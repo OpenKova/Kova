@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import { atom, computed } from 'nanostores'
-import type { CSSProperties, ReactElement, PointerEvent as ReactPointerEvent } from 'react'
+import { type CSSProperties, type ReactElement, type PointerEvent as ReactPointerEvent, useEffect } from 'react'
 
 import { SessionDraftTitle } from '@/app/chat/session-draft-title'
 import { SessionStatusDot } from '@/app/chat/session-status-dot'
@@ -64,6 +64,7 @@ import {
   fileBrowserSide,
   setFileBrowserOpen,
   setSidebarOpen,
+  SIDEBAR_COMPACT_WIDTH,
   SIDEBAR_DEFAULT_WIDTH,
   SIDEBAR_MAX_WIDTH,
   sidebarSide
@@ -210,7 +211,7 @@ registry.registerMany([
       tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.sessions} />,
       tabTitleText: () => translateNow('sidebar.sessions'),
       width: `${SIDEBAR_DEFAULT_WIDTH}px`,
-      minWidth: `${SIDEBAR_DEFAULT_WIDTH}px`,
+      minWidth: `${SIDEBAR_COMPACT_WIDTH}px`,
       maxWidth: `${SIDEBAR_MAX_WIDTH}px`
     },
     render: () => <WiredPane part="sidebar" />
@@ -760,6 +761,14 @@ registerPaneCloser('files', () =>
 export function ContribController() {
   const sidebarOpen = useStore($sidebarOpen)
   const statusbarVisible = useStore($statusbarVisible)
+
+  // Migrate the old fully-hidden sidebar preference into the new compact rail.
+  // The compact state now keeps the sessions pane in the tree at icon width.
+  useEffect(() => {
+    if (!isHudWindow() && !isBrowserWindow() && !sidebarOpen) {
+      setSidebarOpen(false)
+    }
+  }, [sidebarOpen])
 
   // HUD mode is the SAME app with its frame removed: the wiring (gateway,
   // sessions, streams, submit) mounts identically, and only the shell around

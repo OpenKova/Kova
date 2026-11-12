@@ -26,13 +26,14 @@ import { arraysEqual, insertUniqueId, readKey } from '@/lib/storage'
 import { modeBound, modeLayout } from '@/store/interface-mode'
 
 import { trackArea } from './desktop-metrics'
-import { $paneStates, ensurePaneRegistered, setPaneOpen, setPaneWidthOverride } from './panes'
+import { $paneStates, ensurePaneRegistered, setPaneOpen, setPaneOpenAndWidthOverride, setPaneWidthOverride } from './panes'
 import { $showAllProfiles, setShowAllProfiles } from './profile'
 import type { PullRequestBucket } from './pull-requests'
 import type { SessionStatusBucket } from './session-dot-state'
 
 export const SIDEBAR_DEFAULT_WIDTH = 237
 export const SIDEBAR_MAX_WIDTH = 360
+export const SIDEBAR_COMPACT_WIDTH = 48
 // Open at the same width as the sessions sidebar so the two rails match, but
 // allow shrinking well below that (~30% under the old 14rem floor) for users who
 // want a narrow tree.
@@ -86,9 +87,20 @@ export type RightRailTabId = `artifact:${string}` | `file:${string}` | `url:${st
 ensurePaneRegistered(CHAT_SIDEBAR_PANE_ID, { open: true })
 ensurePaneRegistered(FILE_BROWSER_PANE_ID, { open: false })
 
-export const $sidebarOpen: ReadableAtom<boolean> = computed(
-  $paneStates,
-  states => states[CHAT_SIDEBAR_PANE_ID]?.open ?? true
+export const $sidebarOpen: ReadableAtom<boolean> = computed($paneStates, states => {
+  const state = states[CHAT_SIDEBAR_PANE_ID]
+
+  return (state?.open ?? true) && states.sessions?.widthOverride !== SIDEBAR_COMPACT_WIDTH
+})
+
+const $expandedSidebarWidth = modeLayout.atom<number>(
+  'sidebarExpandedWidth',
+  () => SIDEBAR_DEFAULT_WIDTH,
+  Codecs.json(value =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_DEFAULT_WIDTH, value))
+      : SIDEBAR_DEFAULT_WIDTH
+  )
 )
 
 // The file tree's own toggle (⌘J), which doubles as the RIGHT side's collapse.
@@ -111,7 +123,7 @@ export const $rightRailActiveTabId = persistentAtom<RightRailTabId | null>(RIGHT
 })
 
 export const $sidebarWidth: ReadableAtom<number> = computed($paneStates, states => {
-  const override = states[CHAT_SIDEBAR_PANE_ID]?.widthOverride
+  const override = states.sessions?.widthOverride ?? states[CHAT_SIDEBAR_PANE_ID]?.widthOverride
 
   return typeof override === 'number' ? override : SIDEBAR_DEFAULT_WIDTH
 })
@@ -558,7 +570,8 @@ export function restoreWorktree(id: string): void {
 
 export function setSidebarWidth(width: number) {
   const bounded = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_DEFAULT_WIDTH, width))
-  setPaneWidthOverride(CHAT_SIDEBAR_PANE_ID, bounded)
+  $expandedSidebarWidth.set(bounded)
+  setPaneWidthOverride('sessions', bounded)
 }
 
 // Below the collapse breakpoint a collapsible rail leaves the grid and lives as
@@ -583,22 +596,30 @@ export const sidebarSide = (): TreeSide => ($panesFlipped.get() ? 'right' : 'lef
 export const fileBrowserSide = (): TreeSide => ($panesFlipped.get() ? 'left' : 'right')
 
 export function setSidebarOpen(open: boolean) {
-  setPaneOpen(CHAT_SIDEBAR_PANE_ID, open)
-  setTreeSideCollapsed(sidebarSide(), !open)
+  const currentWidth = $sidebarWidth.get()
 
-  if (open) {
-    restoreMinimizedTreeSide(sidebarSide())
-    restoreHiddenTreeSideTabs(sidebarSide())
+  if (!open && currentWidth > SIDEBAR_COMPACT_WIDTH) {
+    $expandedSidebarWidth.set(currentWidth)
   }
+
+  setPaneOpenAndWidthOverride(
+    CHAT_SIDEBAR_PANE_ID,
+    true,
+    'sessions',
+    open ? $expandedSidebarWidth.get() : SIDEBAR_COMPACT_WIDTH
+  )
+  const side = sidebarSide()
+
+  if ($collapsedTreeSides.get().has(side)) {setTreeSideCollapsed(side, false)}
+
+  if (open) {restoreHiddenTreeSideTabs(side)}
 
   revealNarrowPane(CHAT_SIDEBAR_PANE_ID, open ? 'open' : 'close')
 }
 
 export function toggleSidebarOpen() {
   if (!revealNarrowPane(CHAT_SIDEBAR_PANE_ID, 'toggle')) {
-    const open = restoreMinimizedTreeSide(sidebarSide()) || !$sidebarOpen.get()
-    setPaneOpen(CHAT_SIDEBAR_PANE_ID, open)
-    setTreeSideCollapsed(sidebarSide(), !open)
+    setSidebarOpen(!$sidebarOpen.get())
   }
 }
 
@@ -620,6 +641,15 @@ export function toggleLeftSide() {
   if (!group) {
     // No foldable column on the left: fall back to the semantic sidebar
     // branch, never the right side.
+    toggleSidebarOpen()
+
+    return
+  }
+
+  // The primary left sidebar is a navigation surface. Its titlebar toggle
+  // uses the compact navigation rail, not the layout editor's minimized-zone
+  // tabs; otherwise it leaves the full Sessions menu beside the icon rail.
+  if (allPaneIds(group).some(id => id === 'sessions' || id === CHAT_SIDEBAR_PANE_ID)) {
     toggleSidebarOpen()
 
     return
@@ -779,7 +809,11 @@ export const $leftSideOpen: ReadableAtom<boolean> = computed(
   () => {
     const group = leftSideGroup()
 
-    return group ? leftSideShown(group) : $sidebarOpen.get()
+    return group
+      ? allPaneIds(group).some(id => id === 'sessions' || id === CHAT_SIDEBAR_PANE_ID)
+        ? $sidebarOpen.get()
+        : leftSideShown(group)
+      : $sidebarOpen.get()
   }
 )
 

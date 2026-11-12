@@ -98,6 +98,23 @@ export function setPaneOpen(id: string, open: boolean) {
   $paneStates.set({ ...current, [id]: { ...existing, open } })
 }
 
+/** Update visibility and width together so layout subscribers only render once. */
+export function setPaneOpenAndWidthOverride(id: string, open: boolean, widthId: string, width: number) {
+  const current = $paneStates.get()
+  const pane = current[id] ?? { open }
+  const widthPane = current[widthId] ?? { open: false }
+
+  if (pane.open === open && widthPane.widthOverride === width) {
+    return
+  }
+
+  $paneStates.set({
+    ...current,
+    [id]: { ...pane, open },
+    [widthId]: { ...widthPane, widthOverride: width }
+  })
+}
+
 export function togglePane(id: string) {
   const current = $paneStates.get()
   const existing = current[id]

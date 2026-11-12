@@ -5,6 +5,7 @@ import type { IconComponent } from '@/lib/icons'
 import type { EnvVarInfo } from '@/types/kova'
 
 export type SettingsView =
+  | 'home'
   | 'about'
   | 'billing'
   | 'connections'

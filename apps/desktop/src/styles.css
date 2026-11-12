@@ -205,6 +205,7 @@
 
     --theme-foreground: #17171a;
     --theme-primary: #0053fd;
+    --kova-signature-accent: #bd4531;
     --theme-secondary: color-mix(in srgb, #0053fd 7%, #ffffff);
     --theme-accent-soft: color-mix(in srgb, #0053fd 10%, #ffffff);
     --theme-midground: #0053fd;
@@ -600,6 +601,7 @@
   }
 
   :root.dark {
+    --kova-signature-accent: #ff5c5c;
     /* Per-mode mix knobs — overridden inline by `applyTheme()` per skin. */
     --theme-mix-chrome: 74%;
     --theme-mix-card: 38%;

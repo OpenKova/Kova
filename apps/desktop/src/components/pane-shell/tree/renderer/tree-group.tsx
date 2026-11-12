@@ -44,6 +44,7 @@ import { useI18n } from '@/i18n'
 import { useKeybindHint } from '@/lib/keybinds/use-keybind-hint'
 import { isBrowserOwnedTouch } from '@/lib/touch-interaction'
 import { cn } from '@/lib/utils'
+import { $sidebarOpen } from '@/store/layout'
 import { closeAllOpenSessionTiles, setZoneParkedTiles } from '@/store/session-states'
 
 import { $layoutEditMode, $layoutEditRevealsHidden } from '../../edit-mode'
@@ -379,6 +380,7 @@ export function TreeGroup({
   // workspace).
   const [menuPane, setMenuPane] = useState<string | undefined>(undefined)
   const panes = useContributions('panes')
+  const sidebarExpanded = useStore($sidebarOpen)
   const stableHosts = useStablePaneHosts()
   // Coarse drag flag only (set once at drag start/end). The per-frame drop
   // HINT lives in ZoneDropOverlay so a moving pointer re-renders the tiny
@@ -680,7 +682,10 @@ export function TreeGroup({
           bounds, strip refs, focus ownership and split geometry as the body. */}
       {(headerVisible || (topEdge && !verticalCollapse)) && (
         <div
-          className="relative flex min-w-0 shrink-0 bg-(--ui-sidebar-surface-background)"
+          className={cn(
+            'relative flex min-w-0 shrink-0 bg-(--ui-sidebar-surface-background)',
+            node.panes.includes('sessions') && !sidebarExpanded && 'invisible'
+          )}
           data-panel-header=""
           style={topEdge ? { height: topHeaderHeight } : undefined}
         >

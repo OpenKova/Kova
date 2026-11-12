@@ -14,6 +14,7 @@ import { KbdGroup } from '@/components/ui/kbd'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -24,7 +25,7 @@ import { Tip, TipKeybindLabel } from '@/components/ui/tooltip'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { useI18n } from '@/i18n'
 import { type SessionInfo, type SessionSearchResult } from '@/kova'
-import { Search } from '@/lib/icons'
+import { AudioLines, Search } from '@/lib/icons'
 import { comboTokens } from '@/lib/keybinds/combo'
 import { sessionMatchesSearch } from '@/lib/session-search'
 import { normalizeSessionSource, sessionSourceLabel } from '@/lib/session-source'
@@ -45,6 +46,7 @@ import {
   $sidebarFiltersActive,
   $sidebarGrouping,
   $sidebarMessagingOpenIds,
+  $sidebarOpen,
   $sidebarOrdering,
   $sidebarPinsOpen,
   $sidebarPrDataWanted,
@@ -143,8 +145,10 @@ import {
   type AppView,
   ARTIFACTS_ROUTE,
   CAPABILITIES_ROUTE,
+  COMMAND_CENTER_ROUTE,
   CRON_ROUTE,
   MESSAGING_ROUTE,
+  SETTINGS_ROUTE,
   SIDEBAR_NAV_AREA,
   type SidebarNavContribution
 } from '../../routes'
@@ -442,6 +446,7 @@ export function ChatSidebar({
   )
 
   const interfaceMode = useStore($interfaceMode)
+  const sidebarOpen = useStore($sidebarOpen)
   const showsAdvancedChrome = useStore($showsAdvancedChrome)
 
   // Nav preferences (`sidebarNav.prefs` contributions): a plugin may hide rows
@@ -1552,6 +1557,54 @@ export function ChatSidebar({
       })
     )
 
+  const settingsButton = (
+    <Tip label={t.titlebar.openSettings}>
+      <SidebarMenuButton
+        aria-current={currentView === 'settings' ? 'page' : undefined}
+        aria-label={t.titlebar.openSettings}
+        className={cn(
+          'size-6 justify-center rounded-full bg-transparent p-0 text-(--ui-text-tertiary) hover:!bg-(--ui-control-hover-background) hover:text-foreground focus-visible:!bg-(--ui-control-hover-background)',
+          currentView === 'settings' && 'bg-(--ui-control-active-background) text-foreground'
+        )}
+        onClick={() =>
+          onNavigate({
+            id: 'settings',
+            label: t.titlebar.openSettings,
+            icon: props => <Codicon name="gear" {...props} />,
+            route: SETTINGS_ROUTE
+          })
+        }
+        type="button"
+      >
+        <Codicon className="size-3.5" name="gear" />
+      </SidebarMenuButton>
+    </Tip>
+  )
+
+  const commandCenterButton = (
+    <Tip label={t.titlebar.openCommandCenter}>
+      <SidebarMenuButton
+        aria-current={currentView === 'command-center' ? 'page' : undefined}
+        aria-label={t.titlebar.openCommandCenter}
+        className={cn(
+          'size-6 justify-center rounded-full bg-transparent p-0 text-(--ui-text-tertiary) hover:!bg-(--ui-control-hover-background) hover:text-foreground focus-visible:!bg-(--ui-control-hover-background)',
+          currentView === 'command-center' && 'bg-(--ui-control-active-background) text-foreground'
+        )}
+        onClick={() =>
+          onNavigate({
+            id: 'command-center',
+            label: t.titlebar.openCommandCenter,
+            icon: props => <AudioLines {...props} />,
+            route: COMMAND_CENTER_ROUTE
+          })
+        }
+        type="button"
+      >
+        <AudioLines className="size-3.5" />
+      </SidebarMenuButton>
+    </Tip>
+  )
+
   return (
     <Sidebar
       className={cn(
@@ -1566,10 +1619,15 @@ export function ChatSidebar({
       data-tip-region=""
       data-tour="sessions-sidebar"
     >
-      <SidebarContent className="gap-0 overflow-hidden bg-transparent px-2.5">
+      <SidebarContent
+        className={cn(
+          'gap-0 overflow-hidden bg-transparent transition-[padding] duration-200 ease-linear motion-reduce:transition-none',
+          sidebarOpen ? 'px-2.5' : 'px-1.5'
+        )}
+      >
         <SidebarGroup className={cn('shrink-0 p-0 pb-2', showSessionSections ? 'pt-1' : 'pt-[calc(var(--titlebar-height)+0.375rem)]')}>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-px">
+            <SidebarMenu className={cn('gap-px', !sidebarOpen && 'items-center')}>
               {navItems.map(item => {
                 const isInteractive = Boolean(item.action) || Boolean(item.route)
 
@@ -1595,6 +1653,7 @@ export function ChatSidebar({
                       // top rows. Same carve-out as USER_BUBBLE_BASE_CLASS in
                       // thread.tsx.
                       'flex h-7 w-full justify-start gap-2 rounded-lg border border-transparent px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
+                      !sidebarOpen && 'h-7 w-7 min-w-7 justify-center gap-0 px-0',
                       active &&
                         'bg-(--ui-control-active-background) text-foreground shadow-none',
                       !isInteractive &&
@@ -1658,10 +1717,10 @@ export function ChatSidebar({
                         `flex-1` looked like it was for.
                         Its own `sidebar-nav-` namespace: the overlay nav owns
                         `nav-<id>`, and both are on screen with Settings open. */}
-                    <span className="min-w-0 truncate" data-tip-arrow-only="" data-tour={`sidebar-nav-${item.id}`}>
+                    {sidebarOpen && <span className="min-w-0 truncate" data-tip-arrow-only="" data-tour={`sidebar-nav-${item.id}`}>
                       {s.nav[item.id] ?? item.label}
-                    </span>
-                    {isNewSession && (
+                    </span>}
+                    {sidebarOpen && isNewSession && (
                       <KbdGroup
                         className={cn('ml-auto opacity-55', newSessionKbdFlash && 'opacity-100!')}
                         keys={newSessionKbd}
@@ -1702,11 +1761,11 @@ export function ChatSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarStorageCorruptNotice />
+        {sidebarOpen && <SidebarStorageCorruptNotice />}
 
         {showSessionSections && (
           <div
-            className={cn('flex min-h-0 flex-1 flex-col pb-1.75', SCROLL_Y, SCROLL_GUTTER)}
+            className={cn('flex min-h-0 flex-1 flex-col pb-1.75', SCROLL_Y, SCROLL_GUTTER, !sidebarOpen && 'hidden')}
             data-sessions-mode={sessionsMode}
             data-sessions-project={inProject ? (enteredProjectId ?? undefined) : undefined}
           >
@@ -2027,16 +2086,24 @@ export function ChatSidebar({
           </div>
         )}
 
-        {!showSessionSections && <SidebarBlankState onNewProject={openProjectCreate} />}
+        {sidebarOpen && !showSessionSections && <SidebarBlankState onNewProject={openProjectCreate} />}
 
-        {/* Off, the statusbar's profile dropdown (beside the gateway switcher)
-            takes over — the rail is a duplicate door for bot-only setups. */}
+      </SidebarContent>
+      <SidebarFooter
+        className={cn('p-2', sidebarOpen ? 'items-start' : 'items-center')}
+      >
         {profileRailVisible && (
-          <div className="shrink-0 px-0.5 pb-1 pt-0.5">
-            <ProfileRail />
+          <div className={cn('mb-1 w-full min-w-0 px-0.5 pt-0.5', !sidebarOpen && 'hidden')}>
+            <ProfileRail afterHome={<>{commandCenterButton}{settingsButton}</>} />
           </div>
         )}
-      </SidebarContent>
+        {(!sidebarOpen || !profileRailVisible) && (
+          <div className="flex items-center gap-1">
+            {commandCenterButton}
+            {settingsButton}
+          </div>
+        )}
+      </SidebarFooter>
       <ProjectDialog />
       {/* One mount for the whole app. The header of WorktreeDialog tells why. */}
       <WorktreeDialog />

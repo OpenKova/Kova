@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { LOCAL_CONNECTION_ID } from '@kova/shared'
 import { useStore } from '@nanostores/react'
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import type { ProfileScope } from '@/api/client'
@@ -44,9 +44,9 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import { Tip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { DesktopRegistryConnection } from '@/global'
-import { getProfileSoul, updateProfileSoul } from '@/kova'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { type Translations, useI18n } from '@/i18n'
+import { getProfileSoul, updateProfileSoul } from '@/kova'
 import { sortConnectionsForDisplay } from '@/lib/connection-display'
 import { triggerHaptic } from '@/lib/haptics'
 import { hostHas } from '@/lib/host-capabilities'
@@ -212,7 +212,7 @@ const stepThroughCells: Modifier = ({ containerNodeRect, draggingNodeRect, trans
 // of those squares is a profile pick on that gateway, landing on that exact
 // (gateway, profile) with no dial. Groups keep registry order regardless of
 // which one is active, so a square never moves under the pointer that clicked it.
-export function ProfileRail() {
+export function ProfileRail({ afterHome }: { afterHome?: ReactNode } = {}) {
   const { t, locale } = useI18n()
   const p = t.profiles
   const profiles = useStore($profiles)
@@ -582,6 +582,8 @@ export function ProfileRail() {
           profile={defaultProfile.name}
         />
       )}
+
+      {afterHome}
 
       {condensed ? (
         // Condensed path: one compact dropdown instead of N squares. No drag
