@@ -22,7 +22,7 @@ describe('Pulse navigation', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('button', { name: 'Usage' })).toBeTruthy()
+    expect(document.querySelector('[data-tour="nav-usage"]')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sessions' })).toBeNull()
   })
 })
