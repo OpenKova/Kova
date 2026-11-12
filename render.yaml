@@ -2,7 +2,7 @@ services:
   - type: web
     name: kova-account
     runtime: docker
-    plan: starter
+    plan: 0.5c-512mb
     dockerfilePath: ./services/kova-account/Dockerfile
     dockerContext: .
     healthCheckPath: /ready
