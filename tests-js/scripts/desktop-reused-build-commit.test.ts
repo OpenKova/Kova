@@ -13,7 +13,9 @@ function git(repo: string, ...args: string[]): string {
     encoding: 'utf8',
     env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t.invalid', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t.invalid' },
   })
-  if (result.status !== 0) { throw new Error(result.stderr) }
+  if (result.status !== 0) {
+    throw new Error(result.stderr)
+  }
 
   return result.stdout.trim()
 }
@@ -33,7 +35,7 @@ test('a reused packaged app may report its build commit only across the syntheti
     git(repo, 'init', '-q')
     const head = commitFile(repo, 'app.ts')
     const next = commitFile(repo, '.kova-e2e-next')
-    const app = { appVersion: '0.0.0', commit: head, hermesRoot: repo, platform: process.platform }
+    const app = { appVersion: '0.0.0', commit: head, kovaRoot: repo, platform: process.platform }
 
     // HEAD -> NEXT: only the marker changed, so the app built at HEAD stands for NEXT.
     const reused = reusedDesktopBuildCommit(repo, 'source', next)

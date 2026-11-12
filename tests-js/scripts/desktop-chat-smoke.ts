@@ -24,14 +24,14 @@ export interface DesktopChatSmokeOptions {
 export interface ChatIdentity {
   appVersion: string
   commit: string | null
-  hermesRoot: string
+  kovaRoot: string
   platform: string
   /** The resolved Kova home (newer desktops report it; absent on older ones). */
   kovaHome?: string
 }
 
 interface SmokeWindow extends Window {
-  hermesDesktop?: { getVersion: () => Promise<ChatIdentity> }
+  kovaDesktop?: { getVersion: () => Promise<ChatIdentity> }
 }
 
 export interface TranscriptMessage {
@@ -59,7 +59,8 @@ export interface DesktopChatReceipt {
 
 const identitySchema = z.object({
   appVersion: z.string(), commit: z.string().nullable().optional(),
-  hermesRoot: z.string(), platform: z.string(), kovaHome: z.string().optional(),
+  kovaRoot: z.string().optional(), hermesRoot: z.string().optional(),
+  platform: z.string(), kovaHome: z.string().optional(),
 })
 
 export async function readChatIdentity(page: Page): Promise<ChatIdentity> {
@@ -74,7 +75,18 @@ export async function readChatIdentity(page: Page): Promise<ChatIdentity> {
     return bridge.getVersion()
   }))
 
-  return { ...identity, commit: identity.commit ?? null }
+  const kovaRoot = identity.kovaRoot ?? identity.hermesRoot
+  if (!kovaRoot) {
+    throw new Error('Desktop install root is unavailable')
+  }
+
+  return {
+    appVersion: identity.appVersion,
+    commit: identity.commit ?? null,
+    kovaRoot,
+    platform: identity.platform,
+    ...(identity.kovaHome ? { kovaHome: identity.kovaHome } : {}),
+  }
 }
 
 /** Old desktops do not report a commit; their caller must verify the installed runtime.
