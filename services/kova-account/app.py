@@ -335,5 +335,8 @@ def revoke_session(response: Response, authorization: str | None = Header(defaul
 @app.delete("/v1/me", status_code=204)
 def delete_account(account: sqlite3.Row = Account) -> Response:
     with _connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute("DELETE FROM auth_codes WHERE account_id=?", (account["id"],))
         db.execute("DELETE FROM accounts WHERE id=?", (account["id"],))
+        db.commit()
     return Response(status_code=204)

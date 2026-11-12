@@ -54,6 +54,33 @@ def test_username_is_claimed_case_insensitively_and_session_is_revocable(tmp_pat
     assert client.get("/v1/me", headers=auth).status_code == 401
 
 
+def test_account_deletion_removes_sessions_and_unredeemed_auth_codes(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "accounts.sqlite3"))
+    monkeypatch.setenv("KOVA_ACCOUNT_SESSION_PEPPER", "test-secret-" * 3)
+    now = int(time.time())
+    token = "test-session-token-which-is-long-enough-for-authentication"
+    with service._connection() as db:
+        db.execute(
+            "INSERT INTO accounts(id,google_sub,email,google_name,created_at,updated_at) VALUES(?,?,?,?,?,?)",
+            ("account-a", "google-a", "a@example.com", "A", now, now),
+        )
+        db.execute(
+            "INSERT INTO sessions(token_hash,account_id,expires_at,created_at) VALUES(?,?,?,?)",
+            (service._digest(token), "account-a", now + 60, now),
+        )
+        db.execute(
+            "INSERT INTO auth_codes(code_hash,account_id,challenge_id_hash,code_challenge,expires_at) VALUES(?,?,?,?,?)",
+            (service._digest("authorization-code"), "account-a", service._digest("challenge-id"), "c" * 43, now + 60),
+        )
+
+    response = client.delete("/v1/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 204
+    with service._connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM accounts").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM auth_codes").fetchone()[0] == 0
+
+
 def test_code_exchange_requires_matching_pkce_and_only_works_once(tmp_path, monkeypatch):
     import base64
     import hashlib
