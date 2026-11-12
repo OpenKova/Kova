@@ -119,7 +119,6 @@ import { PersistentTerminal } from '../right-sidebar/terminal/persistent'
 import { closeAllTerminals } from '../right-sidebar/terminal/terminals'
 import {
   CRON_ROUTE,
-  navigateToWorkspacePage,
   routeSessionId,
   sessionRoute,
   SETTINGS_ROUTE,
@@ -1265,7 +1264,6 @@ export function ContribWiring({ children }: { children: ReactNode }) {
         {!isHudWindow() && !isBrowserWindow() && (
           <TitlebarControls
             leftTools={leftTitlebarTools}
-            onOpenSettings={() => navigate(SETTINGS_ROUTE)}
             tools={rightTitlebarTools}
           />
         )}
@@ -1368,10 +1366,6 @@ export function ContribWiring({ children }: { children: ReactNode }) {
           <CommandCenterView
             initialSection={commandCenterInitialSection}
             onClose={closeOverlayToPreviousRoute}
-            onDeleteSession={removeSession}
-            onLoadMoreSessions={loadMoreSessions}
-            onNavigateRoute={path => navigateToWorkspacePage(navigate, path)}
-            onOpenSession={openStoredSession}
           />
         </Suspense>
       )}

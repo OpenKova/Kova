@@ -1,44 +1,29 @@
 import { compactNumber } from '@kova/shared'
 import { useStore } from '@nanostores/react'
-import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { LogSearchField, useLogSearch } from '@/components/chat/log-search'
 import { LogTail } from '@/components/chat/log-tail'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { ResponsiveTabs } from '@/components/ui/tab-dropdown'
-import { Tip } from '@/components/ui/tooltip'
-import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateKova } from '@/kova'
-import type { ActionStatusResponse, AnalyticsResponse, SessionInfo, StatusResponse } from '@/kova'
 import { useI18n } from '@/i18n'
-import { sessionTitle } from '@/lib/chat-runtime'
+import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateKova } from '@/kova'
+import type { ActionStatusResponse, AnalyticsResponse, StatusResponse } from '@/kova'
 import {
   Activity,
   AlertCircle,
   BarChart3,
-  Bookmark,
-  BookmarkFilled,
-  Download,
-  MessageCircle,
-  Trash2,
   Wrench
 } from '@/lib/icons'
-import { exportSession } from '@/lib/session-export'
 import { isSignedOutStatus } from '@/lib/signed-out-status'
-import { fmtDateTime } from '@/lib/time'
-import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { upsertDesktopActionTask } from '@/store/activity'
 import { $cloudOwnsUpdates } from '@/store/cloud-updates'
-import { $pinnedSessionIds, pinSession, SIDEBAR_SESSIONS_PAGE_SIZE, unpinSession } from '@/store/layout'
 import { notify } from '@/store/notifications'
-import { $sessionProfilesTruncated, $sessions, sessionPinId } from '@/store/session'
 import { confirmSharedGatewayRestart } from '@/store/system-actions'
 
-import { SidebarLoadMoreRow } from '../chat/sidebar/load-more-row'
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { PAGE_INSET_X } from '../layout-constants'
@@ -48,9 +33,9 @@ import { OverlayView } from '../overlays/overlay-view'
 
 import { MaintenancePanel } from './maintenance'
 
-export type CommandCenterSection = 'maintenance' | 'sessions' | 'system' | 'usage'
+export type CommandCenterSection = 'maintenance' | 'system' | 'usage'
 
-const SECTIONS = ['sessions', 'system', 'usage', 'maintenance'] as const satisfies readonly CommandCenterSection[]
+const SECTIONS = ['usage', 'system', 'maintenance'] as const satisfies readonly CommandCenterSection[]
 
 const LOG_FILES = ['agent', 'errors', 'gateway', 'desktop'] as const
 const LOG_LEVELS = ['ALL', 'INFO', 'WARNING', 'ERROR'] as const
@@ -58,77 +43,9 @@ const LOG_LEVELS = ['ALL', 'INFO', 'WARNING', 'ERROR'] as const
 const USAGE_PERIODS = [7, 30, 90] as const
 type UsagePeriod = (typeof USAGE_PERIODS)[number]
 
-// Stable empty arrays so the selector returns the same reference when we're
-// not on the Sessions tab — useStoreSelector bails out on Object.is, so the
-// component never re-renders from $sessions ticks while on System/Usage/etc.
-const EMPTY_SESSIONS: readonly never[] = []
-const EMPTY_PINNED: readonly string[] = []
-const EMPTY_TRUNCATED: Record<string, boolean> = {}
-
 interface CommandCenterViewProps {
   initialSection?: CommandCenterSection
   onClose: () => void
-  onDeleteSession: (sessionId: string) => Promise<void>
-  // Accepted for call-site parity; navigation lives in the global Cmd+K palette.
-  onNavigateRoute?: (path: string) => void
-  onOpenSession: (sessionId: string, session?: SessionInfo) => void
-  /** Grows the shared session window (bumpSessionsLimit + refetch), same
-   *  mechanism as the sidebar's recents "load more". Renders the Sessions
-   *  list's bottom-right button when the backend page is capped. */
-  onLoadMoreSessions?: () => Promise<void> | void
-}
-
-function formatTimestamp(value?: number | null): string {
-  if (!value) {
-    return ''
-  }
-
-  const date = new Date(value * 1000)
-
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return fmtDateTime.format(date)
-}
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value)
-
-  useEffect(() => {
-    const id = window.setTimeout(() => setDebounced(value), delayMs)
-
-    return () => window.clearTimeout(id)
-  }, [delayMs, value])
-
-  return debounced
-}
-
-function RowIconButton({
-  children,
-  className,
-  onClick,
-  title
-}: {
-  children: ReactNode
-  className?: string
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void
-  title: string
-}) {
-  return (
-    <Tip label={title}>
-      <Button
-        aria-label={title}
-        className={cn('text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground', className)}
-        onClick={onClick}
-        size="icon-xs"
-        type="button"
-        variant="ghost"
-      >
-        {children}
-      </Button>
-    </Tip>
-  )
 }
 
 /** The System card's Update button. Kova Cloud updates its agents itself, so it has none there. */
@@ -162,32 +79,11 @@ function EmptyPanel({ action, description, title }: { action?: ReactNode; descri
 
 export function CommandCenterView({
   initialSection,
-  onClose,
-  onDeleteSession,
-  onLoadMoreSessions,
-  onOpenSession
+  onClose
 }: CommandCenterViewProps) {
   const { t } = useI18n()
   const cc = t.commandCenter
-  // $sessions ticks on every streaming token (title updates, new sessions),
-  // but we only need the data on the Sessions tab. Subscribe conditionally so
-  // the System/Usage/Maintenance tabs don't re-render on every stream delta.
-  const [section, setSection] = useRouteEnumParam('section', SECTIONS, initialSection ?? 'sessions')
-  const sessions = useStoreSelector($sessions, s => (section === 'sessions' ? s : EMPTY_SESSIONS))
-  const pinnedSessionIds = useStoreSelector($pinnedSessionIds, s => (section === 'sessions' ? s : EMPTY_PINNED))
-
-  // Mirrors the sidebar: any profile whose backend page was capped means there
-  // is more to load, so the Sessions list gets a "load more" affordance.
-  // Gate like the other selectors: only subscribe on the Sessions tab so
-  // System/Usage/Maintenance don't re-render when $sessionProfilesTruncated
-  // ticks on every session fetch.
-  const sessionProfilesTruncated = useStoreSelector($sessionProfilesTruncated, s =>
-    section === 'sessions' ? s : EMPTY_TRUNCATED
-  )
-
-  const [query, setQuery] = useState('')
-  const [pendingDelete, setPendingDelete] = useState<SessionInfo | null>(null)
-  const [loadMorePending, setLoadMorePending] = useState(false)
+  const [section, setSection] = useRouteEnumParam('section', SECTIONS, initialSection ?? 'usage')
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [logs, setLogs] = useState<string[]>([])
   const [logFile, setLogFile] = useState<(typeof LOG_FILES)[number]>('agent')
@@ -201,29 +97,6 @@ export function CommandCenterView({
   const [usageLoading, setUsageLoading] = useState(false)
   const [usageError, setUsageError] = useState('')
   const usageRequestRef = useRef(0)
-
-  const debouncedQuery = useDebouncedValue(query.trim(), 180)
-
-  const filteredSessions = useMemo(() => {
-    const sorted = [...sessions].sort((a, b) => {
-      const left = a.last_active || a.started_at || 0
-      const right = b.last_active || b.started_at || 0
-
-      return right - left
-    })
-
-    const needle = debouncedQuery.toLowerCase()
-
-    if (!needle) {
-      return sorted
-    }
-
-    return sorted.filter(session => {
-      const haystack = `${sessionTitle(session)} ${session.id}`.toLowerCase()
-
-      return haystack.includes(needle)
-    })
-  }, [debouncedQuery, sessions])
 
   const refreshSystem = useCallback(async () => {
     setSystemLoading(true)
@@ -295,27 +168,7 @@ export function CommandCenterView({
     }
   })
 
-  const sessionListHasResults = filteredSessions.length > 0
   const logSearch = useLogSearch(logs, logQuery)
-
-  // Same cap semantics as the sidebar's recents ("Load more" visible when any
-  // profile's backend page was truncated). Reuses the shared $sessions window:
-  // bumping the limit on the sidebar refetches into the same store both read.
-  const hasMoreSessions = Object.values(sessionProfilesTruncated).some(Boolean)
-
-  const onLoadMore = useCallback(async () => {
-    if (!onLoadMoreSessions || loadMorePending) {
-      return
-    }
-
-    setLoadMorePending(true)
-
-    try {
-      await Promise.resolve(onLoadMoreSessions())
-    } finally {
-      setLoadMorePending(false)
-    }
-  }, [loadMorePending, onLoadMoreSessions])
 
   const runSystemAction = useCallback(
     async (kind: 'restart' | 'update') => {
@@ -374,9 +227,7 @@ export function CommandCenterView({
       SECTIONS.map(value => ({
         active: section === value,
         icon:
-          value === 'sessions'
-            ? MessageCircle
-            : value === 'system'
+          value === 'system'
               ? Activity
               : value === 'maintenance'
                 ? Wrench
@@ -402,14 +253,6 @@ export function CommandCenterView({
               rootLabel={cc.commandCenter}
               trailing={
                 <>
-                  {section === 'sessions' && (
-                    <SearchField
-                      containerClassName="max-w-[40vw]"
-                      onChange={next => setQuery(next)}
-                      placeholder={cc.searchPlaceholder}
-                      value={query}
-                    />
-                  )}
                   {section === 'usage' && (
                     <SegmentedControl
                       onChange={id => setUsagePeriod(Number(id) as UsagePeriod)}
@@ -422,71 +265,7 @@ export function CommandCenterView({
             />
           )}
           <div className={cn('flex min-h-0 flex-1 flex-col', PAGE_INSET_X)}>
-            {section === 'sessions' ? (
-              <div className="flex min-h-0 flex-1 flex-col">
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                  {!sessionListHasResults ? (
-                    <EmptyPanel description={debouncedQuery ? cc.noResults : cc.noSessions} />
-                  ) : (
-                    <ul>
-                      {filteredSessions.map(session => {
-                        const pinId = sessionPinId(session)
-                        const pinned = pinnedSessionIds.includes(pinId)
-
-                        return (
-                          <li className="group flex items-center gap-2 py-2" key={session.id}>
-                            <button
-                              className="min-w-0 flex-1 text-left"
-                              onClick={() => onOpenSession(session.id, session)}
-                              type="button"
-                            >
-                              <div className="truncate text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
-                                {sessionTitle(session)}
-                              </div>
-                              <div className="truncate text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                                {formatTimestamp(session.last_active || session.started_at)}
-                              </div>
-                            </button>
-                            <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                              <RowIconButton
-                                onClick={() => (pinned ? unpinSession(pinId) : pinSession(pinId))}
-                                title={pinned ? cc.unpinSession : cc.pinSession}
-                              >
-                                {pinned ? <BookmarkFilled className="size-3.5" /> : <Bookmark className="size-3.5" />}
-                              </RowIconButton>
-                              <RowIconButton
-                                onClick={() =>
-                                  void exportSession(session.id, { session, title: sessionTitle(session) })
-                                }
-                                title={cc.exportSession}
-                              >
-                                <Download className="size-3.5" />
-                              </RowIconButton>
-                              <RowIconButton
-                                className="hover:text-destructive"
-                                onClick={() => setPendingDelete(session)}
-                                title={cc.deleteSession}
-                              >
-                                <Trash2 className="size-3.5" />
-                              </RowIconButton>
-                            </div>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </div>
-                {hasMoreSessions && !!onLoadMoreSessions && !debouncedQuery && (
-                  <div className="flex shrink-0 items-end justify-end">
-                    <SidebarLoadMoreRow
-                      loading={loadMorePending}
-                      onClick={() => void onLoadMore()}
-                      step={SIDEBAR_SESSIONS_PAGE_SIZE}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : section === 'usage' ? (
+            {section === 'usage' ? (
               <UsagePanel
                 error={usageError}
                 loading={usageLoading}
@@ -589,19 +368,6 @@ export function CommandCenterView({
           </div>
         </OverlayMain>
       </OverlaySplitLayout>
-      {pendingDelete && (
-        <ConfirmDialog
-          busyLabel={t.sidebar.row.deleting}
-          confirmLabel={t.common.delete}
-          description={t.sidebar.row.deleteDesc(sessionTitle(pendingDelete))}
-          destructive
-          doneLabel={t.sidebar.row.deleted}
-          onClose={() => setPendingDelete(null)}
-          onConfirm={() => void onDeleteSession(pendingDelete.id)}
-          open
-          title={t.sidebar.row.deleteTitle}
-        />
-      )}
     </OverlayView>
   )
 }
@@ -658,26 +424,36 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
         </span>
       )}
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-2 sm:grid-cols-3">
-        <UsageStat label={cc.statSessions} value={compactNumber(totals.total_sessions)} />
-        <UsageStat label={cc.statApiCalls} value={compactNumber(totals.total_api_calls)} />
-        <UsageStat
-          label={cc.statTokens}
-          value={`${compactNumber(totals.total_input)} / ${compactNumber(totals.total_output)}`}
-        />
-      </div>
+      <section className="rounded-2xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-5 sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-xs font-medium uppercase tracking-[0.12em] text-(--ui-text-tertiary)">{cc.commandCenter}</div>
+            <div className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{cc.usageOverview}</div>
+            <div className="mt-1 text-sm text-(--ui-text-secondary)">{cc.usageOverviewHint(period)}</div>
+          </div>
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-(--ui-control-hover-background) text-(--kova-signature-accent)">
+            <BarChart3 className="size-5" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <UsageStat hint={`${compactNumber(totals.total_input)} in · ${compactNumber(totals.total_output)} out`} label={cc.statTokens} value={compactNumber((totals.total_input ?? 0) + (totals.total_output ?? 0))} />
+          <UsageStat hint={cc.statApiCallsHint} label={cc.statApiCalls} value={compactNumber(totals.total_api_calls)} />
+          <UsageStat hint={cc.actualCost(`$${totals.total_actual_cost.toFixed(2)}`)} label={cc.statCost} value={`$${(totals.total_actual_cost || totals.total_estimated_cost).toFixed(2)}`} />
+          <UsageStat hint={cc.conversationsInPeriod} label={cc.statSessions} value={compactNumber(totals.total_sessions)} />
+        </div>
+      </section>
 
-      <section>
-        <div className="mb-2 flex items-baseline justify-between">
-          <span className="text-[0.625rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+      <section className="rounded-2xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-4 sm:p-5">
+        <div className="mb-4 flex items-baseline justify-between">
+          <span className="text-sm font-medium text-foreground">
             {cc.dailyTokens}
           </span>
           <span className="flex items-center gap-3 text-[0.65rem] text-(--ui-text-tertiary)">
             <span className="inline-flex items-center gap-1">
-              <span className="size-2 rounded-[1px] bg-[color:var(--dt-primary)]/60" /> {cc.input}
+              <span className="size-2 rounded-full bg-(--kova-signature-accent)" /> {cc.input}
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="size-2 rounded-[1px] bg-emerald-500/70" /> {cc.output}
+              <span className="size-2 rounded-full bg-(--ui-text-tertiary)" /> {cc.output}
             </span>
           </span>
         </div>
@@ -687,23 +463,23 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
           </div>
         ) : (
           <>
-            <div className="flex h-24 items-end gap-px">
+            <div className="flex h-36 items-end gap-1 sm:gap-1.5">
               {daily.map(entry => {
-                const inputH = Math.round(((entry.input_tokens || 0) / maxTokens) * 96)
-                const outputH = Math.round(((entry.output_tokens || 0) / maxTokens) * 96)
+                const inputH = Math.round(((entry.input_tokens || 0) / maxTokens) * 140)
+                const outputH = Math.round(((entry.output_tokens || 0) / maxTokens) * 140)
 
                 return (
                   <div
-                    className="group relative flex h-24 min-w-0 flex-1 flex-col justify-end"
+                    className="group relative flex h-36 min-w-0 flex-1 flex-col justify-end gap-0.5"
                     key={entry.day}
                     title={`${entry.day} · in ${compactNumber(entry.input_tokens)} · out ${compactNumber(entry.output_tokens)}`}
                   >
                     <div
-                      className="w-full rounded-t-[1px] bg-[color:var(--dt-primary)]/50"
+                      className="w-full rounded-t-full bg-(--kova-signature-accent)/80"
                       style={{ height: Math.max(inputH, entry.input_tokens > 0 ? 1 : 0) }}
                     />
                     <div
-                      className="w-full bg-emerald-500/60"
+                      className="w-full rounded-t-full bg-(--ui-text-tertiary)/60"
                       style={{ height: Math.max(outputH, entry.output_tokens > 0 ? 1 : 0) }}
                     />
                   </div>
@@ -718,7 +494,7 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
         )}
       </section>
 
-      <div className="grid min-h-0 gap-x-8 gap-y-5 pt-1 sm:grid-cols-2">
+      <div className="grid min-h-0 gap-3 pt-1 sm:grid-cols-2">
         <UsageList
           emptyLabel={cc.noModelUsage}
           rows={byModel.slice(0, 6).map(entry => ({
@@ -752,8 +528,8 @@ function UsageList({
   title: string
 }) {
   return (
-    <section className="min-w-0">
-      <div className="mb-1.5 text-[0.625rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+    <section className="min-w-0 rounded-2xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-4">
+      <div className="mb-3 text-sm font-medium text-foreground">
         {title}
       </div>
       {rows.length === 0 ? (
@@ -763,9 +539,9 @@ function UsageList({
       ) : (
         <ul>
           {rows.map(row => (
-            <li className="flex items-center justify-between gap-2 py-1.5" key={row.key}>
-              <span className="min-w-0 truncate font-mono text-[0.7rem] text-foreground">{row.label}</span>
-              <span className="shrink-0 text-[0.65rem] text-(--ui-text-tertiary)">{row.value}</span>
+            <li className="flex items-center justify-between gap-2 border-t border-(--ui-stroke-tertiary) py-2.5 first:border-0" key={row.key}>
+              <span className="min-w-0 truncate text-sm text-foreground">{row.label}</span>
+              <span className="shrink-0 rounded-full bg-(--ui-control-hover-background) px-2 py-0.5 text-xs text-(--ui-text-secondary)">{row.value}</span>
             </li>
           ))}
         </ul>
@@ -776,9 +552,9 @@ function UsageList({
 
 function UsageStat({ hint, label, value }: { hint?: string; label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <div className="text-[0.625rem] font-medium uppercase tracking-[0.12em] text-(--ui-text-tertiary)">{label}</div>
-      <div className="mt-1 truncate text-base font-semibold tracking-tight text-foreground">{value}</div>
+    <div className="min-w-0 rounded-xl bg-(--ui-control-hover-background) p-3.5">
+      <div className="text-[0.65rem] font-medium uppercase tracking-[0.1em] text-(--ui-text-tertiary)">{label}</div>
+      <div className="mt-1 truncate text-xl font-semibold tracking-tight text-foreground">{value}</div>
       {hint && <div className="mt-0.5 truncate text-[0.62rem] text-(--ui-text-tertiary)">{hint}</div>}
     </div>
   )
