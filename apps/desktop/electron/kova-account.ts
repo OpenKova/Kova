@@ -124,8 +124,12 @@ export async function runKovaAccountLogin(deps: KovaAccountDeps): Promise<KovaAc
   })
 
   if (!tokenResponse.ok) {
-    const payload = await tokenResponse.json().catch(() => null) as { error?: unknown } | null
-    const reason = typeof payload?.error === 'string' ? payload.error : `HTTP ${tokenResponse.status}`
+    const payload = await tokenResponse.json().catch(() => null) as { error?: unknown; error_description?: unknown } | null
+    const code = typeof payload?.error === 'string' ? payload.error : `HTTP ${tokenResponse.status}`
+    const description = typeof payload?.error_description === 'string'
+      ? payload.error_description.replace(/[\r\n]+/g, ' ').slice(0, 180)
+      : ''
+    const reason = description ? `${code}: ${description}` : code
     throw new Error(`Google could not complete sign-in (${reason}).`)
   }
 
