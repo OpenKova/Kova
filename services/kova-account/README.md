@@ -87,3 +87,9 @@ For the Vercel and Supabase deployment steps, see [DEPLOYMENT.md](./DEPLOYMENT.m
 Shared metrics and support bundles use https://telemetry.neuralstudio.in.
 Set PUBLIC_BASE_URL to that exact origin in Vercel so uploaded support bundles
 return links on the custom domain.
+The private read-only operations dashboard is at `/admin`. It remains hidden
+until `ADMIN_DASHBOARD_PASSWORD` is configured in the Vercel Production
+environment. Sign in with username `admin` and that password over HTTPS. Use a
+random password of at least 32 characters and keep it in a password manager.
+The dashboard shows aggregate metrics and lets authorized support staff
+download explicitly submitted bundles; access to a bundle is sensitive.

@@ -25,6 +25,9 @@ Add these Production environment variables to that Vercel project:
 - `KOVA_ACCOUNT_SESSION_PEPPER`: a generated random value with at least 32 bytes.
 - `PUBLIC_BASE_URL`: `https://telemetry.neuralstudio.in`.
 - `CRON_SECRET`: a separate random secret used to authorize daily retention cleanup.
+- `ADMIN_DASHBOARD_PASSWORD`: a random password of at least 32 characters for
+  the HTTPS-only private dashboard at `/admin` (username `admin`). Keep it in a
+  password manager; it grants access to support-bundle downloads.
 
 Deploy and confirm `/ready` returns `{"status":"ready"}`. The API creates
 tables in the Supabase `public` schema. Do not use Supabase's `service_role`

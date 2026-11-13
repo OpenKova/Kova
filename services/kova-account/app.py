@@ -29,6 +29,7 @@ from psycopg.rows import dict_row
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from jwt import PyJWKClient
 from pydantic import BaseModel, Field
+from admin_dashboard import router as admin_dashboard_router
 
 GOOGLE_ISSUERS = {"https://accounts.google.com", "accounts.google.com"}
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
@@ -735,3 +736,6 @@ def delete_account(account: Mapping[str, Any] = Account) -> Response:
         db.execute("DELETE FROM accounts WHERE id=?", (account["id"],))
         db.commit()
     return Response(status_code=204)
+
+
+app.include_router(admin_dashboard_router)
