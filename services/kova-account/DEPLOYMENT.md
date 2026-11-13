@@ -20,6 +20,8 @@ Add these Production environment variables to that Vercel project:
 
 - `DATABASE_URL`: the Supabase transaction-pooler connection string.
 - `GOOGLE_CLIENT_ID`: the same Google OAuth Desktop client ID used by Kova.
+- `GOOGLE_CLIENT_SECRET`: the matching OAuth client secret. Mark it sensitive;
+  only the API uses it to exchange desktop authorization codes with Google.
 - `KOVA_ACCOUNT_SESSION_PEPPER`: a generated random value with at least 32 bytes.
 
 Deploy and confirm `/ready` returns `{"status":"ready"}`. The API creates
@@ -47,7 +49,7 @@ verified client IP for rate limiting.
 - Free Supabase projects can pause after a week of low activity and do not
   include automatic backups. This is suitable for a prototype or small beta;
   export or back up account data before relying on it for production users.
-- Keep `DATABASE_URL` and `KOVA_ACCOUNT_SESSION_PEPPER` in Vercel's server-side
+- Keep `DATABASE_URL`, `GOOGLE_CLIENT_SECRET`, and `KOVA_ACCOUNT_SESSION_PEPPER` in Vercel's server-side
   environment variables. Never put them in Desktop build configuration or Git.
 - Rotating `KOVA_ACCOUNT_SESSION_PEPPER` invalidates existing Kova sessions.
 - `GET /health` is process liveness; `GET /ready` verifies database and auth

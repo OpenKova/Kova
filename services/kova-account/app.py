@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import ipaddress
 import base64
+import json
 import os
 import re
 import secrets
@@ -15,6 +16,9 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode, urlsplit
+from urllib.request import Request as UrlRequest, urlopen
 
 import jwt
 import psycopg
@@ -29,7 +33,7 @@ RESERVED_USERNAMES = {"admin", "administrator", "api", "kova", "root", "support"
 CHALLENGE_TTL_SECONDS = 300
 SESSION_TTL_SECONDS = 60 * 60 * 24 * 30
 AUTH_RATE_WINDOW_SECONDS = 60
-AUTH_RATE_LIMITS = {"challenge": 15, "google": 10, "exchange": 10}
+AUTH_RATE_LIMITS = {"challenge": 15, "google": 10, "google_native": 10, "exchange": 10}
 
 
 def _database_path() -> Path:
@@ -47,6 +51,13 @@ class GoogleLogin(BaseModel):
     challenge_id: str = Field(min_length=32, max_length=128)
     id_token: str = Field(min_length=100, max_length=16384)
     code_challenge: str = Field(pattern=r"^[A-Za-z0-9_-]{43}$")
+
+
+class NativeGoogleLogin(BaseModel):
+    challenge_id: str = Field(min_length=32, max_length=128)
+    google_code: str = Field(min_length=16, max_length=4096)
+    code_verifier: str = Field(min_length=43, max_length=128)
+    redirect_uri: str = Field(min_length=20, max_length=256)
 
 
 class UsernameUpdate(BaseModel):
@@ -276,6 +287,65 @@ def _google_claims(encoded: str, nonce: str) -> dict[str, object]:
     return claims
 
 
+def _exchange_google_code(payload: NativeGoogleLogin) -> GoogleLogin:
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+    if not client_id or not client_secret:
+        raise HTTPException(503, "Google OAuth is not configured on the Kova account service.")
+    if not re.fullmatch(r"[A-Za-z0-9._~-]{43,128}", payload.code_verifier):
+        raise HTTPException(400, "Google sign-in proof is invalid.")
+    try:
+        redirect = urlsplit(payload.redirect_uri)
+        port = redirect.port
+    except ValueError as exc:
+        raise HTTPException(400, "Google sign-in redirect is invalid.") from exc
+    if (redirect.scheme != "http" or redirect.hostname != "127.0.0.1" or not port
+            or redirect.username or redirect.password or redirect.path not in ("", "/")
+            or redirect.query or redirect.fragment):
+        raise HTTPException(400, "Google sign-in redirect must use the local Kova callback.")
+
+    request = UrlRequest(
+        "https://oauth2.googleapis.com/token",
+        data=urlencode({
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "code": payload.google_code,
+            "code_verifier": payload.code_verifier,
+            "grant_type": "authorization_code",
+            "redirect_uri": payload.redirect_uri,
+        }).encode("ascii"),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            tokens = json.loads(response.read())
+    except HTTPError as exc:
+        try:
+            failure = json.loads(exc.read())
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            failure = {}
+        error = failure.get("error") if isinstance(failure, dict) else None
+        if error == "invalid_client":
+            raise HTTPException(503, "Google rejected the OAuth client configuration.") from exc
+        raise HTTPException(401, "Google rejected the sign-in code. Start sign-in again.") from exc
+    except (TimeoutError, URLError, OSError) as exc:
+        raise HTTPException(502, "Kova could not reach Google's sign-in service. Try again.") from exc
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise HTTPException(502, "Google returned an invalid sign-in response.") from exc
+    id_token = tokens.get("id_token") if isinstance(tokens, dict) else None
+    if not isinstance(id_token, str):
+        raise HTTPException(401, "Google did not return an identity token.")
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(payload.code_verifier.encode("ascii")).digest()
+    ).rstrip(b"=").decode("ascii")
+    return GoogleLogin(
+        challenge_id=payload.challenge_id,
+        id_token=id_token,
+        code_challenge=code_challenge,
+    )
+
+
 def _safe_picture(value: object) -> str | None:
     if not isinstance(value, str):
         return None
@@ -324,7 +394,7 @@ def health() -> dict[str, str]:
 
 @app.get("/ready")
 def ready() -> dict[str, str]:
-    if not os.environ.get("GOOGLE_CLIENT_ID", "").strip():
+    if not os.environ.get("GOOGLE_CLIENT_ID", "").strip() or not os.environ.get("GOOGLE_CLIENT_SECRET", "").strip():
         raise HTTPException(503, "Google sign-in is not configured on this service.")
     _digest("readiness-probe")
     with _connection() as db:
@@ -396,6 +466,12 @@ def sign_in_google(payload: GoogleLogin, request: Request) -> dict[str, object]:
             (_digest(code), account["id"], _digest(payload.challenge_id), payload.code_challenge, now + 120),
         )
     return {"authorization_code": code, "profile": _profile(account)}
+
+
+@app.post("/v1/auth/google/native")
+def sign_in_google_native(payload: NativeGoogleLogin, request: Request) -> dict[str, object]:
+    _enforce_auth_rate_limit(request, "google_native")
+    return sign_in_google(_exchange_google_code(payload), request)
 
 
 @app.post("/v1/auth/exchange")

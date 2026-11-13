@@ -10,7 +10,7 @@ test('account service URL is normalized and rejects insecure non-local origins',
   assert.equal(normalizeKovaAccountServiceUrl('http://127.0.0.1:8787'), 'http://127.0.0.1:8787')
 })
 
-test('account login opens system browser and exchanges Google identity through PKCE', async () => {
+test('account login exchanges the Google authorization code through the account service', async () => {
   const requests: Array<{ url: string; body: any }> = []
   let authorizeUrl = ''
   const fakeServerState: { handler?: (request: any, response: any) => void; closed: boolean } = { closed: false }
@@ -50,31 +50,17 @@ test('account login opens system browser and exchanges Google identity through P
     }
   })
 
-  const fetchMock = async (_url: string, init: any) => {
-    const form = new URLSearchParams(init.body)
-    assert.equal(form.get('code'), 'google-auth-code')
-    assert.equal(form.get('redirect_uri'), 'http://127.0.0.1:32123')
-
-    return { ok: true, json: async () => ({ id_token: 'signed-google-id-token' }) }
-  }
-
-  const oldFetch = globalThis.fetch
-  globalThis.fetch = fetchMock as any
-
-  try {
-    const result = await login
-    assert.equal(result.profile.email, 'a@example.com')
-  } finally {
-    globalThis.fetch = oldFetch
-  }
+  const result = await login
+  assert.equal(result.profile.email, 'a@example.com')
 
   const authorize = new URL(authorizeUrl)
   assert.equal(authorize.origin, 'https://accounts.google.com')
   assert.equal(authorize.searchParams.get('scope'), 'openid email profile')
   assert.equal(authorize.searchParams.get('nonce'), 'nonce-from-service')
-  assert.equal(requests[1].url.endsWith('/v1/auth/google'), true)
-  assert.equal(requests[1].body.id_token, 'signed-google-id-token')
-  assert.equal(typeof requests[1].body.code_challenge, 'string')
+  assert.equal(requests[1].url.endsWith('/v1/auth/google/native'), true)
+  assert.equal(requests[1].body.google_code, 'google-auth-code')
+  assert.equal(requests[1].body.redirect_uri, 'http://127.0.0.1:32123')
+  assert.match(requests[1].body.code_verifier, /^[A-Za-z0-9_-]{64}$/)
   assert.equal(requests[2].url.endsWith('/v1/auth/exchange'), true)
   assert.equal(requests[2].body.code, 'kova-authorization-code-12345678901234567890123456789012')
   assert.equal(fakeServerState.closed, true)

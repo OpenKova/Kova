@@ -110,37 +110,11 @@ export async function runKovaAccountLogin(deps: KovaAccountDeps): Promise<KovaAc
     })
   })
 
-  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    signal: AbortSignal.timeout(15_000),
-    body: new URLSearchParams({
-      client_id: deps.googleClientId,
-      code: callback.code,
-      code_verifier: verifier,
-      grant_type: 'authorization_code',
-      redirect_uri: callback.redirectUri
-    })
-  })
-
-  if (!tokenResponse.ok) {
-    const payload = await tokenResponse.json().catch(() => null) as { error?: unknown; error_description?: unknown } | null
-    const code = typeof payload?.error === 'string' ? payload.error : `HTTP ${tokenResponse.status}`
-    const description = typeof payload?.error_description === 'string'
-      ? payload.error_description.replace(/[\r\n]+/g, ' ').slice(0, 180)
-      : ''
-    const reason = description ? `${code}: ${description}` : code
-    throw new Error(`Google could not complete sign-in (${reason}).`)
-  }
-
-  const tokens = await tokenResponse.json() as { id_token?: unknown }
-
-  if (typeof tokens.id_token !== 'string') {throw new Error('Google did not return an identity token.')}
-
-  const authorized = await deps.postJson(`${root}/v1/auth/google`, {
+  const authorized = await deps.postJson(`${root}/v1/auth/google/native`, {
     challenge_id: challenge.challenge_id,
-    id_token: tokens.id_token,
-    code_challenge: challengeHash
+    google_code: callback.code,
+    code_verifier: verifier,
+    redirect_uri: callback.redirectUri
   })
 
   if (typeof authorized?.authorization_code !== 'string') {throw new Error('Kova Account Service returned an invalid authorization code.')}
