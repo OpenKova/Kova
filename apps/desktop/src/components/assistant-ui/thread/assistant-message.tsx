@@ -92,7 +92,7 @@ import { startManualProviderOAuth } from '@/store/onboarding'
 import { $activeGatewayProfile, normalizeProfileKey, requestFreshSession } from '@/store/profile'
 import { sessionApprovalRequest } from '@/store/prompts'
 import { requestSendDiagnostics } from '@/store/send-diagnostics'
-import { $connection, $currentModel, $sessions, setModelPickerOpen } from '@/store/session'
+import { $connection, $currentModel, $sessions, $unlistedSessionOwnerRows, setModelPickerOpen } from '@/store/session'
 import { sessionTileDelegate } from '@/store/session-states'
 import { notifyThreadEditOpen } from '@/store/thread-scroll'
 import { $voicePlayback } from '@/store/voice-playback'
@@ -249,7 +249,16 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
   const sessionView = useSessionView()
   const sessionId = useStore(sessionView.$runtimeId)
   const storedSessionId = useStore(sessionView.$storedId)
-  const botChat = useStoreSelector($sessions, sessions => sessions.some(session => session.id === storedSessionId && session.title === 'Bot Chat'))
+
+  const isListedBotChat = useStoreSelector($sessions, sessions =>
+    sessions.some(session => session.id === storedSessionId && session.title === 'Bot Chat')
+  )
+
+  const isUnlistedBotChat = useStoreSelector($unlistedSessionOwnerRows, sessions =>
+    sessions.some(session => session.id === storedSessionId && session.title === 'Bot Chat')
+  )
+
+  const botChat = isListedBotChat || isUnlistedBotChat
   const approval = useStore(useMemo(() => sessionApprovalRequest(sessionId), [sessionId]))
 
   const activityOnly = useAuiState(
