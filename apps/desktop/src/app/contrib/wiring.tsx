@@ -220,8 +220,8 @@ function useRouteRequestNavigation(navigate: ReturnType<typeof useNavigate>): vo
   }, [navigate, routeRequest])
 }
 
-// The main window asks the backend whether first-run onboarding is due and opens it with main's
-// intro around it; every other window never runs it, so its first-run surfaces are free at once.
+// The main window checks its Kova identity before gateway/provider setup; every other window never
+// runs first-run onboarding, so its surfaces are free at once.
 // Settings' Run onboarding again opens its chat through the same opener.
 function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResume, gatewayOpen: boolean) {
   const [identityStep, setIdentityStep] = useState<'checking' | 'prompt' | 'ready'>('checking')
@@ -234,7 +234,6 @@ function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResum
       return
     }
 
-    if (!gatewayOpen) {return}
     const account = window.kovaDesktop?.account
 
     if (!account) {
@@ -260,7 +259,7 @@ function useFirstRunOnboarding(request: OnboardingRequest, open: OnboardingResum
     })
 
     return () => { cancelled = true }
-  }, [gatewayOpen])
+  }, [])
 
   useEffect(() => {
     if (isMainWindow() && gatewayOpen && identityStep === 'ready') {
