@@ -128,6 +128,7 @@ export async function runKovaAccountLogin(deps: KovaAccountDeps): Promise<KovaAc
     const reason = typeof payload?.error === 'string' ? payload.error : `HTTP ${tokenResponse.status}`
     throw new Error(`Google could not complete sign-in (${reason}).`)
   }
+
   const tokens = await tokenResponse.json() as { id_token?: unknown }
 
   if (typeof tokens.id_token !== 'string') {throw new Error('Google did not return an identity token.')}
