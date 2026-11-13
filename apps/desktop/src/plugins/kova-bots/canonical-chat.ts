@@ -120,7 +120,7 @@ interface OpenStoredBotChatOptions {
   intent?: BotChatOpenIntent
 }
 
-export type BotChatOpenIntent = 'in-place' | 'tab'
+export type BotChatOpenIntent = 'in-place' | 'main' | 'tab'
 
 async function openStoredBotChat(
   owner: RosterRow | string,

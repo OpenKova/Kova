@@ -285,7 +285,7 @@ export async function openRosterBot(bot: RosterRow, { intent = 'in-place' }: Ope
   // a bot open deliberately leaves the gateway on the launch profile.
   ackStoredSessionId(botCanonicalSessionId(bot), bot.name)
 
-  const fronted = focusExistingBotTab(bot)
+  const fronted = intent === 'main' ? null : focusExistingBotTab(bot)
 
   if (fronted) {
     // The canonical chat is on screen: no source activation, no registry

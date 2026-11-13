@@ -89,7 +89,6 @@ import { startBotRelay, stopBotRelay } from './relay'
 import { $activityToasts, openRosterBot } from './roster-actions'
 import {
   botChatOwnsWorkspace,
-  BotsPane,
   BotsSidebar,
   releaseStaleOpenBotChat,
   selectedRosterBot,
@@ -109,12 +108,6 @@ function BotsRoute() {
   const selectionHydrated = useValue($selectedRosterHydrated)
   const [openRequested, setOpenRequested] = useState(false)
 
-  useEffect(() => {
-    $botsPaneVisible.set(true)
-
-    return () => $botsPaneVisible.set(false)
-  }, [])
-
   // Entering Bot Mode is an explicit request to go to its active conversation.
   // The row remains the authority: this only opens a bot from a roster answer,
   // and never creates a synthetic roster entry when none exists.
@@ -131,10 +124,12 @@ function BotsRoute() {
     }
 
     setOpenRequested(true)
-    void openRosterBot(target)
+    void openRosterBot(target, { intent: 'main' })
   }, [data, openRequested, selectedKey, selectionHydrated])
 
-  return <BotsPane />
+  // The roster is already rendered in the sidebar. Keep the central workspace
+  // for the selected bot's canonical conversation.
+  return null
 }
 
 // ── plugin ───────────────────────────────────────────────────────────────────
