@@ -16,10 +16,11 @@ import { $introHoldsThread } from '@/components/onboarding/first-run/intro'
 import { IntroCopy } from '@/components/onboarding/first-run/intro-copy'
 import { usePaneGroup, usePaneVisible } from '@/components/pane-shell/pane-visibility'
 import { $hoveredTreeGroup, $sessionTileDragging, $sessionTileEdgeHover } from '@/components/pane-shell/tree/store'
+import { $workspaceMode } from '@/components/pane-shell/workspace-scope'
 import { PromptOverlays } from '@/components/prompt-overlays'
 import { TitleMenuTrigger } from '@/components/ui/title-menu-trigger'
-import { type KovaGateway, type ResolvedOwner } from '@/kova'
 import { useI18n } from '@/i18n'
+import { type KovaGateway, type ResolvedOwner } from '@/kova'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, sessionTitle } from '@/lib/chat-runtime'
 import { useIncrementalExternalStoreRuntime } from '@/lib/incremental-external-store-runtime'
@@ -579,6 +580,7 @@ const ChatViewContent = memo(function ChatViewContent({
   const lastVisibleIsUser = useStore(view.$lastVisibleIsUser)
   const selectedSessionId = useStore(view.$storedId)
   const sessions = useStore($sessions)
+  const workspaceMode = useStore($workspaceMode)
   const resumeExhaustedSessionId = useStore($resumeExhaustedSessionId)
 
   // Durable composer/queue scope (lineage root) so auto-compression tip rotation
@@ -694,7 +696,7 @@ const ChatViewContent = memo(function ChatViewContent({
 
   // Codex-style empty state: no messages yet (and nothing loading/running)
   // centers the prompt bar with its hero; the first send docks it at the bottom.
-  const centeredEmpty = shouldCenterComposer({
+  const centeredEmpty = workspaceMode !== 'bots' && shouldCenterComposer({
     busy,
     loadingSession,
     messagesEmpty,
