@@ -6,6 +6,7 @@ import { useSessionView } from '@/app/chat/session-view'
 import { useTourMarker } from '@/app/chat/tour-marker'
 import { ModelMenuCloseContext } from '@/app/shell/model-menu-panel'
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
+import { ProviderMark } from '@/components/provider-mark'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
@@ -140,9 +141,13 @@ export function ModelPill({
   const pillLabel = useComposerModelPillLabel({ compact, model: currentModel, reasoningEffort: reasoningEffort || '' })
 
   const label = compact ? (
-    <ChevronDown className="size-3.5 shrink-0 opacity-70" />
+    <>
+      <ProviderMark model={currentModel} provider={currentProvider} />
+      <ChevronDown className="size-3.5 shrink-0 opacity-70" />
+    </>
   ) : (
     <>
+      <ProviderMark model={currentModel} provider={currentProvider} />
       {currentModel.trim() ? (
         <span className="truncate">{pillLabel ?? formatModelPillLabel(currentModel, { fastMode, serviceTier })}</span>
       ) : (

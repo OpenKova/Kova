@@ -13,6 +13,7 @@ import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import { type ReactElement, useMemo, useRef, useState } from 'react'
 
+import { ProviderMark } from '@/components/provider-mark'
 import { useI18n } from '@/i18n'
 import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { currentPickerSelection } from '@/lib/model-status-label'
@@ -386,6 +387,7 @@ function ModelResults({
               }}
               value={`${provider.slug}:${model}`}
             >
+              <ProviderMark model={model} provider={provider.slug} />
               <span className={cn('min-w-0 flex-1 truncate', dimmed && !isCurrent && 'text-muted-foreground')}>
                 <HighlightMatches foldSeparators query={search} text={model} />
               </span>
@@ -857,6 +859,7 @@ function ProviderHeading({ provider }: { provider: ModelOptionProvider }) {
 
   return (
     <span className="flex min-w-0 items-center gap-2">
+      <ProviderMark provider={provider.slug} />
       <span className="truncate">{provider.name}</span>
       <span className="font-mono text-xs font-normal normal-case tracking-normal text-muted-foreground">
         {provider.slug} · {provider.total_models ?? provider.models?.length ?? 0}

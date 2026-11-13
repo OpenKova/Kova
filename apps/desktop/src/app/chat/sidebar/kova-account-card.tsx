@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import { ChevronDown, LogOut, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -6,8 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { KovaAccountProfile } from '@/global'
 import { useI18n } from '@/i18n'
+import { type AnalyticsResponse, getUsageAnalytics } from '@/kova'
 import { Pencil } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { $activeGatewayProfile } from '@/store/profile'
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,24}$/
 
@@ -196,6 +199,7 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
             </p>
           </div>
         </div>
+        {open && <MiniUsageSummary />}
         {profile && editingUsername ? (
           <>
             <div className="space-y-2.5 px-4 py-4">
@@ -308,5 +312,45 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
         )}
       </PopoverContent>
     </Popover>
+  )
+}
+
+function MiniUsageSummary() {
+  const { t } = useI18n()
+  const activeProfile = useStore($activeGatewayProfile)
+  const [loading, setLoading] = useState(true)
+  const [usage, setUsage] = useState<AnalyticsResponse | null>(null)
+
+  useEffect(() => {
+    let current = true
+    setLoading(true)
+    void getUsageAnalytics(30, activeProfile).then(result => {
+      if (current) {
+        setUsage(result)
+        setLoading(false)
+      }
+    }).catch(() => {
+      if (current) {
+        setLoading(false)
+      }
+    })
+
+    return () => { current = false }
+  }, [activeProfile])
+
+  const totalTokens = (usage?.totals.total_input ?? 0) + (usage?.totals.total_output ?? 0)
+  const compact = (value: number) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+
+  return (
+    <div className="grid grid-cols-2 gap-2 border-b border-border/70 px-4 py-3" data-slot="account-usage-summary">
+      <div className="rounded-lg bg-(--ui-bg-tertiary) px-3 py-2">
+        <p className="text-[11px] text-muted-foreground">{t.settings.profile.tokens}</p>
+        <p className="mt-0.5 text-sm font-semibold tabular-nums">{loading ? '…' : usage ? compact(totalTokens) : '—'}</p>
+      </div>
+      <div className="rounded-lg bg-(--ui-bg-tertiary) px-3 py-2">
+        <p className="text-[11px] text-muted-foreground">{t.settings.profile.apiCalls}</p>
+        <p className="mt-0.5 text-sm font-semibold tabular-nums">{loading ? '…' : usage ? compact(usage.totals.total_api_calls ?? 0) : '—'}</p>
+      </div>
+    </div>
   )
 }

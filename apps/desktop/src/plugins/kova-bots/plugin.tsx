@@ -104,6 +104,7 @@ import { loadBotSections } from './user-sections'
 
 function BotsRoute() {
   const { data } = useRoster()
+  const cachedRoster = useValue($lastRoster)
   const selectedKey = useValue($selectedRosterKey)
   const selectionHydrated = useValue($selectedRosterHydrated)
   const [openRequested, setOpenRequested] = useState(false)
@@ -112,12 +113,16 @@ function BotsRoute() {
   // The row remains the authority: this only opens a bot from a roster answer,
   // and never creates a synthetic roster entry when none exists.
   useEffect(() => {
-    if (openRequested || !selectionHydrated || !Array.isArray(data?.profiles) || !data.profiles.length) {
+    const roster = Array.isArray(data?.profiles) ? data.profiles : cachedRoster
+
+    if (openRequested || !selectionHydrated || !roster.length) {
       return
     }
 
-    const selected = selectedRosterBot(data.profiles, selectedKey)
-    const target = selected || data.profiles.find(bot => botSourceStatus(bot).available)
+    const selected = selectedRosterBot(roster, selectedKey)
+
+    const target = (selected && botSourceStatus(selected).available ? selected : undefined) ||
+      roster.find(bot => botSourceStatus(bot).available)
 
     if (!target) {
       return
@@ -125,7 +130,7 @@ function BotsRoute() {
 
     setOpenRequested(true)
     void openRosterBot(target, { intent: 'main' })
-  }, [data, openRequested, selectedKey, selectionHydrated])
+  }, [cachedRoster, data, openRequested, selectedKey, selectionHydrated])
 
   // The roster is already rendered in the sidebar. Keep the central workspace
   // for the selected bot's canonical conversation.

@@ -8,12 +8,11 @@ import { ProfileTag } from '@/app/chat/profile-tag'
 import { startSessionDrag } from '@/app/chat/session-drag'
 import { PlatformAvatar } from '@/app/messaging/platform-icon'
 import { openSession } from '@/app/open-session'
-import { formatMessageTimestamp } from '@/components/assistant-ui/thread/timestamp'
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { RowButton } from '@/components/ui/row-button'
 import { OverflowTip, Tip } from '@/components/ui/tooltip'
-import { type Translations, useI18n } from '@/i18n'
+import { useI18n } from '@/i18n'
 import type { SessionInfo } from '@/kova'
 import { sessionTitle } from '@/lib/chat-runtime'
 import { pathLeaf } from '@/lib/display-path'
@@ -23,7 +22,6 @@ import { displayModelName } from '@/lib/model-status-label'
 import { sessionProjectLabel } from '@/lib/session-project-label'
 import { SESSION_ROW_AREAS } from '@/lib/session-row-slots'
 import { handoffOriginSource, sessionSourceLabel } from '@/lib/session-source'
-import { coarseElapsed } from '@/lib/time'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { $sidebarRowMeta } from '@/store/layout'
@@ -83,7 +81,6 @@ interface SidebarSessionRowProps extends React.ComponentProps<'div'> {
   card?: boolean
 }
 
-const AGE_KEY = { day: 'ageDay', hour: 'ageHour', minute: 'ageMin' } as const
 
 // Hover marquee (card title): measure the actual overflow on pointerenter and
 // arm the CSS animation only when there is some — CSS can't detect overflow on
@@ -110,18 +107,38 @@ function disarmMarquee(event: React.PointerEvent<HTMLElement>) {
   delete event.currentTarget.dataset.marquee
 }
 
+function TaskProgressIndicator({ label, progress }: { label: string; progress: string }) {
+  const [completed = 0, total = 0] = progress.split('/').map(Number)
+  const fraction = total > 0 ? Math.min(1, completed / total) : 0
+  const circumference = 2 * Math.PI * 5.5
+
+  return (
+    <Tip label={`${completed} / ${total} ${label}`} side="top">
+      <span aria-label={`${completed} / ${total} ${label}`} className="grid size-5 shrink-0 place-items-center" role="img">
+        <svg aria-hidden className="size-3.5 -rotate-90" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" fill="none" r="5.5" stroke="var(--ui-bg-tertiary)" strokeWidth="2" />
+          <circle
+            cx="8"
+            cy="8"
+            fill="none"
+            r="5.5"
+            stroke="var(--kova-signature-accent)"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - fraction)}
+            strokeLinecap="round"
+            strokeWidth="2"
+          />
+        </svg>
+      </span>
+    </Tip>
+  )
+}
+
 // The last trailing figure yields its space to the actions button on hover or
 // keyboard focus. The sidebar's tail swap styles keep real PR actions visible
 // while they are hovered or focused.
 const TAIL_HIDES = 'session-row-tail min-w-5 transition-opacity'
 const KEBAB_YIELDS = 'session-row-kebab'
-
-function formatAge(seconds: number, r: Translations['sidebar']['row']): string {
-  const { unit, value } = coarseElapsed(Date.now() - seconds * 1000)
-
-  // Under a minute reads as "now" — the sidebar never shows a seconds tick.
-  return unit === 'second' ? r.ageNow : `${value}${r[AGE_KEY[unit]]}`
-}
 
 function SidebarSessionRowImpl({
   session,
@@ -157,22 +174,16 @@ function SidebarSessionRowImpl({
     toolCallCount: fmt.toolCallCount
   })
 
-  const timestamp = session.last_active || session.started_at
-  const age = formatAge(timestamp, r)
-  const timestampDate = new Date(timestamp * 1000)
-  const absoluteAge = formatMessageTimestamp(timestampDate, t.assistant.thread)
   const handleLabel = `Reorder ${title}`
   // Opt-in row metadata from the sidebar's filter menu. Read from the store
   // rather than threaded as props: the subscription re-renders past the memo
   // below, and a toggle should repaint every row at once anyway.
   const rowMeta = useStore($sidebarRowMeta)
-  // Pinned metadata occupies the actions slot and swaps out for the kebab on
-  // hover, so the row reserves the same width either way and never reflows.
-  const pinnedAge = rowMeta.includes('updated')
   // The default profile has no mark worth spending a row slot on — a chip on
   // every row that says "the normal one" is noise. Named profiles only.
   const hasProfileTag = normalizeProfileKey(session.profile) !== 'default'
   const pinnedProfile = hasProfileTag && rowMeta.includes('profile')
+  const todoProgress = useStoreSelector($todoProgressBySession, progress => progress[session.id])
   // The branch's PR, if the row was asked to show one. A selector, not a plain
   // useStore: a repo's PRs land as a single map write, and only the rows on
   // those branches should repaint.
@@ -185,8 +196,7 @@ function SidebarSessionRowImpl({
   const totalTokens = session.input_tokens + session.output_tokens
   const cost = sessionCostUsd(session)
 
-  // Tokens, cost and age share one figure rather than each claiming a column:
-  // several switched on read as one number, not as a widening gutter.
+  // Optional usage figures share one compact slot rather than widening the row.
   const figures = [
     rowMeta.includes('tokens') && totalTokens > 0 ? compactNumber(totalTokens) : null,
     // Sub-cent spend rounds to "$0.00", which reads as a bug rather than as a
@@ -195,9 +205,9 @@ function SidebarSessionRowImpl({
   ].filter(Boolean) as string[]
 
   // Everything the Show menu puts after the title shares ONE right-aligned
-  // slot, in reading order: identity chips, then the figures. The kebab covers
+  // slot, in reading order: identity chips, figures, then task progress. The kebab covers
   // the END of that slot on hover, so only the last thing in it steps aside —
-  // with tokens and age both on you lose the age and keep the number you
+  // with tokens and progress both on you lose progress and keep the number you
   // switched on, and a PR keeps its place (and its click) unless it IS the last
   // thing. Chips used to render in the body instead, which left them stranded
   // to the left of the kebab's own column: never flush right, never swapping.
@@ -211,44 +221,32 @@ function SidebarSessionRowImpl({
     trailing.push({ key: 'pr', node: <PrTag pr={pr} /> })
   }
 
-  const showAge = pinnedAge || card
-
-  if (figures.length || showAge) {
+  if (figures.length) {
     // The card's meta lines separate by spacing alone, so its header figures
     // match (non-breaking pair — plain spaces collapse to one); the one-line
     // row keeps the interpunct between joined figures.
     const sep = card ? '\u00A0\u00A0' : ' · '
-    const head = (showAge ? figures : figures.slice(0, -1)).join(sep)
+    const head = figures.join(sep)
 
     trailing.push({
       key: 'figures',
       node: (
         <span className="pointer-events-none whitespace-nowrap text-[0.625rem] leading-none text-(--ui-text-tertiary)">
           {head}
-          {/* The figures own their tail: the separator goes with it. */}
           <span className={cn('inline-block text-right', TAIL_HIDES)}>
-            {head && sep}
-            {showAge ? (
-              <Tip label={absoluteAge} side="top">
-                <time
-                  aria-label={`${age}, ${absoluteAge}`}
-                  className="pointer-events-auto"
-                  dateTime={timestampDate.toISOString()}
-                >
-                  {age}
-                </time>
-              </Tip>
-            ) : (
-              figures.at(-1)
-            )}
+            {figures.at(-1)}
           </span>
         </span>
       )
     })
   }
 
+  if (todoProgress) {
+    trailing.push({ key: 'progress', node: <TaskProgressIndicator label={r.todoProgress} progress={todoProgress} /> })
+  }
+
   // A chip that ends the slot hides whole; the figures handle their own tail.
-  const chipEndsSlot = trailing.length > 0 && !figures.length && !pinnedAge
+  const chipEndsSlot = trailing.length > 0 && !figures.length
   // A handed-off session's live source is local, but it originated on a
   // messaging platform — surface that origin as a small badge so e.g. a
   // Telegram thread continued here still reads as Telegram.
@@ -279,9 +277,7 @@ function SidebarSessionRowImpl({
   // between them (HTML collapses runs of whitespace to one).
   const model = card && session.model ? displayModelName(session.model) : ''
   const size = card && session.message_count > 0 ? r.messageCount(session.message_count) : ''
-  // Live plan progress ("3/7"), far right of the footer. A selector keyed to
-  // this row: only rows whose own fraction changes repaint on todo events.
-  const todoProgress = useStoreSelector($todoProgressBySession, progress => (card ? progress[session.id] : undefined))
+  // Plan progress is rendered as a compact ring alongside the row metadata.
 
   // An archived session has no live status to paint, so the archive glyph takes
   // the lead slot the dot would occupy instead of adding a column of its own.
@@ -296,7 +292,7 @@ function SidebarSessionRowImpl({
   // it rides the shell's `auto` actions column and the title truncates
   // against it. In the card it renders INSIDE the header row instead — the
   // shell column would span the card's full height and shave every line,
-  // when only the header shares its line with the age and kebab.
+  // when only the header shares its line with metadata and the kebab.
   const actionsNode = (
     <div
       className="relative z-2 flex shrink-0 items-center justify-end gap-1"
@@ -633,7 +629,7 @@ function SidebarSessionRowImpl({
                     </span>
                   ) : null}
                 </div>
-                {model || size || todoProgress ? (
+                {model || size ? (
                   <span
                     className={cn(
                       'flex min-w-0 items-baseline gap-2 text-[0.625rem] text-(--ui-text-tertiary)',
@@ -642,11 +638,6 @@ function SidebarSessionRowImpl({
                   >
                     {model ? <span className="min-w-0 truncate">{model}</span> : null}
                     {size ? <span className="shrink-0 tabular-nums">{size}</span> : null}
-                    {todoProgress ? (
-                      <span className="ml-auto shrink-0 tabular-nums" title={r.todoProgress}>
-                        {todoProgress}
-                      </span>
-                    ) : null}
                   </span>
                 ) : null}
               </>

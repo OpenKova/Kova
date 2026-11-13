@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { CATALOG_ORIGIN } from '@/lib/plugin-catalog'
+
 import { fetchCatalog, parseCatalog } from './catalog-data'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -119,7 +121,7 @@ describe('public catalog data', () => {
 
     expect(await fetchCatalog(kind)).toEqual(parseCatalog(kind, rows))
     expect(fetch).toHaveBeenCalledExactlyOnceWith(
-      `https://nousresearch.github.io/kova-agent/docs/api/${kind}.json`,
+      `${CATALOG_ORIGIN}/docs/api/${kind === 'skills' ? 'skills-index' : 'plugins'}.json`,
       expect.objectContaining({ credentials: 'omit', signal: expect.any(AbortSignal) })
     )
   })

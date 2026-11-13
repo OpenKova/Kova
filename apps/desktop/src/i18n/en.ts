@@ -46,7 +46,7 @@ export const en: Translations = {
   catalog: enCatalog,
   // `connectors.*` above stays the onboarding and chat vocabulary; these are the page's own, and the two are not shared.
   connectorsPage: {
-    title: 'Connectors',
+    title: 'Apps',
     searchPlaceholder: (count: number) => `Search ${count} apps`,
     filterCategory: 'Category',
     categoryAll: 'All categories',
@@ -568,7 +568,7 @@ export const en: Translations = {
       'nav.commandCenter': 'Open Pulse',
       'nav.settings': 'Open settings',
       'nav.profiles': 'Open profiles',
-      'nav.capabilities': 'Open skills',
+      'nav.capabilities': 'Open Marketplace',
       'nav.messaging': 'Open messaging',
       'nav.artifacts': 'Open artifacts',
       'nav.cron': 'Open scheduled jobs',
@@ -769,10 +769,40 @@ export const en: Translations = {
       archivedChats: 'Archived Chats',
       sessions: 'Sessions',
       about: 'About',
+      profile: 'Profile',
       billing: 'Billing',
       notifications: 'Notifications',
       vault: 'Passwords & Logins',
       plugins: 'Plugins'
+    },
+    profile: {
+      account: 'Profile',
+      activeDays: 'Active days',
+      activeDaysCount: (count: number) => `${count} active ${count === 1 ? 'day' : 'days'} in the past year`,
+      apiCalls: 'API calls',
+      busiestDay: 'Busiest day',
+      currentStreak: 'Current streak',
+      currentStreakHint: 'Activity today',
+      days: (count: number) => `${count} ${count === 1 ? 'day' : 'days'}`,
+      estimatedCost: 'Estimated cost',
+      insights: 'Insights',
+      loadFailed: 'Usage could not be loaded',
+      loading: 'Loading usage…',
+      longestStreak: 'Longest streak',
+      modelUsage: 'Model usage',
+      more: 'More',
+      noActivity: 'No activity yet',
+      noModelUsage: 'No model usage in this period',
+      pastYear: 'Past year',
+      peakDay: 'Peak day',
+      profileDescription: 'Usage and activity for the selected Kova workspace profile.',
+      refresh: 'Refresh',
+      retry: 'Try again',
+      tokens: 'Tokens',
+      topModel: 'Top model',
+      workspaceProfile: 'Workspace profile',
+      activity: 'Activity on this computer',
+      less: 'Less'
     },
     plugins: {
       title: 'Desktop plugins',
@@ -2417,7 +2447,7 @@ export const en: Translations = {
     nav: {
       newChat: { title: 'New session', detail: 'Start a fresh session' },
       settings: { title: 'Settings', detail: 'Configure Kova desktop' },
-      capabilities: { title: 'Capabilities', detail: 'Skills, tools, MCP servers, and plugins' },
+      capabilities: { title: 'Marketplace', detail: 'Browse apps, skills, plugins, and tools' },
       messaging: { title: 'Messaging', detail: 'Set up Telegram, Slack, Discord, and more' },
       artifacts: { title: 'Artifacts', detail: 'Browse generated outputs' }
     },
@@ -3226,7 +3256,7 @@ export const en: Translations = {
     profileRail: 'Profile rail',
     nav: {
       'new-session': 'New chat',
-      capabilities: 'Capabilities',
+      capabilities: 'Marketplace',
       messaging: 'Channels',
       artifacts: 'Artifacts',
       cron: 'Scheduled'

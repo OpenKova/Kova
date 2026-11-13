@@ -1,40 +1,32 @@
-import { useStore } from '@nanostores/react'
 import { memo, type ReactNode, useDeferredValue, useEffect, useRef, useState } from 'react'
 
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
-import { Codicon } from '@/components/ui/codicon'
 import { ErrorState } from '@/components/ui/error-state'
-import { Masonry } from '@/components/ui/masonry'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
-import { cn } from '@/lib/utils'
 
-import { DetailColumn, ListColumn, MasterDetail } from '../../master-detail'
 import { PanelEmpty } from '../../overlays/panel'
 import { CapabilitySearch } from '../ui/capability-search'
 
 import { CatalogAddButton } from './catalog-add-button'
 import { CatalogAlert } from './catalog-alert'
-import { CatalogCard, type CatalogCardVariant } from './catalog-card'
 import { type CatalogEntry, type CatalogKind, useCatalog } from './catalog-data'
 import { CatalogDetail } from './catalog-detail'
 import { CatalogDetailDialog } from './catalog-detail-dialog'
-import { CatalogDiscovery } from './catalog-discovery'
+import { CatalogDirectoryRow } from './catalog-directory'
 import { CatalogFilterBar } from './catalog-filter-bar'
-import { CatalogListRow } from './catalog-list-row'
 import { CATALOG_POINTER_ENABLED, trackCatalogPointer } from './catalog-pointer'
 import {
   catalogCategories,
-  type CatalogFacets,
   type CatalogSort,
   catalogSortOptions,
   catalogSources,
   catalogTags,
   filterCatalog,
-  relatedEntries, sortCatalog } from './catalog-query'
-import { $catalogCardView } from './store'
+  relatedEntries,
+  sortCatalog
+} from './catalog-query'
 import { useCatalogFilters } from './use-catalog-filters'
 
 interface CatalogBrowserProps {
@@ -65,8 +57,6 @@ const PAGE_SIZE = 60
 const RELATED_COUNT = 3
 // The skills hub carries ~10k distinct tags; the rail is for browsing, search covers the tail.
 const TAG_LIMIT = 16
-/** On: masonry lanes. Off: fallback grid whose rows share one height (`.catalog-grid`). */
-const CATALOG_MASONRY = true
 
 /** Merge the public feed with installed rows: a catalog entry that matches an
  *  installed one takes the installed id (so selection and install state line
@@ -177,38 +167,24 @@ function CatalogSortSelect({
 /** Search owns the header; kind-specific setup actions and the view toggle share the end slot. */
 function CatalogSearchHeader({
   actions,
-  cardView,
   hints,
   kind,
   query,
-  onQueryChange,
-  onToggleView
+  onQueryChange
 }: {
   actions: ReactNode
-  cardView: boolean
   hints: CatalogBrowserProps['searchHints']
   kind: CatalogKind
   query: CatalogBrowserProps['query']
   onQueryChange: CatalogBrowserProps['onQueryChange']
-  onToggleView: () => void
 }) {
   const { t } = useI18n()
   const c = t.catalog
-  const viewToggleLabel = cardView ? c.listView : c.cardView
 
   return (
     <header className="catalog-search-header shrink-0" data-catalog-header>
       <CapabilitySearch
-        actions={
-          <>
-            {actions}
-            <Tip label={viewToggleLabel}>
-              <Button aria-label={viewToggleLabel} onClick={onToggleView} size="icon-xs" variant="ghost">
-                <Codicon name={cardView ? 'list-unordered' : 'extensions'} />
-              </Button>
-            </Tip>
-          </>
-        }
+        actions={actions}
         hints={hints}
         onChange={value => onQueryChange?.(value)}
         placeholder={kind === 'plugins' ? c.searchPlugins : c.searchSkills}
@@ -231,26 +207,26 @@ function CatalogMoreButton({ onMore }: { onMore: () => void }) {
 
 function CatalogFilteredCards({
   entries,
+  count,
   card,
   more,
   onMore
 }: {
   entries: CatalogEntry[]
+  count: number
   card: (entry: CatalogEntry, accentIndex: number) => ReactNode
   more: boolean
   onMore: () => void
 }) {
-  const cards = entries.map((entry, index) => card(entry, index))
+  const { t } = useI18n()
 
   return (
-    <div className="catalog-filtered-results pt-(--capabilities-gap-lead) pb-2">
-      {CATALOG_MASONRY ? (
-        <Masonry data-catalog-hover-group>{cards}</Masonry>
-      ) : (
-        <div className="catalog-grid" data-catalog-hover-group>
-          {cards}
-        </div>
-      )}
+    <div className="marketplace-directory">
+      <p className="marketplace-directory-count">
+        {t.connectorsPage.group.available}{' '}
+        <span className="font-normal tabular-nums text-(--ui-text-tertiary)">{count}</span>
+      </p>
+      <div className="marketplace-directory-grid">{entries.map((entry, index) => card(entry, index))}</div>
       {more && <CatalogMoreButton onMore={onMore} />}
     </div>
   )
@@ -259,14 +235,6 @@ function CatalogFilteredCards({
 /** Related picks are only worth computing while a detail is on screen. */
 const detailRelated = (entries: CatalogEntry[], selected: CatalogEntry | undefined, shown: boolean) =>
   selected && shown ? relatedEntries(entries, selected, RELATED_COUNT) : []
-
-/** Discovery shelves show only while browsing everything. */
-/** Shelves (not a flat grid) while nothing narrows the catalog, and also
- *  while only tiers (plugins) or several categories do: Official / Verified
- *  stay their own shelves, Community and multi-category picks keep their
- *  category shelves. One category is a drill-in, so it stays a flat grid. */
-const isDiscoverView = (facets: CatalogFacets, query: string, kind: CatalogKind) =>
-  (kind === 'plugins' || !facets.sources.length) && facets.categories.length !== 1 && !facets.tags.length && !query && !facets.installedOnly
 
 function CatalogLoadState({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
   const { t } = useI18n()
@@ -327,7 +295,6 @@ export const CatalogBrowser = memo(function CatalogBrowser({
 }: CatalogBrowserProps) {
   const { t } = useI18n()
   const c = t.catalog
-  const cardView = useStore($catalogCardView)
   const { data, isPending, error, refetch } = useCatalog(kind)
   const deferredQuery = useDeferredValue((query ?? '').trim().toLowerCase())
   const [selectedId, setSelectedId] = useState<string | null>(selectedEntryId ?? null)
@@ -369,11 +336,10 @@ export const CatalogBrowser = memo(function CatalogBrowser({
   const visible = isSuperseded ? entries.filter(entry => !isSuperseded(entry)) : entries
   const filtered = sortCatalog(filterCatalog(visible, facets, deferredQuery, isInstalled, kind), sort, kind)
 
-  const discover = isDiscoverView(facets, deferredQuery, kind)
   const pageOrder = filtered
 
   const selected = visible.find(entry => entry.id === selectedId) ?? filtered[0]
-  const related = detailRelated(filtered, selected, !cardView || detailOpen)
+  const related = detailRelated(filtered, selected, true)
 
   const searchFor = (value: string) => {
     onQueryChange?.(value)
@@ -411,25 +377,21 @@ export const CatalogBrowser = memo(function CatalogBrowser({
       />
     )
 
-  const card = (entry: CatalogEntry, accentIndex: number, variant: CatalogCardVariant = 'default', placement?: React.CSSProperties) => (
-    <CatalogCard
-      accentIndex={accentIndex}
-      action={entryAction(entry, variant === 'hero')}
+  const card = (entry: CatalogEntry, _accentIndex: number) => (
+    <CatalogDirectoryRow
+      action={entryAction(entry)}
       entry={entry}
+      installed={isInstalled(entry)}
       key={entry.id}
-      onCategory={filters.chooseCategory}
-      onOpen={openEntry}
-      onSearch={searchFor}
-      onTag={filters.toggleTag}
-      style={placement}
-      variant={variant}
+      kind={kind}
+      onOpen={() => openEntry(entry)}
     />
   )
 
   const details = selected ? (
     <CatalogDetail
       action={entryAction(selected, true)}
-      dialog={cardView}
+      dialog
       entry={selected}
       kind={kind}
       management={renderInstalledDetail?.(selected)}
@@ -449,17 +411,12 @@ export const CatalogBrowser = memo(function CatalogBrowser({
     <div className="@container/catalog flex h-full min-h-0 min-w-0" data-catalog={kind} ref={root}>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-catalog-results>
-          {/* Search owns the header; kind-specific setup actions and the view toggle share the end slot. */}
+          {/* Search owns the header; kind-specific setup actions share the trailing slot. */}
           <CatalogSearchHeader
             actions={headerActions}
-            cardView={cardView}
             hints={searchHints}
             kind={kind}
             onQueryChange={onQueryChange}
-            onToggleView={() => {
-              setDetailOpen(false)
-              $catalogCardView.set(!cardView)
-            }}
             query={query}
           />
           <CatalogFilterBar
@@ -486,66 +443,35 @@ export const CatalogBrowser = memo(function CatalogBrowser({
           <div className="min-h-0 flex-1">
             {!entries.length && (isPending || error) ? (
               <CatalogLoadState error={error} onRetry={() => void refetch()} />
-            ) : !selected ? (
+            ) : filtered.length === 0 ? (
               <CatalogNoResults onClear={clearFilters} />
-            ) : cardView ? (
-              <>
-                <div className="flex h-full min-h-0 flex-col" data-catalog-cards={kind}>
-                  <div
-                    className="capabilities-scroll"
-                    data-catalog-scroll
-                    key={`${filterKey}:${sort}:${deferredQuery}:${facets.installedOnly}`}
-                  >
-                    {discover ? (
-                      <CatalogDiscovery actions={actions} byCategory={facets.categories.length > 1} card={card} entries={filtered} kind={kind} narrowed={facets.sources.length > 0 || facets.categories.length > 1} onCategory={filters.chooseCategory} />
-                    ) : (
-                      <CatalogFilteredCards card={card} entries={filtered.slice(0, limit)} more={filtered.length > limit} onMore={() => setLimit(value => value + PAGE_SIZE)} />
-                    )}
-                  </div>
-                </div>
-                <CatalogDetailDialog
-                  onOpenChange={setDetailOpen}
-                  onSelect={setSelectedId}
-                  open={detailOpen}
-                  order={pageOrder}
-                  selectedId={selected.id}
-                >
-                  {details}
-                </CatalogDetailDialog>
-              </>
             ) : (
-              <div
-                className={cn('h-full min-h-0', detailOpen ? '[&_aside]:max-sm:hidden' : '[&_main]:max-sm:hidden')}
-                data-catalog-list={kind}
-              >
-                <MasterDetail resizeId="capabilities-split" split="wide">
-                  <ListColumn key={`${filterKey}:${deferredQuery}`}>
-                    {filtered.slice(0, limit).map(entry => (
-                      <CatalogListRow
-                        entry={entry}
-                        installed={isInstalled(entry)}
-                        key={entry.id}
-                        kind={kind}
-                        onCategory={filters.chooseCategory}
-                        onOpen={openEntry}
-                        onSearch={searchFor}
-                        onTag={filters.toggleTag}
-                        selected={entry.id === selected.id}
-                      />
-                    ))}
-                    {filtered.length > limit && <CatalogMoreButton onMore={() => setLimit(value => value + PAGE_SIZE)} />}
-                  </ListColumn>
-                  <DetailColumn footer={c.snapshotHint}>
-                    <div className="sm:hidden">
-                      <Button onClick={() => setDetailOpen(false)} size="sm" variant="text">
-                        <Codicon name="arrow-left" />
-                        {c.back}
-                      </Button>
-                    </div>
+              <>
+                <div
+                  className="capabilities-scroll"
+                  data-catalog-scroll
+                  key={`${filterKey}:${sort}:${deferredQuery}:${facets.installedOnly}`}
+                >
+                  <CatalogFilteredCards
+                    card={card}
+                    count={filtered.length}
+                    entries={filtered.slice(0, limit)}
+                    more={filtered.length > limit}
+                    onMore={() => setLimit(value => value + PAGE_SIZE)}
+                  />
+                </div>
+                {selected && (
+                  <CatalogDetailDialog
+                    onOpenChange={setDetailOpen}
+                    onSelect={setSelectedId}
+                    open={detailOpen}
+                    order={pageOrder}
+                    selectedId={selected.id}
+                  >
                     {details}
-                  </DetailColumn>
-                </MasterDetail>
-              </div>
+                  </CatalogDetailDialog>
+                )}
+              </>
             )}
           </div>
         </div>

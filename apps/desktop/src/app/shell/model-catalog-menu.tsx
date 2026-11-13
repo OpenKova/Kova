@@ -22,6 +22,7 @@ import {
 } from 'react'
 
 import { PlanLimitLine, UsageLevelTag } from '@/components/model-picker'
+import { ProviderMark } from '@/components/provider-mark'
 import { ProviderStatusChip } from '@/components/provider-status-chip'
 import { Badge } from '@/components/ui/badge'
 import { Codicon } from '@/components/ui/codicon'
@@ -40,8 +41,8 @@ import {
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tip, TipHintLabel } from '@/components/ui/tooltip'
-import type { KovaGateway } from '@/kova'
 import { useI18n } from '@/i18n'
+import type { KovaGateway } from '@/kova'
 import { triggerHaptic } from '@/lib/haptics'
 import { isSubmitEnter } from '@/lib/ime'
 import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
@@ -813,6 +814,7 @@ export function ModelCatalogMenu({
                   }}
                   textValue=""
                 >
+                  <ProviderMark provider={group.provider.slug} />
                   <span className="truncate">
                     <HighlightMatches foldSeparators query={search} text={group.provider.name} />
                   </span>
@@ -1167,7 +1169,7 @@ function ModelFamilyRow({
           </button>
         </Tip>
         <span className={cn('flex min-w-0 flex-1 items-center gap-1.5', limit.tone)}>
-          {decoration.icon !== undefined ? <ModelMenuRowIcon icon={decoration.icon} /> : null}
+          {decoration.icon !== undefined ? <ModelMenuRowIcon icon={decoration.icon} /> : <ProviderMark model={family.id} provider={provider.slug} />}
           <span className="min-w-0 truncate">
             <HighlightMatches foldSeparators query={search} text={name} />
           </span>

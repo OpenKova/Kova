@@ -21,6 +21,106 @@
   padding-inline: 24px;
 }
 
+.marketplace-heading {
+  width: 100%;
+  max-width: 1228px;
+  margin-inline: auto;
+  padding: 20px 24px 4px;
+}
+
+.marketplace-heading h1 {
+  margin: 0;
+  color: var(--ui-text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.marketplace-heading p {
+  margin: 5px 0 0;
+  color: var(--ui-text-tertiary);
+  font-size: 0.875rem;
+}
+
+.marketplace-directory {
+  width: 100%;
+  max-width: 1228px;
+  margin-inline: auto;
+  padding: 8px 24px 32px;
+}
+
+.marketplace-directory-count {
+  margin: 16px 0 12px;
+  color: var(--ui-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.marketplace-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.marketplace-directory-row {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 70px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--ui-stroke-tertiary);
+  border-radius: 4px;
+  background: var(--ui-chat-bubble-background);
+  padding: 10px 12px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.marketplace-directory-row:hover {
+  border-color: var(--ui-stroke-secondary);
+  background: var(--ui-row-hover-background);
+}
+
+.marketplace-directory-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ui-control-hover-background);
+  color: var(--ui-text-secondary);
+}
+
+.marketplace-directory-copy {
+  display: block;
+  min-width: 0;
+  flex: 1;
+}
+
+.marketplace-directory-title {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 0.78rem;
+  line-height: 1.25rem;
+}
+
+.marketplace-directory-description {
+  display: block;
+  overflow: hidden;
+  color: var(--ui-text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Scrollers reserve the gutter on both sides so the column stays centred on
    the same axis as the chrome above it. */
 .capabilities-scroll {
@@ -38,5 +138,29 @@
   .catalog-filtered-results,
   .catalog-discovery {
     padding-inline: 12px;
+  }
+
+  .marketplace-heading {
+    padding-inline: 12px;
+  }
+
+  .marketplace-directory {
+    padding-inline: 12px;
+  }
+
+  .marketplace-directory-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketplace-directory-row {
+    transition: none;
+  }
+}
+
+@container (max-width: 760px) {
+  .marketplace-directory-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -628,10 +628,40 @@ export interface Translations extends NoticeTranslations {
       archivedChats: string
       sessions: string
       about: string
+      profile: string
       billing: string
       notifications: string
       vault: string
       plugins: string
+    }
+    profile: {
+      account: string
+      activeDays: string
+      activeDaysCount: (count: number) => string
+      apiCalls: string
+      busiestDay: string
+      currentStreak: string
+      currentStreakHint: string
+      days: (count: number) => string
+      estimatedCost: string
+      insights: string
+      loadFailed: string
+      loading: string
+      longestStreak: string
+      modelUsage: string
+      more: string
+      noActivity: string
+      noModelUsage: string
+      pastYear: string
+      peakDay: string
+      profileDescription: string
+      refresh: string
+      retry: string
+      tokens: string
+      topModel: string
+      workspaceProfile: string
+      activity: string
+      less: string
     }
     plugins: {
       title: string

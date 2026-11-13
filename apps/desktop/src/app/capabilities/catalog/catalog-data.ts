@@ -49,7 +49,14 @@ export interface CatalogEntry {
 
 // The public domain redirects here without CORS headers on the redirect.
 // Use the docs' actual static host, not GitHub's API or repository endpoints.
-const CATALOG_BASE = 'https://nousresearch.github.io/kova-agent/docs/api'
+const CATALOG_URLS: Record<CatalogKind, readonly string[]> = {
+  plugins: [`${CATALOG_ORIGIN}/docs/api/plugins.json`, 'https://hermes-agent.nousresearch.com/docs/api/plugins.json'],
+  skills: [
+    `${CATALOG_ORIGIN}/docs/api/skills-index.json`,
+    'https://hermes-agent.nousresearch.com/docs/api/skills-index.json'
+  ]
+}
+
 /** A download with no new bytes for this long is aborted (inactivity, not total time). */
 const CATALOG_STALL_MS = 60_000
 const text = (value: unknown): string => (typeof value === 'string' ? value : '')
@@ -98,7 +105,8 @@ function catalogLinks(kind: CatalogKind, row: any, rawName: string, source: stri
         : null,
     sourceUrl: webUrl(row.repo || row.sourceUrl),
     docsUrl:
-      webUrl(row.docsUrl) || (text(row.docsPath) ? `${CATALOG_ORIGIN}/docs/user-guide/skills/${text(row.docsPath)}` : null),
+      webUrl(row.docsUrl) ||
+      (text(row.docsPath) ? `${CATALOG_ORIGIN}/docs/user-guide/skills/${text(row.docsPath)}` : null),
     imageUrl: curationOwnsArtwork(kind, row) ? officialCatalogArtwork(kind, row) : catalogImageUrl(row.image),
     screenshots:
       kind === 'plugins'
@@ -136,7 +144,8 @@ function catalogEntry(kind: CatalogKind, row: any): CatalogEntry {
   const commands = strings(row.commands)
   const platforms = strings(row.platforms)
   const requirements = strings(kind === 'plugins' ? caps.requiresEnv : row.envVars)
-  const author = text(row.maintainer ?? row.author)
+  const extra = row.extra && typeof row.extra === 'object' ? row.extra : {}
+  const author = text(row.maintainer ?? row.author ?? extra.maintainer)
   const description = text(row.description)
 
   return {
@@ -187,13 +196,19 @@ function catalogEntry(kind: CatalogKind, row: any): CatalogEntry {
 }
 
 export function parseCatalog(kind: CatalogKind, data: unknown): CatalogEntry[] {
-  if (!Array.isArray(data)) {
+  const rows = Array.isArray(data)
+    ? data
+    : kind === 'skills' && data && typeof data === 'object' && Array.isArray((data as { skills?: unknown }).skills)
+      ? (data as { skills: unknown[] }).skills
+      : null
+
+  if (!rows) {
     throw new Error('Invalid catalog response')
   }
 
   const entries = new Map<string, CatalogEntry>()
 
-  for (const row of data) {
+  for (const row of rows) {
     if (row && typeof row === 'object' && text(row.name)) {
       const entry = catalogEntry(kind, row)
 
@@ -219,14 +234,30 @@ export async function fetchCatalog(kind: CatalogKind): Promise<CatalogEntry[]> {
   armDeadline()
 
   try {
-    // Same published snapshots as the docs galleries; no per-entry fan-out.
-    const response = await fetch(`${CATALOG_BASE}/${kind}.json`, {
-      credentials: 'omit',
-      signal: controller.signal
-    })
+    // Use the current docs host and published endpoint names. Older installs
+    // still ship the previous host, so keep that as a fallback while it serves
+    // the same published snapshots. The skills index is metadata-wrapped.
+    let response: Response | undefined
+    let lastError: unknown
 
-    if (!response.ok) {
-      throw new Error(`Catalog HTTP ${response.status}`)
+    for (const url of CATALOG_URLS[kind]) {
+      try {
+        const candidate = await fetch(url, { credentials: 'omit', signal: controller.signal })
+
+        if (candidate.ok) {
+          response = candidate
+
+          break
+        }
+
+        lastError = new Error(`Catalog HTTP ${candidate.status}`)
+      } catch (error) {
+        lastError = error
+      }
+    }
+
+    if (!response) {
+      throw lastError instanceof Error ? lastError : new Error('Could not reach the public catalog host.')
     }
 
     if (!response.body) {
@@ -264,7 +295,9 @@ export async function fetchCatalog(kind: CatalogKind): Promise<CatalogEntry[]> {
     // Chromium can turn our abort into "The user aborted a request." The
     // controller, not that browser-dependent exception name, owns the cause.
     if (controller.signal.aborted) {
-      throw new Error(`Catalog download timed out after ${CATALOG_STALL_MS / 1000} seconds without progress. Please try again.`)
+      throw new Error(
+        `Catalog download timed out after ${CATALOG_STALL_MS / 1000} seconds without progress. Please try again.`
+      )
     }
 
     throw error

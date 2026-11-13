@@ -14,6 +14,7 @@ export type SettingsView =
   | 'keys'
   | 'notifications'
   | 'plugins'
+  | 'profile'
   | 'providers'
   | 'sessions'
   | 'vault'

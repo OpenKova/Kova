@@ -1,9 +1,10 @@
 import { compactNumber } from '@kova/shared'
 import { useCallback, useMemo, useState } from 'react'
 
+import { Codicon } from '@/components/ui/codicon'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { type ProfileScope, setToolsetEnabled } from '@/kova'
 import { useI18n } from '@/i18n'
+import { type ProfileScope, setToolsetEnabled } from '@/kova'
 import { isDesktopToolsetVisible } from '@/lib/desktop-toolsets'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
@@ -11,25 +12,14 @@ import { notify, notifyError } from '@/store/notifications'
 import type { ToolsetInfo } from '@/types/kova'
 
 import { asText, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
+import { MarketplaceDirectoryItem } from '../catalog/catalog-directory'
 import { CatalogSwitch } from '../catalog/catalog-switch'
 import { CapabilityEmpty } from '../primitives'
 import { CapabilitySearch } from '../ui/capability-search'
-import { CatalogSurface, type CatalogSurfaceItem, type CatalogSurfaceSection } from '../ui/catalog-surface'
 
 import { useToolCalls } from './tool-calls'
 import { ToolsetDetail } from './toolset-detail'
-import {
-  filteredToolsets,
-  TOOLSET_ESSENTIALS,
-  TOOLSET_FEATURE_COUNT,
-  TOOLSET_FEATURE_MIN,
-  TOOLSET_MORE_THEME,
-  TOOLSET_THEMES,
-  toolsetCalls,
-  TOOLSETS_QUERY_KEY,
-  toolsetsQueryKey,
-  toolsetTheme
-} from './toolsets-data'
+import { filteredToolsets, toolsetCalls, TOOLSETS_QUERY_KEY, toolsetsQueryKey } from './toolsets-data'
 
 interface ToolsetsTabProps {
   /** The scope's toolset list, straight from the shell's query. */
@@ -42,8 +32,7 @@ interface ToolsetsTabProps {
   hints?: string[]
 }
 
-/** THE Tools tab: toolsets as a catalog (feature row, themed lists, developer
- *  banner) with each toolset's settings in a dialog. */
+/** Toolsets use the same compact directory as apps, plugins, and skills. */
 export function ToolsetsTab({ hints, onQueryChange, profile, query, toolsets }: ToolsetsTabProps) {
   const { t } = useI18n()
   const ts = t.catalog.toolsets
@@ -78,6 +67,31 @@ export function ToolsetsTab({ hints, onQueryChange, profile, query, toolsets }: 
   const activeToolset = useMemo(
     () => visibleToolsets.find(ts => ts.name === selectedToolset) ?? null,
     [selectedToolset, visibleToolsets]
+  )
+
+  const search = (
+    <header className="catalog-search-header shrink-0">
+      <CapabilitySearch
+        actions={
+          <CatalogSwitch
+            aria-label={t.skills.all}
+            checked={bulkToolsets.length > 0 && bulkToolsets.every(toolset => toolset.enabled)}
+            disabled={bulkBusy}
+            onCheckedChange={checked =>
+              void bulkApply(
+                bulkToolsets.filter(row => row.enabled !== checked),
+                checked
+              )
+            }
+          />
+        }
+        hints={hints}
+        onChange={onQueryChange}
+        placeholder={t.skills.searchToolsets}
+        scope={t.skills.tabToolsets}
+        value={query}
+      />
+    </header>
   )
 
   // Single toggles are optimistic and silent on success (the row repaints
@@ -128,92 +142,86 @@ export function ToolsetsTab({ hints, onQueryChange, profile, query, toolsets }: 
     }
   }
 
-  // Same search row as every other Capabilities tab; it stays put when a query
-  // empties the list.
-  const search = (
-    <header className="catalog-search-header shrink-0">
-      <CapabilitySearch
-        hints={hints}
-        onChange={onQueryChange}
-        placeholder={t.skills.searchToolsets}
-        scope={t.skills.tabToolsets}
-        value={query}
-      />
-    </header>
-  )
-
   if (visibleToolsets.length === 0) {
-    return <div className="flex h-full min-h-0 flex-col">{search}<CapabilityEmpty noun="tools" query={query} /></div>
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        {search}
+        <CapabilityEmpty noun="tools" query={query} />
+      </div>
+    )
   }
 
-  const item = (toolset: ToolsetInfo, layout: CatalogSurfaceSection['layout']): CatalogSurfaceItem => {
+  const item = (toolset: ToolsetInfo) => {
     const calls = toolCalls ? toolsetCalls(toolset, toolCalls) : 0
     const count = toolNames(toolset).length
-    const tools = ts.toolCount(count)
     const label = toolsetDisplayLabel(toolset)
 
     return {
-      id: toolset.name,
-      name: label,
-      description: asText(toolset.description),
-      eyebrow: count ? tools : undefined,
-      badge: calls > 0 ? ts.callCount(compactNumber(calls), calls) : layout === 'list' && count ? tools : undefined,
       action: (
         <CatalogSwitch
           aria-label={t.skills.toggleToolset(label, !toolset.enabled)}
           checked={toolset.enabled}
           disabled={bulkBusy}
-          onCheckedChange={checked => void handleToggleToolset(toolset, checked)}
+          onCheckedChange={enabled => void handleToggleToolset(toolset, enabled)}
         />
       ),
+      name: label,
+      description: asText(toolset.description),
+      icon: <Codicon name="tools" size="1.25rem" />,
+      status: calls > 0 ? ts.callCount(compactNumber(calls), calls) : t.skills.provenance.bundled,
+      subtitle: count ? ts.toolCount(count) : undefined,
       onOpen: () => setSelectedToolset(toolset.name)
     }
   }
 
-  // The feature row is the four most-used toolsets once there is real usage to
-  // rank by; before that it's the essentials. Everything else sits under what it does.
-  const used = visibleToolsets.slice(0, TOOLSET_FEATURE_COUNT)
-  const ranked = !!toolCalls && used.length === TOOLSET_FEATURE_COUNT && used.every(toolset => toolsetCalls(toolset, toolCalls) > 0)
-  const featured = query || visibleToolsets.length <= TOOLSET_FEATURE_MIN ? [] : ranked ? used : visibleToolsets.filter(toolset => TOOLSET_ESSENTIALS.includes(toolset.name))
-  const rest = visibleToolsets.filter(toolset => !featured.includes(toolset))
-
-  const sections: CatalogSurfaceSection[] = [
-    {
-      id: 'featured',
-      label: ranked ? ts.mostUsed : ts.essentials,
-      blurb: ranked ? ts.mostUsedBlurb : ts.essentialsBlurb,
-      layout: 'feature',
-      items: featured.map(toolset => item(toolset, 'feature'))
-    },
-    ...[...TOOLSET_THEMES, TOOLSET_MORE_THEME].map(theme => ({
-      id: theme.id,
-      label: ts.themes[theme.id].label,
-      blurb: ts.themes[theme.id].blurb,
-      layout: 'list' as const,
-      items: rest.filter(toolset => toolsetTheme(toolset.name).id === theme.id).map(toolset => item(toolset, 'list'))
-    }))
-  ]
-
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col" data-marketplace-tools>
       {search}
-      <CatalogSurface
-        actions={
-          <CatalogSwitch
-            aria-label={t.skills.all}
-            checked={bulkToolsets.length > 0 && bulkToolsets.every(ts => ts.enabled)}
-            disabled={bulkBusy}
-            onCheckedChange={checked => void bulkApply(bulkToolsets.filter(row => row.enabled !== checked), checked)}
-          />
-        }
-        kind="plugins"
-        sections={sections}
-      />
-      <Dialog onOpenChange={open => { if (!open) {setSelectedToolset(null)} }} open={selectedToolset !== null}>
+      <div className="capabilities-scroll">
+        <section className="marketplace-directory">
+          <h2 className="marketplace-directory-count">
+            {t.connectorsPage.group.available}{' '}
+            <span className="font-normal tabular-nums text-(--ui-text-tertiary)">{visibleToolsets.length}</span>
+          </h2>
+          <div className="marketplace-directory-grid">
+            {visibleToolsets.map(toolset => {
+              const row = item(toolset)
+
+              return (
+                <MarketplaceDirectoryItem
+                  action={row.action}
+                  description={row.description}
+                  icon={row.icon}
+                  key={toolset.name}
+                  name={row.name}
+                  onOpen={row.onOpen}
+                  status={row.status}
+                  subtitle={row.subtitle}
+                />
+              )
+            })}
+          </div>
+        </section>
+      </div>
+      <Dialog
+        onOpenChange={open => {
+          if (!open) {
+            setSelectedToolset(null)
+          }
+        }}
+        open={selectedToolset !== null}
+      >
         <DialogContent className="max-w-2xl">
-          <DialogTitle className="sr-only">{activeToolset ? toolsetDisplayLabel(activeToolset) : t.skills.tabToolsets}</DialogTitle>
+          <DialogTitle className="sr-only">
+            {activeToolset ? toolsetDisplayLabel(activeToolset) : t.skills.tabToolsets}
+          </DialogTitle>
           {activeToolset && (
-            <ToolsetDetail onConfiguredChange={refreshToolsets} profile={profile} toolCalls={toolCalls ?? {}} toolset={activeToolset} />
+            <ToolsetDetail
+              onConfiguredChange={refreshToolsets}
+              profile={profile}
+              toolCalls={toolCalls ?? {}}
+              toolset={activeToolset}
+            />
           )}
         </DialogContent>
       </Dialog>

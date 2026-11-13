@@ -81,6 +81,7 @@ import { extractPreviewTargets } from '@/lib/preview-targets'
 import { markAssistantIdSpoken } from '@/lib/spoken-reply'
 import { $touchPointer } from '@/lib/touch-interaction'
 import { useEnterAnimation } from '@/lib/use-enter-animation'
+import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { playSpeechText, stopVoicePlayback } from '@/lib/voice-playback'
 import { $billingBlock, requestBillingSettings, runBillingRecovery } from '@/store/billing-block'
@@ -91,7 +92,7 @@ import { startManualProviderOAuth } from '@/store/onboarding'
 import { $activeGatewayProfile, normalizeProfileKey, requestFreshSession } from '@/store/profile'
 import { sessionApprovalRequest } from '@/store/prompts'
 import { requestSendDiagnostics } from '@/store/send-diagnostics'
-import { $connection, $currentModel, setModelPickerOpen } from '@/store/session'
+import { $connection, $currentModel, $sessions, setModelPickerOpen } from '@/store/session'
 import { sessionTileDelegate } from '@/store/session-states'
 import { notifyThreadEditOpen } from '@/store/thread-scroll'
 import { $voicePlayback } from '@/store/voice-playback'
@@ -245,7 +246,10 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
   // the markdown part and the tiny status leaves — not the footer, the
   // preview block, or this root.
   const hasVisibleText = useAuiState(s => contentHasVisibleText(s.message.content))
-  const sessionId = useStore(useSessionView().$runtimeId)
+  const sessionView = useSessionView()
+  const sessionId = useStore(sessionView.$runtimeId)
+  const storedSessionId = useStore(sessionView.$storedId)
+  const botChat = useStoreSelector($sessions, sessions => sessions.some(session => session.id === storedSessionId && session.title === 'Bot Chat'))
   const approval = useStore(useMemo(() => sessionApprovalRequest(sessionId), [sessionId]))
 
   const activityOnly = useAuiState(
@@ -321,7 +325,10 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
       {collapsedNotice ?? (
         <>
           <div
-            className="wrap-anywhere min-w-0 max-w-full overflow-hidden text-pretty text-[length:var(--conversation-text-font-size)] leading-(--dt-line-height) text-foreground"
+            className={cn(
+              'wrap-anywhere min-w-0 max-w-full overflow-hidden text-pretty text-[length:var(--conversation-text-font-size)] leading-(--dt-line-height) text-foreground',
+              botChat && 'w-fit max-w-[min(86%,44rem)] self-start rounded-[22px] border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) px-4 py-3'
+            )}
             data-slot="aui_assistant-message-content"
           >
             {/* Todos render in the composer status stack now, not inline. */}

@@ -235,7 +235,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
       aria-busy={isOpening || undefined}
       aria-label={rowTooltip}
       className={cn(
-        'flex w-full min-w-0 max-w-full items-center gap-2.5 overflow-hidden rounded-md px-2 py-2 text-left transition-colors',
+        'flex w-full min-w-0 max-w-full items-center gap-2.5 overflow-hidden rounded-md px-2 py-2 text-left transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-1.5',
         'hover:bg-(--chrome-action-hover)',
         isActive && 'bg-(--ui-row-active-background)',
         // The row being dragged fades in place; the browser's drag image is
@@ -253,17 +253,19 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
       }}
       onPointerEnter={warm}
     >
-      <div className={cn('shrink-0', !sourceStatus.available && 'grayscale opacity-60')}>
-        <BotFace
-          color={avatarColor(color, bot.name)}
-          image={photo ? image : null}
-          mood={botMood}
-          name={bot.name}
-          shape={shape}
-          size={34}
-        />
-      </div>
-      <div className="min-w-0 flex-1">
+      <Tip label={rowTooltip} side="right">
+        <div className={cn('shrink-0', !sourceStatus.available && 'grayscale opacity-60')}>
+          <BotFace
+            color={avatarColor(color, bot.name)}
+            image={photo ? image : null}
+            mood={botMood}
+            name={bot.name}
+            shape={shape}
+            size={34}
+          />
+        </div>
+      </Tip>
+      <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
         <div className="flex items-baseline justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             {/* The session row's own lead cell, so a bot's name sits on the

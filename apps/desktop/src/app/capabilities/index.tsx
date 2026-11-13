@@ -176,12 +176,16 @@ export function CapabilitiesView({
       tabs={[
         { id: 'skills', label: t.skills.tabSkills, meta: skills?.length ?? null },
         { id: 'plugins', label: t.skills.tabPlugins },
-        { id: 'connectors', label: t.connectorsPage.title },
+        { id: 'connectors', label: 'Apps' },
         { id: 'toolsets', label: t.skills.tabToolsets, meta: toolsets ? visibleToolsetCount(toolsets) : null }
       ]}
       tabsAlign="start"
     >
       <div className="flex h-full flex-col">
+        <header className="marketplace-heading">
+          <h1>Marketplace</h1>
+          <p>Find apps, plugins, and skills to add to your workspace.</p>
+        </header>
         {mode !== 'plugins' && <CapabilityScopeSelector scope={scope} />}
         <div className="flex min-h-0 flex-1 flex-col">{loadGate ?? tabContent[mode]()}</div>
       </div>

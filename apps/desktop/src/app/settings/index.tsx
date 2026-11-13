@@ -12,6 +12,7 @@ import { useI18n } from '@/i18n'
 import { getKovaConfigDefaults, getKovaConfigRecord, saveKovaConfig } from '@/kova'
 import { triggerHaptic } from '@/lib/haptics'
 import {
+  Activity,
   Archive,
   BarChart3,
   Bell,
@@ -72,6 +73,7 @@ import {
   usePluginSettingsRoute
 } from './plugin-settings'
 import { SettingsBreadcrumbContext } from './primitives'
+import { ProfileSettings } from './profile-settings'
 import { PROVIDER_VIEWS, ProvidersSettings, type ProviderView } from './providers-settings'
 import { SessionsSettings } from './sessions-settings'
 import { SettingsSubpageHeader } from './subpage-navigation'
@@ -96,6 +98,7 @@ const SETTINGS_VIEWS: readonly SettingsViewId[] = [
   'billing',
   'sessions',
   'plugins',
+  'profile',
   'about'
 ]
 
@@ -310,6 +313,13 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             onSelect: () => setActiveView('notifications')
           },
           {
+            active: activeView === 'profile',
+            icon: Activity,
+            id: 'profile',
+            label: t.settings.nav.profile,
+            onSelect: () => setActiveView('profile')
+          },
+          {
             active: activeView === 'billing',
             children: [
               {
@@ -515,7 +525,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
         ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'],
         label: t.settings.overview.agent
       },
-      { icon: Info, id: 'category:account', ids: ['billing', 'about'], label: t.settings.overview.account }
+      { icon: Info, id: 'category:account', ids: ['profile', 'billing', 'about'], label: t.settings.overview.account }
     ]
 
     return [
@@ -651,6 +661,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     <KeysSettings view={keysView} />
   ) : activeView === 'billing' ? (
     <BillingSettings />
+  ) : activeView === 'profile' ? (
+    <ProfileSettings />
   ) : activeView === 'web-access' ? (
     <WebAccessSettings />
   ) : activeView === 'plugins' ? (
@@ -670,27 +682,25 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   return (
     <OverlayView
       closeLabel={t.settings.closeSettings}
-      mode="card"
+      mode="workspace"
       onClose={onClose}
       rootClassName="settings-glass-panel"
-      titlebarActions={
-        <Button
-          aria-label={t.common.back}
-          className="text-(--ui-text-tertiary) hover:text-foreground"
-          onClick={onClose}
-          size="sm"
-          variant="ghost"
-        >
-          <ChevronLeft />
-          {t.common.back}
-        </Button>
-      }
     >
       <OverlaySplitLayout>
         <OverlayNav
           footer={navFooter}
           groups={navGroups}
-          header={<div className="mb-1" data-settings-search-header="">{searchPill}</div>}
+          header={
+            <div className="mb-2 space-y-2 px-1" data-settings-search-header="">
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-sm font-semibold text-foreground">{t.titlebar.openSettings}</h2>
+                <Button aria-label={t.common.back} className="size-7 text-(--ui-text-tertiary)" onClick={onClose} size="icon-xs" variant="ghost">
+                  <ChevronLeft />
+                </Button>
+              </div>
+              {searchPill}
+            </div>
+          }
         />
 
         <OverlayMain className="px-0 pb-0">
@@ -724,7 +734,7 @@ function SettingsOverview({
     { ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'], label: overview.workspace },
     { ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'], label: overview.personalize },
     { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'], label: overview.agent },
-    { ids: ['billing', 'about'], label: overview.account }
+    { ids: ['profile', 'billing', 'about'], label: overview.account }
   ]
 
   return (
