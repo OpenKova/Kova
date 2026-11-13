@@ -10,12 +10,15 @@ import os
 import re
 import secrets
 import sqlite3
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator, Mapping
 
 import jwt
+import psycopg
+from psycopg.rows import dict_row
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from jwt import PyJWKClient
 from pydantic import BaseModel, Field
@@ -56,7 +59,58 @@ class CodeExchange(BaseModel):
     challenge_id: str = Field(min_length=32, max_length=128)
 
 
-def _database() -> sqlite3.Connection:
+class _PostgresConnection:
+    """Match the small SQLite connection surface used by this API."""
+
+    def __init__(self, connection: psycopg.Connection) -> None:
+        self._connection = connection
+        self._transaction = False
+
+    def execute(self, sql: str, params: tuple = ()):
+        statement = sql.replace("BEGIN IMMEDIATE", "BEGIN").replace("?", "%s")
+        begins_transaction = statement.lstrip().upper().startswith("BEGIN")
+        cursor = self._connection.execute(statement, params)
+        if begins_transaction:
+            self._transaction = True
+        elif not self._transaction:
+            self._connection.commit()
+        return cursor
+
+    def executescript(self, script: str) -> None:
+        for statement in script.split(";"):
+            if statement.strip():
+                self.execute(statement)
+
+    def commit(self) -> None:
+        self._connection.commit()
+        self._transaction = False
+
+    def rollback(self) -> None:
+        self._connection.rollback()
+        self._transaction = False
+
+    def close(self) -> None:
+        self._connection.close()
+
+
+_POSTGRES_SCHEMA_READY = False
+_POSTGRES_SCHEMA_LOCK = threading.Lock()
+
+
+def _database():
+    database_url = os.environ.get("DATABASE_URL", "").strip()
+    if database_url:
+        db = _PostgresConnection(psycopg.connect(
+            database_url,
+            connect_timeout=10,
+            prepare_threshold=None,
+            row_factory=dict_row,
+        ))
+        _ensure_postgres_schema(db)
+        return db
+    if os.environ.get("VERCEL"):
+        raise HTTPException(503, "DATABASE_URL must be configured for the deployed account service.")
+
     database = _database_path()
     database.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(database, timeout=10, isolation_level=None)
@@ -64,52 +118,63 @@ def _database() -> sqlite3.Connection:
     db.execute("PRAGMA foreign_keys=ON")
     db.execute("PRAGMA busy_timeout=10000")
     db.execute("PRAGMA journal_mode=WAL")
-    db.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS accounts (
-            id TEXT PRIMARY KEY,
-            google_sub TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL,
-            google_name TEXT NOT NULL,
-            picture_url TEXT,
-            username TEXT,
-            username_key TEXT UNIQUE,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS challenges (
-            id_hash TEXT PRIMARY KEY,
-            nonce_hash TEXT NOT NULL,
-            expires_at INTEGER NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS auth_codes (
-            code_hash TEXT PRIMARY KEY,
-            account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-            challenge_id_hash TEXT NOT NULL,
-            code_challenge TEXT NOT NULL,
-            expires_at INTEGER NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS sessions (
-            token_hash TEXT PRIMARY KEY,
-            account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-            expires_at INTEGER NOT NULL,
-            created_at INTEGER NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS sessions_account_id ON sessions(account_id);
-        CREATE TABLE IF NOT EXISTS auth_rate_limits (
-            client_hash TEXT NOT NULL,
-            action TEXT NOT NULL,
-            window_start INTEGER NOT NULL,
-            request_count INTEGER NOT NULL,
-            PRIMARY KEY(client_hash, action, window_start)
-        );
-        """
-    )
+    db.executescript(_SCHEMA_SQL)
     return db
 
 
+_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS accounts (
+    id TEXT PRIMARY KEY,
+    google_sub TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
+    google_name TEXT NOT NULL,
+    picture_url TEXT,
+    username TEXT,
+    username_key TEXT UNIQUE,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS challenges (
+    id_hash TEXT PRIMARY KEY,
+    nonce_hash TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS auth_codes (
+    code_hash TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    challenge_id_hash TEXT NOT NULL,
+    code_challenge TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sessions_account_id ON sessions(account_id);
+CREATE TABLE IF NOT EXISTS auth_rate_limits (
+    client_hash TEXT NOT NULL,
+    action TEXT NOT NULL,
+    window_start INTEGER NOT NULL,
+    request_count INTEGER NOT NULL,
+    PRIMARY KEY(client_hash, action, window_start)
+);
+"""
+
+
+def _ensure_postgres_schema(db: _PostgresConnection) -> None:
+    global _POSTGRES_SCHEMA_READY
+    if _POSTGRES_SCHEMA_READY:
+        return
+    with _POSTGRES_SCHEMA_LOCK:
+        if not _POSTGRES_SCHEMA_READY:
+            db.executescript(_SCHEMA_SQL)
+            _POSTGRES_SCHEMA_READY = True
+
+
 @contextmanager
-def _connection() -> Iterator[sqlite3.Connection]:
+def _connection() -> Iterator[sqlite3.Connection | _PostgresConnection]:
     db = _database()
     try:
         yield db
@@ -124,7 +189,7 @@ def _digest(value: str) -> str:
     return hmac.new(secret, value.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def _profile(row: sqlite3.Row) -> dict[str, object]:
+def _profile(row: Mapping[str, Any]) -> dict[str, object]:
     return {
         "email": row["email"],
         "google_name": row["google_name"],
@@ -135,15 +200,21 @@ def _profile(row: sqlite3.Row) -> dict[str, object]:
 
 
 def _client_address(request: Request) -> str:
-    forwarded = request.headers.get("cf-connecting-ip", "").strip()
-    try:
-        return ipaddress.ip_address(forwarded).compressed
-    except ValueError:
-        remote = request.client.host if request.client else "unknown"
+    if request.headers.get("x-vercel-id"):
+        forwarded = (request.headers.get("x-vercel-forwarded-for")
+                     or request.headers.get("x-forwarded-for", "")).strip()
+    else:
+        forwarded = request.headers.get("cf-connecting-ip", "").strip()
+    for candidate in forwarded.split(","):
         try:
-            return ipaddress.ip_address(remote).compressed
+            return ipaddress.ip_address(candidate.strip()).compressed
         except ValueError:
-            return remote[:255]
+            continue
+    remote = request.client.host if request.client else "unknown"
+    try:
+        return ipaddress.ip_address(remote).compressed
+    except ValueError:
+        return remote[:255]
 
 
 def _enforce_auth_rate_limit(request: Request, action: str) -> None:
@@ -224,7 +295,7 @@ def _safe_picture(value: object) -> str | None:
         return None
 
 
-def _account_for_token(authorization: str | None = Header(default=None)) -> sqlite3.Row:
+def _account_for_token(authorization: str | None = Header(default=None)) -> Mapping[str, Any]:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Sign in to your Kova account.")
     token = authorization.removeprefix("Bearer ").strip()
@@ -313,7 +384,7 @@ def sign_in_google(payload: GoogleLogin, request: Request) -> dict[str, object]:
             )
             account = db.execute("SELECT * FROM accounts WHERE google_sub=?", (sub,)).fetchone()
             db.commit()
-        except sqlite3.IntegrityError as exc:
+        except (sqlite3.IntegrityError, psycopg.IntegrityError) as exc:
             db.rollback()
             raise HTTPException(409, "Could not create the Kova account session.") from exc
     code = secrets.token_urlsafe(48)
@@ -353,12 +424,12 @@ def exchange_code(payload: CodeExchange, request: Request) -> dict[str, object]:
 
 
 @app.get("/v1/me")
-def get_me(account: sqlite3.Row = Account) -> dict[str, object]:
+def get_me(account: Mapping[str, Any] = Account) -> dict[str, object]:
     return {"profile": _profile(account)}
 
 
 @app.put("/v1/me/username")
-def set_username(payload: UsernameUpdate, account: sqlite3.Row = Account) -> dict[str, object]:
+def set_username(payload: UsernameUpdate, account: Mapping[str, Any] = Account) -> dict[str, object]:
     username = payload.username.strip()
     if not USERNAME_RE.fullmatch(username) or username.lower() in RESERVED_USERNAMES:
         raise HTTPException(422, "Use 3-24 letters, numbers, or underscores for your username.")
@@ -369,7 +440,7 @@ def set_username(payload: UsernameUpdate, account: sqlite3.Row = Account) -> dic
                 "UPDATE accounts SET username=?,username_key=?,updated_at=? WHERE id=?",
                 (username, username.lower(), now, account["id"]),
             )
-        except sqlite3.IntegrityError as exc:
+        except (sqlite3.IntegrityError, psycopg.IntegrityError) as exc:
             raise HTTPException(409, "That username is already taken.") from exc
         updated = db.execute("SELECT * FROM accounts WHERE id=?", (account["id"],)).fetchone()
     return {"profile": _profile(updated)}
@@ -386,7 +457,7 @@ def revoke_session(response: Response, authorization: str | None = Header(defaul
 
 
 @app.delete("/v1/me", status_code=204)
-def delete_account(account: sqlite3.Row = Account) -> Response:
+def delete_account(account: Mapping[str, Any] = Account) -> Response:
     with _connection() as db:
         db.execute("BEGIN IMMEDIATE")
         db.execute("DELETE FROM auth_codes WHERE account_id=?", (account["id"],))

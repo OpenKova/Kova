@@ -7,22 +7,22 @@ agent profiles, provider credentials, Gmail data, or gateway secrets.
 ## Local development
 
 Run `uvicorn app:app --app-dir services/kova-account --host 127.0.0.1 --port 8787`.
+For local development, the service uses SQLite at `DATABASE_PATH` by default.
+To use Supabase Postgres, set `DATABASE_URL` to the project's pooled Postgres
+connection string. `DATABASE_URL` takes precedence over `DATABASE_PATH`.
 Configure `GOOGLE_CLIENT_ID` with the same Google OAuth Desktop client ID used
-by Kova Desktop, `KOVA_ACCOUNT_SESSION_PEPPER` with a random deployment secret,
-and `DATABASE_PATH` with a persistent SQLite file path. Generate a session
-pepper with at least 32 bytes. Do not expose the
-development server to the network. Production requires HTTPS, a persistent
-database volume with backups, and a trusted reverse proxy. The API applies
+by Kova Desktop, and `KOVA_ACCOUNT_SESSION_PEPPER` with a random deployment
+secret of at least 32 bytes. Do not expose the development server to the
+network. Production requires HTTPS and a trusted reverse proxy. The API applies
 per-client limits to sign-in endpoints; the reverse proxy must supply a
-verified `CF-Connecting-IP` header (Render does this at its public edge).
+verified `CF-Connecting-IP` header.
 
 Build the container from the repository root with
-`docker build -f services/kova-account/Dockerfile -t kova-account .`. Mount a
-persistent volume at `/data`, configure `DATABASE_PATH=/data/accounts.sqlite3`,
-configure both `GOOGLE_CLIENT_ID` and `KOVA_ACCOUNT_SESSION_PEPPER`, and publish
-it only behind the HTTPS reverse proxy. The service itself does not terminate
-TLS. Keep SQLite on a single service instance with durable backups; migrate to
-a shared transactional database before running multiple service instances.
+`docker build -f services/kova-account/Dockerfile -t kova-account .`. Configure
+`DATABASE_URL`, `GOOGLE_CLIENT_ID`, and `KOVA_ACCOUNT_SESSION_PEPPER`, then
+publish it only behind the HTTPS reverse proxy. Keep `DATABASE_URL` and the
+session pepper in server-side environment variables; never put them in the
+Desktop build or commit them to the repository.
 
 ## API
 
@@ -43,20 +43,15 @@ Google tokens are never stored. The stable Google `sub` is the identity key;
 email is a mutable contact field. Kova session tokens are random and stored
 server-side only as keyed digests.
 
-## Deployment configuration still required
+## Deployment configuration
 
 `GOOGLE_CLIENT_ID` is public app configuration, not a secret. The Desktop
 client ID is currently set in `apps/desktop/electron/kova-account-config.ts`;
 set the same value in the service environment.
 `KOVA_ACCOUNT_SESSION_PEPPER` is a deployment secret shared by service
-instances. The Kova website can front the hosted service at
-`https://kova-agent.neuralstudio.in/api/account`: configure the website's
-Vercel `KOVA_ACCOUNT_API_ORIGIN` environment variable with this service's HTTPS
-origin. Its Next.js rewrite removes `/api/account` and forwards the remaining
-path to this service. Then build Desktop with
-`KOVA_ACCOUNT_SERVICE_URL=https://kova-agent.neuralstudio.in/api/account`; the
-public URL is embedded in the Electron main bundle. Leave the Desktop URL unset
-for builds that should not show account sign-in. The backend host still needs
-to be deployed and `/ready` must succeed before enabling account sign-in.
+instances. Set Desktop's `KOVA_ACCOUNT_SERVICE_URL` to the account API's HTTPS
+URL; it is embedded in the Electron main bundle. Leave it unset for builds
+that should not show account sign-in. Deploy the service and confirm `/ready`
+succeeds before enabling sign-in in a Desktop release.
 
-For the Render Blueprint and website proxy steps, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+For the Vercel and Supabase deployment steps, see [DEPLOYMENT.md](./DEPLOYMENT.md).
