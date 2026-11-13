@@ -18,7 +18,7 @@ try {
     $shell = (Get-Process -Id $PID).Path
     $testArgs = @()
     if ($TestExtras) { $testArgs = @('-TestExtras', $TestExtras) }
-    & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$repo\setup-hermes.ps1" -RuntimeOnly @testArgs | Out-Host
+    & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$repo\setup-kova.ps1" -RuntimeOnly @testArgs | Out-Host
     if ($LASTEXITCODE -ne 0) { throw 'activate: setup failed; shell environment unchanged' }
 } finally {
     foreach ($key in $bootstrapSaved.Keys) {
@@ -33,7 +33,7 @@ foreach ($candidate in @("$repo\.venv\Scripts\python.exe", "$repo\venv\Scripts\p
 }
 if (-not $py) {
     $roots = @($env:KOVA_RUNTIME_DIR, "$repo\..\tools")
-    $homeRoot = if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\hermes" }
+    $homeRoot = if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\kova" }
     $roots += (Join-Path $homeRoot 'tools')
     foreach ($root in $roots) {
         if (-not $root) { continue }
@@ -44,7 +44,7 @@ if (-not $py) {
         if ($py) { break }
     }
 }
-if (-not $py) { throw 'activate: no bootstrap Python found; run setup-hermes.ps1' }
+if (-not $py) { throw 'activate: no bootstrap Python found; run setup-kova.ps1' }
 $priorPath = $env:PYTHONPATH
 $priorHome = $env:PYTHONHOME
 try {
@@ -56,6 +56,20 @@ try {
 } finally {
     if ($null -eq $priorPath) { Remove-Item env:PYTHONPATH -ErrorAction SilentlyContinue } else { $env:PYTHONPATH = $priorPath }
     if ($null -eq $priorHome) { Remove-Item env:PYTHONHOME -ErrorAction SilentlyContinue } else { $env:PYTHONHOME = $priorHome }
+}
+# Source-backed Desktop runs must use PM's selected venv rather than a stale
+# checkout .venv that may belong to an older Python/SQLite runtime.
+if (-not $env:KOVA_DESKTOP_PYTHON -and $composed.PYTHONPATH) {
+    $sitePackages = $composed.PYTHONPATH -split [System.IO.Path]::PathSeparator |
+        Where-Object { $_ -match '[\\/]venv[\\/]Lib[\\/]site-packages$' } |
+        Select-Object -First 1
+    if ($sitePackages) {
+        $pmVenv = Split-Path (Split-Path $sitePackages -Parent) -Parent
+        $pmPython = Join-Path $pmVenv 'Scripts\python.exe'
+        if (Test-Path -LiteralPath $pmPython) {
+            $composed | Add-Member -NotePropertyName KOVA_DESKTOP_PYTHON -NotePropertyValue $pmPython -Force
+        }
+    }
 }
 # __KOVA_ACTIVATED (the sentinel repo scripts and the shebang prologue read)
 # is part of the composed env, so it is saved and restored with the rest.
