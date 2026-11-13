@@ -764,7 +764,7 @@
     },
     {
       "name": "diagnostics.share_nous",
-      "summary": "Upload a force-redacted debug bundle to Nous-internal diagnostics storage.",
+      "summary": "Upload a force-redacted debug bundle to Kova storage after explicit user consent.",
       "params": [
         {
           "name": "params",

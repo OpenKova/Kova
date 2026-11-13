@@ -507,7 +507,7 @@ def _safe_client_label(label: str) -> str:
 
 @method("diagnostics.share_nous")
 def _(rid, params: dict) -> dict:
-    """Upload a redacted debug bundle to Nous-internal diagnostics storage — same collection +
+    """Upload a redacted debug bundle to Kova diagnostics storage — same collection +
     force-redaction pipeline as ``kova debug share --nous``; redaction is NOT client-controllable
     and consent lives with the CALLER (privacy notice first). Structured ``ok``/``error`` envelope so
     upload failures render inline. Optional: ``error_context`` (-> ``error-context.txt``),
@@ -516,8 +516,8 @@ def _(rid, params: dict) -> dict:
     from kova_cli.debug_redaction import redact_debug_support_text
 
     try:
-        from kova_cli.debug import build_nous_bundle, collect_share_bundle
-        from kova_cli.diagnostics_upload import share_to_nous
+        from kova_cli.debug import build_kova_bundle, collect_share_bundle
+        from kova_cli.diagnostics_upload import share_to_kova
         log_lines = params.get("log_lines")
         if not isinstance(log_lines, int) or not (10 <= log_lines <= 2000):
             log_lines = 200
@@ -532,9 +532,9 @@ def _(rid, params: dict) -> dict:
             safe_label = _safe_client_label(label) if isinstance(label, str) else ""
             if safe_label and isinstance(text, str) and text.strip():
                 bundle[f"client/{safe_label}"] = _redact_client_text(text, 524_288)
-        res = share_to_nous(build_nous_bundle(bundle, redact=True))
-        view_url = res.get("viewUrl") or res.get("view_url")
-        upload_id = res.get("id")
+        res = share_to_kova(build_kova_bundle(bundle, redact=True))
+        view_url = res.get("view_url")
+        upload_id = res.get("upload_id")
         if not view_url and not upload_id:  # an upload the user can't reference is useless to support
             return _ok(rid, {"ok": False, "error": "upload succeeded but returned no view URL or id"})
         return _ok(rid, {"ok": True, "view_url": view_url, "upload_id": upload_id,

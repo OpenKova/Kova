@@ -1,7 +1,7 @@
 """Contracts: config, setup readiness, free tier, model inventory, connectors, diagnostics,
 image generation and structured session control.
 
-Handlers: ``tui_gateway/methods_config.py`` (``config.get``, ``setup.*``, ``diagnostics.share_nous``),
+Handlers: ``tui_gateway/methods_config.py`` (``config.get``, ``setup.*``, legacy ``diagnostics.share_nous``),
 ``methods_config_set.py`` (``config.set``), ``methods_free_tier.py``, ``methods_shared_metrics.py``,
 ``methods_complete.py``
 (``model.options``), ``methods_connectors.py``, ``methods_images.py``, ``methods_session_control.py``
@@ -151,7 +151,7 @@ method("setup.runtime_check", params=SetupRuntimeCheckParams, result=SetupRuntim
        doc="Strict provider check through the same runtime resolution the agent uses on session creation.")
 
 
-# ── diagnostics.share_nous ────────────────────────────────────────────────────────────────────
+# ── diagnostics.share_nous (legacy RPC name; uploads to Kova) ─────────────────────────────────
 
 
 class DiagnosticsShareNousParams(Params):
@@ -171,7 +171,7 @@ class DiagnosticsShareNousResult(Result):
 
 
 method("diagnostics.share_nous", params=DiagnosticsShareNousParams, result=DiagnosticsShareNousResult,
-       doc="Upload a force-redacted debug bundle to Nous-internal diagnostics storage.")
+       doc="Upload a force-redacted debug bundle to Kova storage after explicit user consent.")
 
 
 # ── free tier ─────────────────────────────────────────────────────────────────────────────────

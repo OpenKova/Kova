@@ -2,7 +2,9 @@
 
 First-party identity/profile service for Kova Desktop. It stores the Google
 identity, unique username, and revocable Kova sessions. It does not store chats,
-agent profiles, provider credentials, Gmail data, or gateway secrets.
+agent profiles, provider credentials, Gmail data, or gateway secrets. With
+opt-in, it stores bounded shared-metrics packages for 90 days and diagnostics
+bundles submitted by the user for 14 days.
 
 ## Local development
 
@@ -44,6 +46,27 @@ Desktop build or commit them to the repository.
 - `PUT /v1/me/username` — claim or change a globally unique username.
 - `DELETE /v1/auth/session` — revoke the current session.
 - `DELETE /v1/me` — delete the account and its sessions.
+- `POST /v1/telemetry` — accept an opt-in aggregate metrics package. The
+  installation identifier is stored only as a keyed digest alongside the
+  package.
+- `POST /v1/diagnostics` — accept a gzip support bundle after the user
+  explicitly confirms the upload; return a private, unguessable link.
+- `GET /v1/diagnostics/{token}` — download that bundle until its 14-day expiry.
+
+## Telemetry and diagnostics
+
+Shared metrics are sent only after opt-in. The API accepts the existing
+aggregate package format, hashes the random installation identifier with the
+server pepper, removes the original identifier before storage, and expires
+packages after 90 days. The contract excludes prompts, file contents, paths,
+setting values, and raw error text.
+
+Crash reporting remains local by default. A renderer crash contributes only
+its coarse category to shared metrics when that profile has opted in. Full logs
+are sent only after the user confirms a diagnostics upload; the link is a
+bearer link, so anyone receiving it can download the gzip bundle until it
+expires after 14 days. The API rate-limits these public ingestion routes and
+the daily Vercel cron removes expired data.
 
 Google tokens are never stored. The stable Google `sub` is the identity key;
 email is a mutable contact field. Kova session tokens are random and stored
@@ -61,3 +84,6 @@ that should not show account sign-in. Deploy the service and confirm `/ready`
 succeeds before enabling sign-in in a Desktop release.
 
 For the Vercel and Supabase deployment steps, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+Shared metrics and support bundles use https://telemetry.neuralstudio.in.
+Set PUBLIC_BASE_URL to that exact origin in Vercel so uploaded support bundles
+return links on the custom domain.

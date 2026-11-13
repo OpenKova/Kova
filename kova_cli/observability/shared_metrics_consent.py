@@ -26,16 +26,16 @@ logger = logging.getLogger(__name__)
 
 # (label, enabled, send): the offer's two answers, in the order every surface shows them.
 OFFER_CHOICES = (
-    ("Share with Neural Studio", True, True),
+    ("Share with Kova", True, True),
     ("No thanks", False, False),
 )
 _NO_THANKS = len(OFFER_CHOICES) - 1
-DOCS_URL = "https://kova-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics"
+DOCS_URL = "https://github.com/OpenKova/Kova/blob/main/services/kova-account/README.md#telemetry-and-diagnostics"
 _OFFER_DESCRIPTION = "\n".join((
     "Shared metrics are bounded counters: activity, outcomes, error classes (with a",
     "fixed-list reason when a memory write, compression, update or install fails),",
     "model routes, token totals, feature use and coarse machine facts. Never prompts,",
-    "files, paths, setting values or error text. Sharing sends them to Nous once a",
+    "files, paths, setting values or error text. Sharing sends them to Kova once a",
     "day. Apart from a one-time install note, data from before you opt in is never",
     "sent.",
     f"Details: {DOCS_URL}",
@@ -142,7 +142,7 @@ def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
         return False
     _, enabled, send = OFFER_CHOICES[idx]
     save_consent(enabled, send, config)
-    outcome = "sent to Nous once a day" if send else "off"
+    outcome = "sent to Kova once a day" if send else "off"
     print_success(f"Shared metrics {outcome}. Change it any time with `kova setup telemetry`.")
     return True
 

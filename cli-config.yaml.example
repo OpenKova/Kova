@@ -2252,7 +2252,7 @@ telemetry:
   shared_metrics:
     enabled: false
     send: false
-    # endpoint: https://telemetry.nousresearch.com/v1/telemetry
+    # endpoint: https://telemetry.neuralstudio.in/v1/telemetry
 
 
 # =============================================================================

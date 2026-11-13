@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import io
 import ipaddress
 import base64
+import gzip
 import json
 import os
 import re
@@ -13,6 +15,7 @@ import secrets
 import sqlite3
 import threading
 import time
+import zlib
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping
@@ -34,6 +37,9 @@ CHALLENGE_TTL_SECONDS = 300
 SESSION_TTL_SECONDS = 60 * 60 * 24 * 30
 AUTH_RATE_WINDOW_SECONDS = 60
 AUTH_RATE_LIMITS = {"challenge": 15, "google": 10, "google_native": 10, "exchange": 10}
+TELEMETRY_MAX_BYTES = 1_048_576
+DIAGNOSTICS_MAX_BYTES = 4_000_000
+DIAGNOSTICS_RETENTION_SECONDS = 14 * 24 * 60 * 60
 
 
 def _database_path() -> Path:
@@ -164,6 +170,20 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS sessions_account_id ON sessions(account_id);
+CREATE TABLE IF NOT EXISTS shared_metrics_packages (
+    package_id TEXT PRIMARY KEY,
+    install_hash TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    received_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS shared_metrics_received_at ON shared_metrics_packages(received_at);
+CREATE TABLE IF NOT EXISTS diagnostics_bundles (
+    token_hash TEXT PRIMARY KEY,
+    bundle BYTEA NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS diagnostics_expires_at ON diagnostics_bundles(expires_at);
 CREATE TABLE IF NOT EXISTS auth_rate_limits (
     client_hash TEXT NOT NULL,
     action TEXT NOT NULL,
@@ -255,6 +275,50 @@ def _enforce_auth_rate_limit(request: Request, action: str) -> None:
             "Too many sign-in attempts. Wait before trying again.",
             headers={"Retry-After": str(retry_after)},
         )
+
+
+def _enforce_ingest_rate_limit(request: Request, action: str, limit: int) -> None:
+    """Bound public, data-only ingestion by a keyed digest of the source address."""
+    now = int(time.time())
+    window_start = now - now % AUTH_RATE_WINDOW_SECONDS
+    client_hash = _digest(f"ingest:{action}:{_client_address(request)}")
+    with _connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute("DELETE FROM auth_rate_limits WHERE window_start<?", (window_start - 3600,))
+        increment = "request_count=request_count+1"
+        if isinstance(db, _PostgresConnection):
+            increment = "request_count=auth_rate_limits.request_count+1"
+        row = db.execute(
+            "INSERT INTO auth_rate_limits(client_hash,action,window_start,request_count) VALUES(?,?,?,1) "
+            f"ON CONFLICT(client_hash,action,window_start) DO UPDATE SET {increment} RETURNING request_count",
+            (client_hash, action, window_start),
+        ).fetchone()
+        db.commit()
+    if row["request_count"] > limit:
+        raise HTTPException(429, "Too many uploads. Try again shortly.",
+                            headers={"Retry-After": str(window_start + AUTH_RATE_WINDOW_SECONDS - now)})
+
+
+async def _bounded_body(request: Request, maximum: int) -> bytes:
+    """Read a request body only up to the route's explicit transport limit."""
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > maximum:
+            raise HTTPException(413, "Upload exceeds the size limit.")
+    return bytes(body)
+
+
+def _gunzip_bounded(body: bytes, maximum: int) -> bytes:
+    """Decompress gzip without allowing a small body to expand without a bound."""
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(body)) as stream:
+            decoded = stream.read(maximum + 1)
+    except (OSError, EOFError, zlib.error) as exc:
+        raise HTTPException(400, "Upload is not valid gzip data.") from exc
+    if len(decoded) > maximum:
+        raise HTTPException(413, "Uncompressed upload exceeds the size limit.")
+    return decoded
 
 
 def _google_claims(encoded: str, nonce: str) -> dict[str, object]:
@@ -400,6 +464,135 @@ def ready() -> dict[str, str]:
     with _connection() as db:
         db.execute("SELECT 1").fetchone()
     return {"status": "ready"}
+
+
+@app.post("/v1/telemetry", status_code=202)
+async def ingest_shared_metrics(request: Request) -> dict[str, bool]:
+    """Durably accept only bounded, opt-in aggregate metrics packages."""
+    _enforce_ingest_rate_limit(request, "metrics", 60)
+    body = await _bounded_body(request, TELEMETRY_MAX_BYTES)
+    if request.headers.get("content-encoding", "").lower() == "gzip":
+        body = _gunzip_bounded(body, TELEMETRY_MAX_BYTES)
+    try:
+        payload = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, "Metrics package is not valid JSON.") from exc
+    if not isinstance(payload, dict):
+        raise HTTPException(400, "Metrics package must be a JSON object.")
+    package_id, install_id = payload.get("package_id"), payload.get("install_id")
+    if not isinstance(package_id, str) or not re.fullmatch(
+            r"[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+            package_id, re.IGNORECASE):
+        raise HTTPException(400, "Metrics package identifier is invalid.")
+    if not isinstance(install_id, str) or not 1 <= len(install_id) <= 128:
+        raise HTTPException(400, "Metrics installation identifier is invalid.")
+    if payload.get("schema_version") != "hermes.shared_metrics.v4":
+        raise HTTPException(400, "Metrics package schema is unsupported.")
+    resource = payload.get("resource")
+    metrics = payload.get("metrics")
+    if (not isinstance(resource, dict) or set(resource) != {
+            "hermes_version", "os_family", "architecture", "install_method"}
+            or any(not isinstance(value, str) or not value or len(value) > 256
+                   for value in resource.values())):
+        raise HTTPException(400, "Metrics package resource is invalid.")
+    if not isinstance(metrics, list) or not 1 <= len(metrics) <= 1024:
+        raise HTTPException(400, "Metrics package measurements are invalid.")
+    for metric in metrics:
+        dimensions = metric.get("dimensions") if isinstance(metric, dict) else None
+        if (not isinstance(metric, dict) or set(metric) != {"name", "type", "dimensions", "value"}
+                or not isinstance(metric.get("name"), str) or len(metric["name"]) > 160
+                or metric.get("type") != "counter" or not isinstance(dimensions, dict)
+                or len(dimensions) > 32
+                or any(not isinstance(key, str) or len(key) > 80
+                       or not isinstance(value, (str, int, float, bool))
+                       or isinstance(value, str) and len(value) > 256
+                       for key, value in dimensions.items())
+                or isinstance(metric.get("value"), bool)
+                or not isinstance(metric.get("value"), int) or metric["value"] < 0):
+            raise HTTPException(400, "Metrics package contains an invalid measurement.")
+    expected_fields = {
+        "schema_version", "package_id", "install_id", "period_start", "period_end",
+        "generated_at", "resource", "metrics",
+    }
+    if set(payload) != expected_fields or any(
+            not isinstance(payload.get(key), str) or len(payload[key]) > 64
+            for key in ("period_start", "period_end", "generated_at")):
+        raise HTTPException(400, "Metrics package fields are invalid.")
+    payload.pop("install_id", None)
+    serialized = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    now = int(time.time())
+    with _connection() as db:
+        db.execute(
+            "INSERT INTO shared_metrics_packages(package_id,install_hash,payload_json,received_at) "
+            "VALUES(?,?,?,?) ON CONFLICT(package_id) DO NOTHING",
+            (package_id, _digest(f"metrics-install:{install_id}"), serialized, now),
+        )
+        db.execute("DELETE FROM shared_metrics_packages WHERE received_at<?", (now - 90 * 86400,))
+    return {"accepted": True}
+
+
+@app.post("/v1/diagnostics", status_code=201)
+async def ingest_diagnostics(request: Request) -> dict[str, object]:
+    """Store an explicitly user-approved, redacted gzip bundle behind a bearer link."""
+    _enforce_ingest_rate_limit(request, "diagnostics", 4)
+    if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/gzip":
+        raise HTTPException(415, "Diagnostics must be sent as a gzip bundle.")
+    bundle = await _bounded_body(request, DIAGNOSTICS_MAX_BYTES)
+    if not bundle.startswith(b"\x1f\x8b"):
+        raise HTTPException(400, "Diagnostics bundle is not valid gzip data.")
+    _gunzip_bounded(bundle, DIAGNOSTICS_MAX_BYTES)
+    now = int(time.time())
+    expires = now + DIAGNOSTICS_RETENTION_SECONDS
+    token = secrets.token_urlsafe(32)
+    token_hash = _digest(f"diagnostics:{token}")
+    with _connection() as db:
+        db.execute("DELETE FROM diagnostics_bundles WHERE expires_at<=?", (now,))
+        db.execute(
+            "INSERT INTO diagnostics_bundles(token_hash,bundle,created_at,expires_at) VALUES(?,?,?,?)",
+            (token_hash, bundle, now, expires),
+        )
+    base = os.environ.get("PUBLIC_BASE_URL", "https://telemetry.neuralstudio.in").rstrip("/")
+    expires_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(expires))
+    return {
+        "upload_id": token[:12],
+        "view_url": f"{base}/v1/diagnostics/{token}",
+        "expires_at": expires_iso,
+    }
+
+
+@app.get("/v1/diagnostics/{token}")
+def read_diagnostics(token: str) -> Response:
+    """Download a diagnostics bundle with its unguessable, expiring bearer link."""
+    if len(token) < 40 or len(token) > 64:
+        raise HTTPException(404, "Diagnostics bundle not found or expired.")
+    with _connection() as db:
+        row = db.execute(
+            "SELECT bundle FROM diagnostics_bundles WHERE token_hash=? AND expires_at>?",
+            (_digest(f"diagnostics:{token}"), int(time.time())),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(404, "Diagnostics bundle not found or expired.")
+    return Response(bytes(row["bundle"]), media_type="application/gzip",
+                    headers={"Content-Disposition": 'attachment; filename="kova-diagnostics.gz"',
+                             "Cache-Control": "private, no-store"})
+
+
+@app.get("/v1/internal/cleanup")
+def cleanup_expired_data(request: Request) -> dict[str, int]:
+    """Vercel cron retention sweep for metrics and uploaded support bundles."""
+    expected = os.environ.get("CRON_SECRET", "").strip()
+    authorization = request.headers.get("authorization", "")
+    if not expected or not hmac.compare_digest(authorization, f"Bearer {expected}"):
+        raise HTTPException(401, "Unauthorized.")
+    now = int(time.time())
+    with _connection() as db:
+        bundles = db.execute(
+            "DELETE FROM diagnostics_bundles WHERE expires_at<=?", (now,)
+        ).rowcount
+        metrics = db.execute(
+            "DELETE FROM shared_metrics_packages WHERE received_at<?", (now - 90 * 86400,)
+        ).rowcount
+    return {"diagnostics_deleted": bundles, "metrics_deleted": metrics}
 
 
 @app.post("/v1/auth/challenge")

@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 #: environment variable: AGENTS.md reserves KOVA_* for secrets, and an inherited variable
 #: could silently redirect consented metrics to any host with nothing visible in config.
 #: Tests and the staging E2E write this key into a throwaway profile instead.
-DEFAULT_ENDPOINT = "https://telemetry.nousresearch.com/v1/telemetry"
+DEFAULT_ENDPOINT = "https://telemetry.neuralstudio.in/v1/telemetry"
+LEGACY_NOUS_ENDPOINT = "https://telemetry.nousresearch.com/v1/telemetry"
 
 _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "[::1]"})
 
@@ -77,6 +78,10 @@ def resolve_send_config(config: dict | None) -> SendConfig:
     if not isinstance(endpoint, str) or not endpoint.strip():
         endpoint = DEFAULT_ENDPOINT
     endpoint = endpoint.strip()
+    # Existing profiles can carry the former built-in value explicitly in config.yaml.
+    # Move only that default; preserve endpoints a user deliberately customized.
+    if endpoint == LEGACY_NOUS_ENDPOINT:
+        endpoint = DEFAULT_ENDPOINT
 
     if send_requested and not _endpoint_is_safe(endpoint):
         logger.error(

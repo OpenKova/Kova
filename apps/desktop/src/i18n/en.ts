@@ -500,9 +500,9 @@ export const en: Translations = {
   ...enBilling,
 
   sendDiagnostics: {
-    title: 'Send diagnostics to Nous',
+    title: 'Send diagnostics to Kova',
     privacyNotice:
-      'This uploads a debug bundle to Nous-internal storage (not a public paste). It includes system info (OS, versions, provider, which API keys are configured — never the keys themselves) and full agent, gateway, and desktop logs (up to 512 KB each), which likely contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. The bundle is viewable only by Nous staff and allowlisted Discord moderators, and auto-deletes after 14 days.',
+      'This uploads a debug bundle to Kova storage (not a public paste). It includes system info (OS, versions, provider, which API keys are configured — never the keys themselves) and full agent, gateway, and desktop logs (up to 512 KB each), which may contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. Anyone with the private link can view it; it auto-deletes after 14 days.',
     upload: 'Upload',
     uploading: 'Uploading…',
     cancel: 'Cancel',
@@ -511,10 +511,10 @@ export const en: Translations = {
     uploadIdFallback: id => `No view link returned — quote upload ID ${id} to support`,
     doneTitle: 'Diagnostics sent',
     doneDescription:
-      'Your bundle was uploaded privately. Share the link below in your support thread so the team can see your logs.',
+      'Your bundle was uploaded to Kova storage. Share the private link below with Kova support so the team can see your logs.',
     failedTitle: 'Upload failed',
     failedHint:
-      'You can also run `kova debug share --nous` from a terminal, or `kova debug share --local` to print the report without uploading.',
+      'You can also run `kova debug share` from a terminal, or `kova debug share --local` to print the report without uploading.',
     handoffLead: 'Pick up the discussion in:',
     links: {
       github: 'GitHub Issues',
