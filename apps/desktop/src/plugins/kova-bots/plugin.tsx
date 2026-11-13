@@ -24,15 +24,24 @@ import {
   ROUTES_AREA,
   SIDEBAR_NAV_AREA,
   SIDEBAR_PROFILE_GROUP_HEADER_AREA,
-  translateNow
+  SIDEBAR_WORKSPACE_AREA,
+  translateNow,
+  useValue
 } from '@kova/plugin-sdk'
-import type { ChatEmptyProps, PluginContext, ProfileGroupRoute, SidebarNavContribution } from '@kova/plugin-sdk'
-import { useEffect } from 'react'
+import type {
+  ChatEmptyProps,
+  PluginContext,
+  ProfileGroupRoute,
+  SidebarNavContribution,
+  SidebarWorkspaceContribution
+} from '@kova/plugin-sdk'
+import { useEffect, useState } from 'react'
 
 import { startFaceClock, stopFaceClock } from './avatar'
 import {
   $botChatFocused,
   $botsPaneVisible,
+  $botsSidebarVisible,
   $focusedBotOwner,
   $openBotChat,
   $selectedBot,
@@ -49,12 +58,14 @@ import {
   botHandle,
   botMentionTag,
   botSelectionKey,
+  botSourceStatus,
   cachedUnionRoster,
   claimDefaultHandles,
   isActiveRosterBot,
   migrateBotMeta,
   primeRoster,
-  resolveRosterMentions
+  resolveRosterMentions,
+  useRoster
 } from './data'
 import {
   $groupChats,
@@ -75,10 +86,11 @@ import { annotateOrphanedGroupChatMembers } from './hygiene'
 import { BOTS_LOCALES } from './i18n'
 import { displayName } from './labels'
 import { startBotRelay, stopBotRelay } from './relay'
-import { $activityToasts } from './roster-actions'
+import { $activityToasts, openRosterBot } from './roster-actions'
 import {
   botChatOwnsWorkspace,
   BotsPane,
+  BotsSidebar,
   releaseStaleOpenBotChat,
   selectedRosterBot,
   sessionOwnsWorkspace
@@ -92,11 +104,35 @@ import type { GroupChat, RosterRow } from './types'
 import { loadBotSections } from './user-sections'
 
 function BotsRoute() {
+  const { data } = useRoster()
+  const selectedKey = useValue($selectedRosterKey)
+  const selectionHydrated = useValue($selectedRosterHydrated)
+  const [openRequested, setOpenRequested] = useState(false)
+
   useEffect(() => {
     $botsPaneVisible.set(true)
 
     return () => $botsPaneVisible.set(false)
   }, [])
+
+  // Entering Bot Mode is an explicit request to go to its active conversation.
+  // The row remains the authority: this only opens a bot from a roster answer,
+  // and never creates a synthetic roster entry when none exists.
+  useEffect(() => {
+    if (openRequested || !selectionHydrated || !Array.isArray(data?.profiles) || !data.profiles.length) {
+      return
+    }
+
+    const selected = selectedRosterBot(data.profiles, selectedKey)
+    const target = selected || data.profiles.find(bot => botSourceStatus(bot).available)
+
+    if (!target) {
+      return
+    }
+
+    setOpenRequested(true)
+    void openRosterBot(target)
+  }, [data, openRequested, selectedKey, selectionHydrated])
 
   return <BotsPane />
 }
@@ -471,6 +507,12 @@ export default {
           path: '/bots',
           placement: 'bottom'
         } satisfies SidebarNavContribution
+      },
+      {
+        id: 'bots-workspace-sidebar',
+        area: SIDEBAR_WORKSPACE_AREA,
+        data: { workspaceMode: 'bots' } satisfies SidebarWorkspaceContribution,
+        render: () => <BotsSidebar />
       }
     ])
 
@@ -530,6 +572,13 @@ export default {
       let restoreDismissedOnRegister = true
 
       const syncRoutinesPane = () => {
+        if ($botsSidebarVisible.get() && unregisterRoutines) {
+          unregisterRoutines()
+          unregisterRoutines = null
+
+          return
+        }
+
         if (botChatOwnsWorkspace()) {
           if (!unregisterRoutines) {
             unregisterRoutines = registerRoutinesPane(restoreDismissedOnRegister)
@@ -593,6 +642,7 @@ export default {
       })
 
       const stopGroupSync = $groupChatWorkspace.listen(syncRoutinesPane)
+      const stopBotSidebarSync = $botsSidebarVisible.listen(syncRoutinesPane)
 
       // React on the NEXT tick — a layout notification arrives mid-mutation,
       // and registering/unregistering panes from inside it would re-enter the
@@ -697,6 +747,7 @@ export default {
         ctx.onDispose(() => {
           stopSidebarSync()
           stopGroupSync()
+          stopBotSidebarSync()
           stopFocusSync?.()
           stopReclaimSync?.()
         })

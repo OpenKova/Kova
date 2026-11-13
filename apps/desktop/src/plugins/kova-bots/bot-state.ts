@@ -46,6 +46,8 @@ export const $selectedRosterHydrated = atom(false)
 export const $rosterHydrated = atom(false)
 /** Mirrors host.paneVisibility('kova-bots:pane') — wired in register(). */
 export const $botsPaneVisible = atom(false)
+/** True when the roster is mounted in the app sidebar beside a bot chat. */
+export const $botsSidebarVisible = atom(false)
 /** An explicit open landed: {key, openedRegistryId, openedSessionId}. The
  *  registry id is empty for the legacy newChat draft fallback and for a click
  *  that came back to the bot's already-open tabs (only openedSessionId set — no

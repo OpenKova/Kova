@@ -11,7 +11,12 @@ import {
   Tip
 } from '@kova/plugin-sdk'
 
-import { connectionName, groupSelectionElsewhere, seatableGroupBots, useGroupCapability } from './canonical-group-capabilities'
+import {
+  connectionName,
+  groupSelectionElsewhere,
+  seatableGroupBots,
+  useGroupCapability
+} from './canonical-group-capabilities'
 import { botSourceStatus } from './data'
 import type { useBots } from './i18n'
 import { setActivityToasts } from './roster-actions'
@@ -56,6 +61,7 @@ function NewGroupChatItem({ elsewhereNote, label, onSelect, roster }: NewGroupCh
 
 interface renderRosterToolbarProps {
   b: ReturnType<typeof useBots>
+  compact?: boolean
   activityToasts: boolean
   activeSourceRoster: RosterRow[]
   /** Full roster; New Group Chat seats only `seatableGroupBots` of it. */
@@ -82,6 +88,7 @@ interface renderRosterToolbarProps {
 
 export function renderRosterToolbar({
   b,
+  compact,
   activityToasts,
   activeSourceRoster,
   roster,
@@ -105,22 +112,28 @@ export function renderRosterToolbar({
   return (
     <>
       <div className="flex items-center justify-between gap-2 px-2.5 pt-2.5 pb-1.5">
-        <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
-          Bots
-        </span>
+        {!compact ? (
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
+            Bots
+          </span>
+        ) : (
+          <span className="sr-only">Bots</span>
+        )}
         <div className="flex items-center gap-0.5">
-          <Tip
-            label={activityToasts ? 'Activity toasts on — click to silence' : 'Activity toasts off — click to enable'}
-          >
-            <Button
-              className="rounded-md text-(--ui-text-tertiary) hover:text-foreground"
-              onClick={() => setActivityToasts(!activityToasts)}
-              size="icon-xs"
-              variant="ghost"
+          {!compact ? (
+            <Tip
+              label={activityToasts ? 'Activity toasts on — click to silence' : 'Activity toasts off — click to enable'}
             >
-              <Codicon name={activityToasts ? 'bell' : 'bell-slash'} />
-            </Button>
-          </Tip>
+              <Button
+                className="rounded-md text-(--ui-text-tertiary) hover:text-foreground"
+                onClick={() => setActivityToasts(!activityToasts)}
+                size="icon-xs"
+                variant="ghost"
+              >
+                <Codicon name={activityToasts ? 'bell' : 'bell-slash'} />
+              </Button>
+            </Tip>
+          ) : null}
           <DropdownMenu>
             <Tip label="New…">
               <DropdownMenuTrigger asChild>
@@ -155,7 +168,7 @@ export function renderRosterToolbar({
         </div>
       </div>
       {showRosterTools ? (
-        <div className="flex min-w-0 items-center gap-1 px-2.5 pb-1.5">
+        <div className={cn('flex min-w-0 items-center gap-1 px-2.5 pb-1.5', compact && 'pb-2')}>
           {showRosterSearch ? (
             <SearchField
               aria-label={b.roster.search}

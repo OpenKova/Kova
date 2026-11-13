@@ -5,6 +5,7 @@ import { BotRow } from './bot-row'
 import {
   $botChatFocused,
   $botsPaneVisible,
+  $botsSidebarVisible,
   $focusedBotOwner,
   $openBotChat,
   $rosterHydrated,
@@ -44,7 +45,12 @@ import { $showHiddenBots, isBotHidden } from './hidden-bots'
 import { useBots } from './i18n'
 import { $activityToasts } from './roster-actions'
 import { renderRosterContent } from './roster-pane-content'
-import { deriveRosterPresentation, deriveRosterRows, type RosterGroupRow, sortRosterBots } from './roster-pane-derivation'
+import {
+  deriveRosterPresentation,
+  deriveRosterRows,
+  type RosterGroupRow,
+  sortRosterBots
+} from './roster-pane-derivation'
 import { renderRosterDialogs } from './roster-pane-dialogs'
 import { RosterGroupRowView } from './roster-pane-groups'
 import { $lastSources, usePublishRosterSnapshot } from './roster-pane-lifecycle'
@@ -169,7 +175,12 @@ export function sessionOwnsWorkspace(): boolean {
  *  group chat it would describe whichever profile the socket happens to be
  *  homed on. */
 export function botChatOwnsWorkspace(): boolean {
-  return $botsPaneVisible.get() && !$groupChatWorkspace.get() && Boolean($openBotChat.get() || sessionOwnsWorkspace())
+  return (
+    $botsPaneVisible.get() &&
+    !$botsSidebarVisible.get() &&
+    !$groupChatWorkspace.get() &&
+    Boolean($openBotChat.get() || sessionOwnsWorkspace())
+  )
 }
 
 /** An opened bot chat stops owning the center once focus leaves it (closed,
@@ -231,7 +242,7 @@ function useReconcileRosterOwner(
   }, [data, error, selectionHydrated, roster, sourceSnapshot, allMeta])
 }
 
-export function BotsPane() {
+export function BotsPane({ compact = false }: { compact?: boolean } = {}) {
   const { t } = useI18n()
   const b = useBots()
   const { data, error, isLoading, refetch } = useRoster()
@@ -427,7 +438,9 @@ export function BotsPane() {
   const groupChatMembers = groupChatName ? groupChatMemberBots(groupChatName, roster, allMeta) : []
 
   if (shouldRenderGroupChatInPane(groupChatName) && groupChatMembers.length) {
-    return <GroupChatWorkspace group={groupChatName} members={groupChatMembers} origin={groupOpenOrigin(groupChatName)} />
+    return (
+      <GroupChatWorkspace group={groupChatName} members={groupChatMembers} origin={groupOpenOrigin(groupChatName)} />
+    )
   }
 
   const renderBotRow = (bot: RosterRow, keyPrefix = '') => (
@@ -445,29 +458,30 @@ export function BotsPane() {
   // Move up / down reorders Desktop rooms; gateway rooms keep recency order.
   const desktopGroupRows = sortedGroupRows.filter(row => !row.gateway)
 
-  const renderGroupRow = ({ gateway, ...row }: RosterGroupRow) => gateway ? (
-    <CanonicalGroupRow
-      active={groupChatName === gateway.key}
-      key={gateway.key}
-      onOpen={() => openGroupChat(bindGatewayGroupRoom(gateway), 'key')}
-      room={gateway}
-    />
-  ) : (
-    <RosterGroupRowView
-      active={groupChatName === row.name}
-      b={b}
-      group={row.name}
-      groupClarify={groupClarify}
-      groupNeedsYou={groupNeedsYou}
-      groupRooms={groupRooms}
-      key={`group:${row.name}`}
-      members={row.members}
-      onDisband={setDeletingGroup}
-      onNewSection={target => setSectionDialog({ group: target, mode: 'create' })}
-      onOpen={group => openGroupChat(group, 'name')}
-      sortedGroupRows={desktopGroupRows}
-    />
-  )
+  const renderGroupRow = ({ gateway, ...row }: RosterGroupRow) =>
+    gateway ? (
+      <CanonicalGroupRow
+        active={groupChatName === gateway.key}
+        key={gateway.key}
+        onOpen={() => openGroupChat(bindGatewayGroupRoom(gateway), 'key')}
+        room={gateway}
+      />
+    ) : (
+      <RosterGroupRowView
+        active={groupChatName === row.name}
+        b={b}
+        group={row.name}
+        groupClarify={groupClarify}
+        groupNeedsYou={groupNeedsYou}
+        groupRooms={groupRooms}
+        key={`group:${row.name}`}
+        members={row.members}
+        onDisband={setDeletingGroup}
+        onNewSection={target => setSectionDialog({ group: target, mode: 'create' })}
+        onOpen={group => openGroupChat(group, 'name')}
+        sortedGroupRows={desktopGroupRows}
+      />
+    )
 
   const { renderUserSections, renderGatewaySection, renderGroupChatSection, renderHiddenGatewaySection } =
     rosterSectionRenderers({
@@ -489,6 +503,7 @@ export function BotsPane() {
     <div className="flex h-full flex-col">
       {renderRosterToolbar({
         b,
+        compact,
         activityToasts,
         activeSourceRoster,
         roster,
@@ -562,4 +577,19 @@ export function BotsPane() {
       })}
     </div>
   )
+}
+
+/** The Bot list shown beside a canonical bot chat in the global sidebar. */
+export function BotsSidebar() {
+  useEffect(() => {
+    $botsSidebarVisible.set(true)
+    $botsPaneVisible.set(true)
+
+    return () => {
+      $botsSidebarVisible.set(false)
+      $botsPaneVisible.set(false)
+    }
+  }, [])
+
+  return <BotsPane compact />
 }

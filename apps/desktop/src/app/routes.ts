@@ -127,6 +127,17 @@ function isContributedPath(pathname: string): boolean {
 
 export const SIDEBAR_NAV_AREA = 'sidebar.nav'
 
+/**
+ * A feature-owned sidebar surface that replaces the session list while its
+ * workspace mode is active. The workspace main surface still owns the
+ * conversation; this contribution only supplies the adjacent navigation rail.
+ */
+export const SIDEBAR_WORKSPACE_AREA = 'sidebar.workspace'
+
+export interface SidebarWorkspaceContribution {
+  workspaceMode: string
+}
+
 /** Payload of a `sidebar.nav` data contribution. */
 export interface SidebarNavContribution {
   /** Codicon name, e.g. `'project'`. */
