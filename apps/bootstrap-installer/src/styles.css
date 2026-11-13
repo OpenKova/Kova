@@ -1,37 +1,113 @@
-/*
- * Kova Setup — defer entirely to the desktop's styles.css.
- *
- * Rather than re-implement the Kova design system (and inevitably drift
- * from it), we import apps/desktop/src/styles.css wholesale. The desktop
- * is the canonical source of truth for fonts, color tokens, button chrome,
- * scrollbars, layout utilities, and animations. Any change to the
- * Kova look propagates here automatically with no copy-paste maintenance.
- *
- * Path resolution caveats:
- *   - Tailwind v4's `@import` resolves relative to this file. The desktop's
- *     `@source '../../../node_modules/...'` declarations therefore re-resolve
- *     against apps/bootstrap-installer/src/. Since both apps live two levels
- *     deep under the same repo root, `../../../node_modules` lands in the
- *     same place. (Verify if either app ever moves.)
- *   - The desktop's `@font-face url('@nous-research/ui/fonts/...')`
- *     references are package specifiers, which Vite resolves through the
- *     package's exports map, so they find the font from here too.
- *
- * Follows the OS appearance: the installer has no in-app theme switcher, so
- * src/theme.ts tracks the Tauri window theme and toggles `.dark` on
- * <html>. The desktop's runtime applyTheme() normally PAINTS the dark seed
- * colors inline (its imported :root.dark below only flips the per-mode mix
- * knobs + neutral chrome), so we supply the Nous *dark* seeds ourselves in the
- * :root.dark block at the end of this file.
- */
-@import '../../desktop/src/styles.css';
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@import 'tw-shimmer';
 
-/* Installer-only additions: a fade-in animation and a warm radial glow
-   for the welcome screen. Everything else inherits from the desktop. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--kova-background);
+  --color-foreground: var(--kova-foreground);
+  --color-card: var(--kova-card);
+  --color-card-foreground: var(--kova-foreground);
+  --color-muted: var(--kova-muted);
+  --color-muted-foreground: var(--kova-muted-foreground);
+  --color-primary: var(--kova-accent);
+  --color-primary-foreground: var(--kova-accent-foreground);
+  --color-secondary: var(--kova-secondary);
+  --color-secondary-foreground: var(--kova-foreground);
+  --color-accent: var(--kova-hover);
+  --color-accent-foreground: var(--kova-foreground);
+  --color-border: var(--kova-border);
+  --color-input: var(--kova-border);
+  --color-ring: var(--kova-accent);
+  --color-destructive: var(--kova-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-midground: var(--kova-accent);
+  --color-midground-foreground: #ffffff;
+  --font-sans: Inter, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', Consolas, ui-monospace, monospace;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+:root {
+  color-scheme: light;
+  --kova-background: #f5f5f6;
+  --kova-foreground: #171719;
+  --kova-card: #ffffff;
+  --kova-muted: #ededf0;
+  --kova-muted-foreground: #696970;
+  --kova-secondary: #eeeeF1;
+  --kova-hover: #e7e7eb;
+  --kova-border: rgba(20, 20, 24, 0.09);
+  --kova-accent: #5c5fe8;
+  --kova-accent-foreground: #ffffff;
+  --kova-danger: #d83e4e;
+  --ui-bg-tertiary: var(--kova-muted);
+  --ui-text-primary: var(--kova-foreground);
+  --ui-text-secondary: var(--kova-muted-foreground);
+  --ui-text-quaternary: color-mix(in srgb, var(--kova-muted-foreground) 72%, transparent);
+  --stroke-nous: var(--kova-border);
+  --radius-scalar: 1;
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  background: var(--kova-background);
+  color: var(--kova-foreground);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --kova-background: #1a1a1c;
+  --kova-foreground: #f4f4f5;
+  --kova-card: #222224;
+  --kova-muted: #29292c;
+  --kova-muted-foreground: #a1a1aa;
+  --kova-secondary: #29292c;
+  --kova-hover: #323236;
+  --kova-border: rgba(255, 255, 255, 0.075);
+  --kova-accent: #7778f7;
+  --kova-accent-foreground: #ffffff;
+  --kova-danger: #f16471;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--kova-background);
+}
+
+button {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--kova-accent) 30%, transparent);
+}
+
+.kova-fade-in {
+  animation: kova-fade-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
 @keyframes kova-fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -39,49 +115,13 @@
   }
 }
 
-.kova-fade-in {
-  animation: kova-fade-in 0.45s ease-out both;
-}
-
-.kova-glow {
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--ui-warm) 18%, transparent) 0%,
-    transparent 60%
-  );
-}
-
-/*
- * Dark appearance — Nous dark seeds.
- *
- * The imported desktop :root.dark only flips the per-mode mix knobs + neutral
- * chrome; the seed COLORS are normally painted at runtime by the desktop's
- * applyTheme(). The installer has no theme runtime, so we mirror them here from
- * apps/desktop/src/themes/presets.ts (nousTheme.darkColors). The whole
- * --ui-* / --dt-* chain in the imported stylesheet derives from these seeds, so
- * flipping them is enough — we only additionally override the few tokens
- * applyTheme() sets inline that DON'T derive from a seed (primary-foreground on
- * the cream accent, destructive). Unlayered on purpose so it wins over the
- * imported @layer base :root light seeds. Keep in sync with nousTheme.darkColors
- * if that palette is retuned.
- */
-:root.dark {
-  color-scheme: dark;
-
-  --theme-foreground: #ffe6cb;
-  --theme-primary: #ffe6cb;
-  --theme-secondary: #1b45a4;
-  --theme-accent-soft: #1540b1;
-  --theme-midground: #0053fd;
-  --theme-warm: #ffe6cb;
-  --theme-background-seed: #0d2f86;
-  --theme-sidebar-seed: #09286f;
-  --theme-card-seed: #12378f;
-  --theme-elevated-seed: #123a96;
-  --theme-bubble-seed: #143b91;
-
-  /* Non-derived shadcn tokens applyTheme() paints inline (Nous dark values). */
-  --dt-primary-foreground: #0d2f86;
-  --dt-destructive: #c0473a;
-  --dt-destructive-foreground: #fef2f2;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

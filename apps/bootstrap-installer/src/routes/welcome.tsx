@@ -1,48 +1,52 @@
-import { type CSSProperties } from 'react'
+import { ArrowDownToLine, Blocks, Bot, Check } from 'lucide-react'
 
 import { HackeryButton } from '../components/hackery-button'
 import { startInstall } from '../store'
 
-/*
- * Welcome screen.
- *
- * Mirrors the desktop's chat intro (apps/desktop/src/components/chat/intro.tsx):
- *   - KOVA AGENT wordmark rendered in Collapse Bold, uppercase, tracked
- *   - mix-blend-plus-lighter so the type "glows" on the canvas
- *   - fit-text utility so the wordmark sizes itself to the column
- *
- * No install-path footer. The default install location is correct for
- * 99% of users; the rest will use the CLI installer with a -KovaHome
- * flag. Showing %LOCALAPPDATA% to grandma is developer-brain.
- */
+const INCLUDED = [
+  { icon: Bot, label: 'Kova Agent and local gateway' },
+  { icon: Blocks, label: 'Desktop workspace and core tools' },
+  { icon: ArrowDownToLine, label: 'Required runtimes and dependencies' }
+]
+
 export default function Welcome() {
   return (
-    <div className="kova-fade-in flex h-full flex-col items-center justify-center gap-10 px-12 py-10">
-      {/* Hero — same recipe the desktop's chat/intro.tsx uses */}
-      <div className="w-full max-w-2xl min-w-0 text-center">
-        <p
-          className="fit-text mx-auto mb-4 w-full font-['Collapse'] font-bold uppercase leading-[0.9] tracking-[0.08em] text-midground mix-blend-plus-lighter dark:text-foreground/90"
-          style={
-            {
-              '--fit-text-line-height': '0.9',
-              '--fit-text-max': '6rem',
-              '--fit-text-min': '2.5rem'
-            } as CSSProperties
-          }
-        >
-          <span>
-            <span>KOVA AGENT</span>
-          </span>
-          <span aria-hidden="true">KOVA AGENT</span>
-        </p>
+    <div className="kova-fade-in flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-8 py-7 sm:px-12">
+      <div className="grid w-full max-w-5xl items-center gap-12 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
+        <section className="max-w-xl">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your AI workspace</p>
+          <h1 className="max-w-lg text-4xl font-semibold leading-[1.08] tracking-[-0.04em] sm:text-5xl">
+            Kova is ready when you are.
+          </h1>
+          <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">
+            Set up your agent once, then work from the desktop or wherever you already use Kova.
+          </p>
+          <div className="mt-8">
+            <HackeryButton label="Install Kova" onClick={() => void startInstall()} />
+            <p className="mt-3 text-xs text-muted-foreground">
+              First setup can take a few minutes. You&rsquo;ll see each step as it runs.
+            </p>
+          </div>
+        </section>
 
-        <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
-          The agent that grows with you. We&rsquo;ll set things up in the
-          background &mdash; takes a few minutes.
-        </p>
+        <aside className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <p className="text-sm font-semibold">Included in setup</p>
+          <ul className="mt-5 space-y-4">
+            {INCLUDED.map(({ icon: Icon, label }) => (
+              <li className="flex items-start gap-3 text-sm text-muted-foreground" key={label}>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <Icon className="size-4" />
+                </span>
+                <span className="pt-1.5">{label}</span>
+                <Check aria-hidden className="ml-auto mt-1 size-4 shrink-0 text-primary" />
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
+            Your chats, credentials, and settings stay on this device.
+          </div>
+        </aside>
       </div>
-
-      <HackeryButton label="Install" onClick={() => void startInstall()} />
     </div>
   )
 }

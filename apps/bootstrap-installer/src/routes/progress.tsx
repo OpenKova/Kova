@@ -54,8 +54,8 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
   const title = bootstrap.status === 'completed' ? 'Done' : isUpdate ? 'Updating Kova' : 'Setting up Kova Agent'
 
   const description = isUpdate
-    ? 'Kova is updating to the latest version — this only takes a moment.'
-    : 'This is a one-time setup. The Kova installer is downloading dependencies and configuring your machine. Subsequent launches will skip this step.'
+    ? 'Kova is updating its agent and rebuilding the desktop workspace. This can take several minutes on source-based installs.'
+    : 'Kova is downloading and configuring its agent, runtimes, and desktop workspace. This first setup can take several minutes.'
 
   const pct = Math.round(progress.fraction * 100)
 
@@ -127,8 +127,8 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
         </div>
 
         {showLogs && (
-          <div className="flex w-1/2 flex-col border-l border-(--stroke-nous)">
-            <div className="flex shrink-0 items-center justify-between border-b border-(--stroke-nous) px-3 py-2 text-xs">
+          <div className="flex w-1/2 flex-col border-l border-border">
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2 text-xs">
               <span className="font-medium text-foreground/80">Live output</span>
               <span className="tabular-nums text-muted-foreground">{bootstrap.logs.length} lines</span>
             </div>
@@ -150,7 +150,7 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
         )}
       </div>
 
-      <div className="flex shrink-0 items-center justify-between border-t border-(--stroke-nous) px-6 py-3">
+      <div className="flex shrink-0 items-center justify-between border-t border-border px-6 py-3">
         <button
           className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setShowLogs((v) => !v)}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="260" viewBox="0 0 1500 260" role="img" aria-labelledby="title desc">
+  <title id="title">Kova Agent</title>
+  <desc id="desc">Kova Agent — a personal AI workspace by OpenKova</desc>
+  <rect width="1500" height="260" rx="28" fill="#111214"/>
+  <rect x="62" y="70" width="116" height="116" rx="30" fill="#6865ee"/>
+  <rect x="91" y="101" width="58" height="46" rx="16" fill="#111214"/>
+  <circle cx="109" cy="123" r="4" fill="#f5f5f6"/>
+  <circle cx="131" cy="123" r="4" fill="#f5f5f6"/>
+  <text x="222" y="143" fill="#f5f5f6" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="76" font-weight="650" letter-spacing="-3">Kova Agent</text>
+  <text x="228" y="190" fill="#a1a1aa" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="500" letter-spacing="4">A PERSONAL AI WORKSPACE</text>
+  <path d="M1360 76h64M1392 44v64" stroke="#6865ee" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+</svg>

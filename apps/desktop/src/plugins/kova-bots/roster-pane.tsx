@@ -1,4 +1,4 @@
-import { host, useI18n, useValue } from '@kova/plugin-sdk'
+import { Button, Codicon, host, useI18n, useValue } from '@kova/plugin-sdk'
 import { useEffect, useRef, useState } from 'react'
 
 import { BotRow } from './bot-row'
@@ -581,6 +581,8 @@ export function BotsPane({ compact = false }: { compact?: boolean } = {}) {
 
 /** The Bot list shown beside a canonical bot chat in the global sidebar. */
 export function BotsSidebar() {
+  const { t } = useI18n()
+
   useEffect(() => {
     $botsSidebarVisible.set(true)
     $botsPaneVisible.set(true)
@@ -591,5 +593,23 @@ export function BotsSidebar() {
     }
   }, [])
 
-  return <BotsPane compact />
+  return (
+    <>
+      <div className="px-2.5 pt-2.5 pb-1">
+        <Button
+          className="h-8 w-full justify-start gap-2 rounded-lg px-2.5 text-(--ui-text-secondary)"
+          onClick={() => {
+            host.setWorkspaceScope('sessions')
+            host.navigate('/')
+          }}
+          size="sm"
+          variant="ghost"
+        >
+          <Codicon name="arrow-left" />
+          {t.sidebar.sessions}
+        </Button>
+      </div>
+      <BotsPane compact />
+    </>
+  )
 }

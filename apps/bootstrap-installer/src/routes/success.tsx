@@ -1,21 +1,9 @@
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
-import { type CSSProperties } from 'react'
 
-import { HackeryButton } from '../components/hackery-button'
+import { Button } from '../components/button'
 import { launchKovaDesktop } from '../store'
 
-/*
- * Success screen. KOVA AGENT wordmark stays as the visual anchor
- * (same Collapse Bold treatment as Welcome + the desktop chat intro),
- * with a status line below.
- *
- * Launching the desktop can fail (e.g. Stage-Desktop was skipped and
- * Kova.exe doesn't exist). We catch the Tauri error and surface it
- * inline rather than silently doing nothing — the previous version
- * had `onClick={() => void launchKovaDesktop()}` which swallowed
- * the rejection and left the user staring at an unresponsive button.
- */
 export default function Success() {
   const [error, setError] = useState<string | null>(null)
   const [launching, setLaunching] = useState(false)
@@ -26,55 +14,34 @@ export default function Success() {
 
     try {
       await launchKovaDesktop()
-      // On success the installer exits — control never returns here.
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      setError(msg)
+      setError(e instanceof Error ? e.message : String(e))
       setLaunching(false)
     }
   }
 
   return (
-    <div className="kova-fade-in flex h-full flex-col items-center justify-center gap-8 px-12 py-10">
-      <div className="w-full max-w-2xl min-w-0 text-center">
-        <p
-          className="fit-text mx-auto mb-4 w-full font-['Collapse'] font-bold uppercase leading-[0.9] tracking-[0.08em] text-midground mix-blend-plus-lighter dark:text-foreground/90"
-          style={
-            {
-              '--fit-text-line-height': '0.9',
-              '--fit-text-max': '5rem',
-              '--fit-text-min': '2.25rem'
-            } as CSSProperties
-          }
-        >
-          <span>
-            <span>Kova is ready</span>
-          </span>
-          <span aria-hidden="true">Kova is ready</span>
+    <div className="kova-fade-in flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-8 py-10">
+      <div className="w-full max-w-lg text-center">
+        <CheckCircle2 aria-hidden className="mx-auto size-12 text-primary" strokeWidth={1.6} />
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Setup complete</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">Kova is ready.</h1>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Your workspace is installed. Open Kova now, or start it later with <code className="font-mono">kova desktop</code>.
         </p>
-
-        <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
-          You can launch from here, or any time from your terminal with{' '}
-          <code className="font-mono text-sm text-foreground/80">kova desktop</code>.
-        </p>
-      </div>
-
-      <HackeryButton
-        disabled={launching}
-        label={launching ? 'Launching' : 'Launch'}
-        loading={launching}
-        onClick={() => void handleLaunch()}
-      />
-
-      {error && (
-        <div className="flex max-w-2xl items-start gap-2 text-sm" role="alert">
-          <AlertCircle className="mt-0.5 shrink-0 text-destructive" size={16} />
-          <div className="min-w-0">
-            <div className="font-medium text-destructive">Couldn&rsquo;t launch the desktop app</div>
-            <div className="mt-0.5 text-muted-foreground">{error}</div>
+        <Button className="mt-7 min-h-11 px-5" disabled={launching} onClick={() => void handleLaunch()}>
+          {launching ? 'Launching…' : 'Launch Kova'}
+        </Button>
+        {error && (
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-left" role="alert">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Couldn&rsquo;t launch Kova</p>
+              <p className="mt-1 break-words text-sm text-muted-foreground">{error}</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
