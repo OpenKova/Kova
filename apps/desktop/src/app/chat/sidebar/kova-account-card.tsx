@@ -1,3 +1,4 @@
+import { ChevronDown, LogOut, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -85,52 +86,67 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
         <button
           aria-label={profile ? `${t.firstRun.account.title}: ${profile.username || profile.google_name}` : t.firstRun.account.title}
           className={cn(
-            'mb-1 flex items-center rounded-xl border border-(--sidebar-edge-border) bg-(--ui-surface-background) transition-colors hover:bg-(--ui-control-hover-background)',
-            compact ? 'size-8 justify-center p-0' : 'w-full gap-2 px-2 py-2 text-left',
+            'mb-1 flex items-center rounded-2xl bg-(--ui-bg-tertiary) text-left transition-colors hover:bg-(--ui-control-hover-background) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50',
+            compact ? 'size-9 justify-center p-0' : 'min-h-12 w-full gap-2.5 px-2.5 py-2',
             open && 'bg-(--ui-control-hover-background)'
           )}
           type="button"
         >
           {profile?.picture_url ? (
-            <img alt="" className="size-8 shrink-0 rounded-full object-cover" referrerPolicy="no-referrer" src={profile.picture_url} />
+            <img alt="" className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/70" referrerPolicy="no-referrer" src={profile.picture_url} />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--ui-control-hover-background) text-xs font-medium">{profile ? initials(profile) : 'K'}</span>
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary ring-1 ring-primary/10">{profile ? initials(profile) : 'K'}</span>
           )}
           {!compact && (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-medium">{profile?.username ? `@${profile.username}` : profile?.google_name || 'Kova account'}</span>
-              <span className="block truncate text-[10px] text-muted-foreground">{profile ? profile.email : configured ? t.firstRun.account.description : t.firstRun.account.unavailable}</span>
+                <span className="block truncate text-xs font-semibold">{profile?.username ? `@${profile.username}` : profile?.google_name || t.firstRun.account.title}</span>
+                <span className="block truncate text-[11px] text-muted-foreground">{profile ? profile.email : configured ? t.firstRun.account.description : t.firstRun.account.unavailable}</span>
               </span>
-              <span aria-hidden="true" className="text-xs text-muted-foreground">⌄</span>
+              <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
             </>
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 space-y-3 p-3" side="top">
-        <div>
-          <div className="text-sm font-semibold">{t.firstRun.account.title}</div>
-          <p className="mt-1 text-xs text-muted-foreground">{t.firstRun.account.privacy}</p>
+      <PopoverContent align="start" className="w-[19rem] overflow-hidden p-0" side="top" variant="menu">
+        <div className="flex items-center gap-3 border-b border-border/70 px-4 py-3.5">
+          {profile?.picture_url ? (
+            <img alt="" className="size-10 shrink-0 rounded-full object-cover ring-1 ring-border/70" referrerPolicy="no-referrer" src={profile.picture_url} />
+          ) : (
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary ring-1 ring-primary/10">{profile ? initials(profile) : 'K'}</span>
+          )}
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{profile?.username ? `@${profile.username}` : profile?.google_name || t.firstRun.account.title}</div>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{profile?.email || t.firstRun.account.privacy}</p>
+          </div>
         </div>
         {profile ? (
           <>
-            <div className="space-y-1">
-              <label className="text-xs font-medium" htmlFor="kova-username">{t.firstRun.account.username}</label>
+            <div className="space-y-2.5 px-4 py-4">
+              <label className="block text-xs font-medium" htmlFor="kova-username">{t.firstRun.account.username}</label>
               <div className="flex gap-2">
-                <Input id="kova-username" maxLength={24} onChange={event => setUsername(event.target.value)} placeholder={t.firstRun.account.usernamePlaceholder} value={username || profile.username || ''} />
-                <Button disabled={busy || !account || !USERNAME_PATTERN.test(username) || username === profile.username} onClick={() => account && void run(() => account.setUsername(username))} size="sm" type="button">{t.firstRun.account.saveUsername}</Button>
+                <Input className="h-9 min-w-0 rounded-xl" id="kova-username" maxLength={24} onChange={event => setUsername(event.target.value)} placeholder={t.firstRun.account.usernamePlaceholder} value={username || profile.username || ''} />
+                <Button className="h-9 shrink-0 rounded-xl px-3" disabled={busy || !account || !USERNAME_PATTERN.test(username) || username === profile.username} onClick={() => account && void run(() => account.setUsername(username))} size="sm" type="button">{t.firstRun.account.saveUsername}</Button>
               </div>
-              <p className="text-[10px] text-muted-foreground">{t.firstRun.account.usernameHint}</p>
+              <p className="text-[11px] leading-4 text-muted-foreground">{t.firstRun.account.usernameHint}</p>
             </div>
-            <Button className="w-full" disabled={busy || !account} onClick={() => account && void account.signOut().then(() => { setProfile(null); setOpen(false) }).catch(cause => setError(cause instanceof Error ? cause.message : String(cause))).finally(() => setProfile(null))} size="sm" type="button" variant="outline">{t.firstRun.account.signOut}</Button>
+            <div className="border-t border-border/70 p-2">
+              <Button className="h-9 w-full justify-start rounded-xl px-2.5" disabled={busy || !account} onClick={() => account && void account.signOut().then(() => { setProfile(null); setOpen(false) }).catch(cause => setError(cause instanceof Error ? cause.message : String(cause))).finally(() => setProfile(null))} size="sm" type="button" variant="ghost">
+                <LogOut aria-hidden className="size-3.5" />
+                {t.firstRun.account.signOut}
+              </Button>
+            </div>
           </>
         ) : (
-          <div className="space-y-2">
-            <Button className="w-full" disabled={!configured || busy || !account} onClick={() => account && void run(async () => (await account.signIn()).profile)} size="sm" type="button">{busy ? t.firstRun.account.working : t.firstRun.account.signIn}</Button>
-            {!configured && <p className="text-xs text-muted-foreground">{t.firstRun.account.unavailable}</p>}
+          <div className="space-y-3 p-4">
+            <div className="flex items-start gap-2.5 text-xs leading-5 text-muted-foreground">
+              <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>{configured ? t.firstRun.account.description : t.firstRun.account.unavailable}</span>
+            </div>
+            <Button className="h-9 w-full rounded-xl" disabled={!configured || busy || !account} onClick={() => account && void run(async () => (await account.signIn()).profile)} size="sm" type="button">{busy ? t.firstRun.account.working : t.firstRun.account.signIn}</Button>
           </div>
         )}
-        {error && <p className="text-xs text-destructive" role="alert">{error}</p>}
+        {error && <p className="mx-3 mb-3 rounded-xl bg-destructive/10 px-3 py-2 text-xs leading-5 text-destructive" role="alert">{error}</p>}
       </PopoverContent>
     </Popover>
   )

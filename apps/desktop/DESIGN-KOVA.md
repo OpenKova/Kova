@@ -45,6 +45,10 @@ specifications.
   other; never make the user infer that a home glyph changes workspaces.
 - The left sidebar is a navigation and session rail, not a stack of boxed
   panels. Keep primary actions close to the list they affect.
+- The account control is a compact identity row anchored at the bottom of the
+  rail. Its menu is a solid, quietly elevated surface with the avatar and
+  account name first, editable identity next, and sign-out as a separated
+  secondary action. Avoid a bordered mini-card nested inside the sidebar.
 - Settings are a workspace with a stable title, clear section navigation,
   search when useful, and an obvious route back. Do not make settings cover
   the whole app in a modal popup.
