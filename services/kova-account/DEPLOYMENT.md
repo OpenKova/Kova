@@ -39,23 +39,18 @@ edge to prevent spoofing.
 
 ## 3. Attach the telemetry subdomain
 
-The Vercel project already has `telemetry.neuralstudio.in` attached. The
-domain's authoritative nameservers are Cloudflare
-(`angelina.ns.cloudflare.com` and `yoxall.ns.cloudflare.com`). In Cloudflare,
-open **neuralstudio.in → DNS → Records** and add:
+The Vercel project has `telemetry.neuralstudio.in` attached and its
+`/ready` endpoint is live. The authoritative nameservers are Cloudflare
+(`angelina.ns.cloudflare.com` and `yoxall.ns.cloudflare.com`); the existing
+DNS setup already routes this hostname to Vercel, so no record change is
+needed now.
 
-- Type: CNAME
-- Name: `telemetry`
-- Target: `dc1be7e0b0a16fc8.vercel-dns-017.com`
-- Proxy status: DNS only (grey cloud)
-
-Use the current target shown in Vercel's project **Settings → Domains** if it
-differs. If an explicit `telemetry` record already exists, edit that record
-instead of creating a conflicting one. Wait for Vercel to mark the DNS valid,
-then confirm
-`https://telemetry.neuralstudio.in/ready` returns `{"status":"ready"}`.
-The API deployment handles both account API paths and telemetry/diagnostics;
-the custom hostname does not need a separate Vercel project.
+If the route stops resolving, open **neuralstudio.in → DNS → Records** in
+Cloudflare and check the `telemetry` record against the target Vercel shows
+under **Settings → Domains**. Vercel's current recommendation is a CNAME to
+`dc1be7e0b0a16fc8.vercel-dns-017.com` with proxy status **DNS only** (grey
+cloud). Edit an existing explicit `telemetry` record instead of adding a
+conflicting one.
 
 ## 4. Point the Desktop build to the API
 
