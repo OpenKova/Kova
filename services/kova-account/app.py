@@ -228,10 +228,12 @@ def _enforce_auth_rate_limit(request: Request, action: str) -> None:
             "DELETE FROM auth_rate_limits WHERE window_start<?",
             (window_start - 3600,),
         )
+        increment = "request_count=request_count+1"
+        if isinstance(db, _PostgresConnection):
+            increment = "request_count=auth_rate_limits.request_count+1"
         row = db.execute(
             "INSERT INTO auth_rate_limits(client_hash,action,window_start,request_count) VALUES(?,?,?,1) "
-            "ON CONFLICT(client_hash,action,window_start) DO UPDATE SET request_count=request_count+1 "
-            "RETURNING request_count",
+            f"ON CONFLICT(client_hash,action,window_start) DO UPDATE SET {increment} RETURNING request_count",
             (client_hash, action, window_start),
         ).fetchone()
         db.commit()
