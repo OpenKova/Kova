@@ -16,8 +16,6 @@ import {
   Archive,
   BarChart3,
   Bell,
-  Box,
-  Brain,
   ChevronLeft,
   ChevronRight,
   Cpu,
@@ -26,9 +24,7 @@ import {
   Info,
   Keyboard,
   KeyRound,
-  Monitor,
   Network,
-  Palette,
   RefreshCw,
   Search,
   Settings2,
@@ -501,53 +497,9 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     ]
   )
 
-  const navGroups: OverlayNavGroup[] = useMemo(() => {
-    const home = allNavGroups.find(group => group.id === 'home')
-    const byId = new Map(allNavGroups.map(group => [group.id, group]))
-
-    const categories = [
-      { icon: Box, id: 'category:ai', ids: ['config:model', 'providers', 'keys'], label: t.settings.overview.ai },
-      {
-        icon: Monitor,
-        id: 'category:workspace',
-        ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'],
-        label: t.settings.overview.workspace
-      },
-      {
-        icon: Palette,
-        id: 'category:personalize',
-        ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'],
-        label: t.settings.overview.personalize
-      },
-      {
-        icon: Brain,
-        id: 'category:agent',
-        ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'],
-        label: t.settings.overview.agent
-      },
-      { icon: Info, id: 'category:account', ids: ['profile', 'billing', 'about'], label: t.settings.overview.account }
-    ]
-
-    return [
-      ...(home ? [home] : []),
-      ...categories.map(category => {
-        const children = category.ids.flatMap(id => {
-          const group = byId.get(id)
-
-          return group ? [group] : []
-        })
-
-        return {
-          active: children.some(child => child.active),
-          children,
-          icon: category.icon,
-          id: category.id,
-          label: category.label,
-          onSelect: () => children[0]?.onSelect()
-        }
-      })
-    ]
-  }, [allNavGroups, t.settings.overview])
+  // Keep every destination visible in the Settings rail; the overview page
+  // still groups destinations in its content, while navigation stays flat.
+  const navGroups = useMemo(() => allNavGroups.filter(group => group.id !== 'home'), [allNavGroups])
 
   const activeGroup = navGroups.find(group => group.active)
   const activeChild = activeGroup?.children?.find(child => child.active)
@@ -686,14 +638,21 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
       onClose={onClose}
       rootClassName="settings-glass-panel"
     >
-      <OverlaySplitLayout>
+      <OverlaySplitLayout className="settings-page-layout">
         <OverlayNav
           footer={navFooter}
           groups={navGroups}
           header={
             <div className="mb-2 space-y-2 px-1" data-settings-search-header="">
               <div className="flex items-center justify-between px-1">
-                <h2 className="text-sm font-semibold text-foreground">{t.titlebar.openSettings}</h2>
+              <button
+                aria-current={activeView === 'home' ? 'page' : undefined}
+                className="text-left text-sm font-semibold text-foreground"
+                onClick={() => setActiveView('home')}
+                type="button"
+              >
+                {t.titlebar.openSettings}
+              </button>
                 <Button aria-label={t.common.back} className="size-7 text-(--ui-text-tertiary)" onClick={onClose} size="icon-xs" variant="ghost">
                   <ChevronLeft />
                 </Button>
@@ -705,12 +664,14 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
         <OverlayMain className="px-0 pb-0">
           <SettingsBreadcrumbContext.Provider value>
-            {activeGroup && activeView !== 'home' && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
-            {needsSubpageRedirect ? (
-              <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
-            ) : (
-              activeSettingsContent
-            )}
+            <div className="mx-auto flex min-h-0 w-full max-w-[784px] flex-1 flex-col">
+              {activeGroup && activeView !== 'home' && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
+              {needsSubpageRedirect ? (
+                <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
+              ) : (
+                activeSettingsContent
+              )}
+            </div>
           </SettingsBreadcrumbContext.Provider>
         </OverlayMain>
       </OverlaySplitLayout>

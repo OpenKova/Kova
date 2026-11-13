@@ -13,8 +13,12 @@
 
 .settings-glass-panel [data-tour='overlay-nav'] button[aria-current='page'] {
   border-color: transparent;
-  background: color-mix(in srgb, var(--kova-signature-accent) 14%, transparent);
-  color: var(--kova-signature-accent);
+  background: color-mix(in srgb, var(--ui-text-primary) 9%, transparent);
+  color: var(--ui-text-primary);
+}
+
+.settings-glass-panel [data-tour='overlay-nav'] button[aria-current='page'] svg {
+  color: var(--ui-text-secondary);
 }
 
 .settings-glass-panel [data-variant='default'] {

@@ -6,6 +6,10 @@
   grid-template-columns: 13rem minmax(0, 1fr);
 }
 
+[data-overlay-split-layout].settings-page-layout {
+  grid-template-columns: minmax(17rem, 18.375rem) minmax(0, 1fr);
+}
+
 [data-overlay-split-layout] > [data-overlay-nav-rail] {
   display: flex;
 }
@@ -22,6 +26,10 @@
   [data-overlay-split-layout] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  [data-overlay-split-layout].settings-page-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   [data-overlay-split-layout] > [data-overlay-nav-rail] {

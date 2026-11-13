@@ -27,8 +27,12 @@ export function OverlayBreadcrumbHeader({
   return (
     <div className={cn('mb-3 flex shrink-0 items-start justify-between gap-3', PAGE_INSET_X)}>
       <nav aria-label={group.label} className="flex min-w-0 items-center gap-1.5 text-xs text-(--ui-text-tertiary)">
-        <span className="shrink-0">{rootLabel}</span>
-        <ChevronRight aria-hidden className="size-3 shrink-0" />
+        {rootLabel && (
+          <>
+            <span className="shrink-0">{rootLabel}</span>
+            <ChevronRight aria-hidden className="size-3 shrink-0" />
+          </>
+        )}
         {child ? (
           <>
             <Button onClick={group.onSelect} size="inline" variant="text">
