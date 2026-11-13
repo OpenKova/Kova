@@ -360,6 +360,8 @@ def run_debug_share(args):
         return
 
     print(_KOVA_PRIVACY_NOTICE)
+    if not redact:
+        print("Warning: --no-redact is set. Secrets and personal data in logs may be included.\n")
     if not _confirm_upload(args):
         return
     print("Collecting debug report...\nUploading to Kova...")
