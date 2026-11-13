@@ -97,6 +97,7 @@ function DialogContent({
   showCloseButton = true,
   fitContent = false,
   blurBackdrop = true,
+  fullScreen = false,
   banner,
   bannerTone = 'error',
   chrome,
@@ -112,6 +113,8 @@ function DialogContent({
   chrome?: React.ReactNode
   // Keep the underlying task readable for context-sensitive prompts.
   blurBackdrop?: boolean
+  // Let a dialog own the window for a first-run or recovery flow.
+  fullScreen?: boolean
   // Size the dialog to its content (capped at the viewport) instead of the
   // default fixed `max-w-lg`. For content that has no intrinsic width (grids,
   // full-width inputs) pair it with a `min-w-*` in `className`.
@@ -126,7 +129,7 @@ function DialogContent({
   banner?: React.ReactNode
   bannerTone?: DialogBannerTone
 }) {
-  const widthClass = fitContent ? 'w-auto max-w-[92vw]' : 'w-full max-w-lg'
+  const widthClass = fullScreen ? 'w-screen max-w-none' : fitContent ? 'w-auto max-w-[92vw]' : 'w-full max-w-lg'
 
   // Publish the dialog's content node so popovers (Select / Popover /
   // DropdownMenu) opened inside it portal INTO the dialog instead of
@@ -153,7 +156,7 @@ function DialogContent({
   // `onOpenAutoFocus={preventCloseButtonAutoFocus}` explicitly instead.
 
   // No tip on the X — the glyph is the label (DialogCloseButton keeps aria-label / sr-only).
-  const closeButton = showCloseButton ? <DialogCloseButton /> : null
+  const closeButton = showCloseButton && !fullScreen ? <DialogCloseButton /> : null
 
   // With a banner, the border can't live on the scroll/clip box (it would draw a
   // line around the banner too). The white body keeps its own bottom radius and
@@ -224,7 +227,9 @@ function DialogContent({
           // a clipping ancestor crops them. The body box below owns the scroll,
           // so a tall dialog scrolls and a Select or Popover can still paint
           // past the edge of that box.
-          'fixed left-1/2 top-1/2 z-(--z-modal) pointer-events-auto flex max-h-[85vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border border-(--stroke-nous) bg-(--ui-chat-bubble-background) text-[length:var(--conversation-text-font-size)] text-foreground shadow-nous duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+          fullScreen
+            ? 'fixed inset-0 z-(--z-setup) pointer-events-auto flex h-dvh w-screen max-h-none max-w-none flex-col rounded-none border-0 bg-(--ui-chat-surface-background) text-[length:var(--conversation-text-font-size)] text-foreground shadow-none duration-0'
+            : 'fixed left-1/2 top-1/2 z-(--z-modal) pointer-events-auto flex max-h-[85vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border border-(--stroke-nous) bg-(--ui-chat-bubble-background) text-[length:var(--conversation-text-font-size)] text-foreground shadow-nous duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
           widthClass,
           layerClass,
           className
@@ -245,6 +250,7 @@ function DialogContent({
           <div
             className={cn(
               'grid min-h-0 grid-cols-[minmax(0,1fr)] gap-3 overflow-y-auto rounded-[inherit] p-4',
+              fullScreen && 'h-full w-full max-h-none place-items-center p-6',
               bodyClassName
             )}
           >
