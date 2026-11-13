@@ -137,7 +137,9 @@ export function resolveVersionStatus({
     ? copy.backendLabel(named)
     : remote
       ? copy.clientLabel(named)
-      : (version && `v${version}`) || named
+      : version === 'Development build'
+        ? 'Kova'
+        : (version && `v${version}`) || named
 
   // Main channel: commits behind is the precise diff. Stable channel: a
   // count of commits is the wrong vocabulary — a release is one step, so

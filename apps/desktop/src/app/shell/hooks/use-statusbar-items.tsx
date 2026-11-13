@@ -21,19 +21,7 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { useI18n } from '@/i18n'
 import { displayPath, pathLeaf } from '@/lib/display-path'
 import { statusBarGatewayHealth } from '@/lib/gateway-health-pill'
-import {
-  Activity,
-  AlertCircle,
-  Clock,
-  Command,
-  FolderOpen,
-  Globe,
-  Hash,
-  Layers3,
-  Loader2,
-  Terminal,
-  Zap
-} from '@/lib/icons'
+import { Activity, AlertCircle, Clock, FolderOpen, Globe, Hash, Layers3, Loader2, Terminal, Zap } from '@/lib/icons'
 import { type RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { resolveSessionTimerSince } from '@/lib/session-timer-since'
 import { cacheHitLabel, contextBarLabel, LiveDuration, tokensPerSecondLabel, usageContextLabel } from '@/lib/statusbar'
@@ -134,7 +122,6 @@ export function useStatusbarItems({
   agentsOpen,
   changeSessionCwd,
   chatOpen,
-  commandCenterOpen,
   extraLeftItems,
   extraRightItems,
   gatewayState,
@@ -142,8 +129,7 @@ export function useStatusbarItems({
   openAgents,
   openCommandCenterSection,
   requestGateway,
-  statusSnapshot,
-  toggleCommandCenter
+  statusSnapshot
 }: StatusbarItemsOptions) {
   const { t } = useI18n()
   const copy = t.shell.statusbar
@@ -486,18 +472,6 @@ export function useStatusbarItems({
   const coreLeftStatusbarItems = useMemo<readonly StatusbarItem[]>(
     () => [
       {
-        className: `w-7 justify-center px-0${commandCenterOpen ? ' bg-accent/55 text-foreground' : ''}`,
-        icon: <Command className="size-3.5" />,
-        id: 'command-center',
-        // The system icon: the way into every other surface, including the
-        // settings that would bring a hidden item back. Never hideable.
-        lockedVisible: true,
-        onSelect: toggleCommandCenter,
-        title: commandCenterOpen ? copy.closeCommandCenter : copy.openCommandCenter,
-        toggleLabel: copy.toggleCommandCenter,
-        variant: 'action'
-      },
-      {
         hidden: !sessionsShowing,
         id: 'gateway-switcher',
         lockedVisible: true,
@@ -523,12 +497,12 @@ export function useStatusbarItems({
           <AlertCircle className="size-3" />
         ),
         id: 'gateway-health',
-        label: gatewayHealth.label,
+        label: 'Kova',
         menuClassName: 'w-72',
         menuContent: gatewayMenuContent,
         // Tip only when there's a real status reason — not a restatement of the label.
         title: gatewayHealth.title || inferenceStatus?.reason || undefined,
-        toggleLabel: copy.backend,
+        toggleLabel: 'Kova status',
         variant: 'menu'
       },
       {
@@ -646,7 +620,6 @@ export function useStatusbarItems({
       agentsOpen,
       botsShowing,
       changeWorkspaceItem,
-      commandCenterOpen,
       copy,
       currentCwd,
       focusedWorkspaceRemote,
@@ -668,8 +641,7 @@ export function useStatusbarItems({
       projectName,
       sessionsShowing,
       subagentsFailed,
-      subagentsRunning,
-      toggleCommandCenter
+      subagentsRunning
     ]
   )
 

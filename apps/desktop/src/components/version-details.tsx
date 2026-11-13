@@ -50,9 +50,15 @@ function SideVersionRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd>v{shortVersion(value)}</dd>
+      <dd>{versionLabel(value)}</dd>
     </div>
   )
+}
+
+function versionLabel(value: string): string {
+  const short = shortVersion(value)
+
+  return short === 'Development build' ? short : `v${short}`
 }
 
 /**
@@ -93,61 +99,70 @@ export function VersionDetails({ version, channelAction }: { version: DesktopVer
           : null
 
   return (
-    <dl className="grid gap-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-3 text-sm">
-      <div className="flex justify-between gap-4">
-        <dt className="text-muted-foreground">{u.versionDetailsVersion}</dt>
-        <dd>
-          {version.appVersion ? `v${shortVersion(version.appVersion)}` : u.versionUnavailable}
-          {version.dirty && <span className="text-warning"> (!)</span>}
-        </dd>
-      </div>
-      <SideVersionRow label={u.versionDetailsClient} value={version.clientVersion} />
-      <SideVersionRow label={u.versionDetailsBackend} value={version.backendVersion} />
-      {version.commit && (
+    <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-3 text-sm">
+      <dl className="grid gap-2">
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">{u.versionDetailsCommit}</dt>
-          <dd className="break-all text-right">
-            <ExternalLink
-              className="break-all font-mono text-xs"
-              href={`https://github.com/OpenKova/Kova/commit/${version.commit}`}
-              native
-            >
-              {version.commit.slice(0, 14)}
-            </ExternalLink>
-            {version.dirty && <span className="text-warning"> {u.versionDetailsUncommittedChanges}</span>}
-          </dd>
-        </div>
-      )}
-      <ChannelRow action={channelAction} />
-      {source && (
-        <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">{u.versionDetailsBuildOrigin}</dt>
+          <dt className="text-muted-foreground">Kova desktop</dt>
           <dd>
-            {source}
-            {version.branch && version.branch !== 'main' ? ` (${version.branch})` : ''}
+            {version.appVersion ? versionLabel(version.appVersion) : u.versionUnavailable}
+            {version.dirty && <span className="text-warning"> (!)</span>}
           </dd>
         </div>
-      )}
-      {distribution && (
-        <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">{u.versionDetailsDistribution}</dt>
-          <dd>{distribution}</dd>
-        </div>
-      )}
-      {runtime && (
-        <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">{u.versionDetailsRuntime}</dt>
-          <dd className="break-all text-right">{runtime}</dd>
-        </div>
-      )}
-      {version.installId && (
-        <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">{u.versionDetailsInstallId}</dt>
-          <dd className="break-all text-right font-mono text-xs">
-            {version.installId} ({version.kovaRoot})
-          </dd>
-        </div>
-      )}
-    </dl>
+        <SideVersionRow label="Desktop interface" value={version.clientVersion} />
+        <SideVersionRow label="Kova agent" value={version.backendVersion} />
+      </dl>
+      <details className="mt-3 border-t border-border/70 pt-2 text-xs">
+        <summary className="cursor-pointer select-none text-muted-foreground hover:text-foreground">
+          Build details
+        </summary>
+        <dl className="mt-3 grid gap-2 text-sm">
+          {version.commit && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{u.versionDetailsCommit}</dt>
+              <dd className="break-all text-right">
+                <ExternalLink
+                  className="break-all font-mono text-xs"
+                  href={`https://github.com/OpenKova/Kova/commit/${version.commit}`}
+                  native
+                >
+                  {version.commit.slice(0, 14)}
+                </ExternalLink>
+                {version.dirty && <span className="text-warning"> {u.versionDetailsUncommittedChanges}</span>}
+              </dd>
+            </div>
+          )}
+          <ChannelRow action={channelAction} />
+          {source && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{u.versionDetailsBuildOrigin}</dt>
+              <dd>
+                {source}
+                {version.branch && version.branch !== 'main' ? ` (${version.branch})` : ''}
+              </dd>
+            </div>
+          )}
+          {distribution && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{u.versionDetailsDistribution}</dt>
+              <dd>{distribution}</dd>
+            </div>
+          )}
+          {runtime && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{u.versionDetailsRuntime}</dt>
+              <dd className="break-all text-right">{runtime}</dd>
+            </div>
+          )}
+          {version.installId && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{u.versionDetailsInstallId}</dt>
+              <dd className="break-all text-right font-mono text-xs">
+                {version.installId} ({version.kovaRoot})
+              </dd>
+            </div>
+          )}
+        </dl>
+      </details>
+    </div>
   )
 }

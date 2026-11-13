@@ -27,7 +27,7 @@ import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { useI18n } from '@/i18n'
 import { type SessionInfo, type SessionSearchResult } from '@/kova'
-import { AudioLines, Search } from '@/lib/icons'
+import { AudioLines, Brain, Clock, FileText, MessageCircle, PencilLine, Search, Settings } from '@/lib/icons'
 import { comboTokens } from '@/lib/keybinds/combo'
 import { sessionMatchesSearch } from '@/lib/session-search'
 import { normalizeSessionSource, sessionSourceLabel } from '@/lib/session-source'
@@ -221,21 +221,21 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   {
     id: 'new-session',
     label: '',
-    icon: props => <Codicon name="robot" {...props} />,
+    icon: props => <PencilLine {...props} />,
     action: 'new-session',
     keybindActionId: 'session.new'
   },
   {
     id: 'capabilities',
     label: '',
-    icon: props => <Codicon name="symbol-misc" {...props} />,
+    icon: props => <Brain {...props} />,
     route: CAPABILITIES_ROUTE,
     keybindActionId: 'nav.capabilities'
   },
   {
     id: 'messaging',
     label: '',
-    icon: props => <Codicon name="comment" {...props} />,
+    icon: props => <MessageCircle {...props} />,
     route: MESSAGING_ROUTE,
     keybindActionId: 'nav.messaging'
   },
@@ -244,7 +244,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   {
     id: 'artifacts',
     label: '',
-    icon: props => <Codicon name="files" {...props} />,
+    icon: props => <FileText {...props} />,
     route: ARTIFACTS_ROUTE,
     keybindActionId: 'nav.artifacts',
     tier: 'advanced'
@@ -252,7 +252,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   {
     id: 'cron',
     label: '',
-    icon: props => <Codicon name="watch" {...props} />,
+    icon: props => <Clock {...props} />,
     route: CRON_ROUTE,
     keybindActionId: 'nav.cron',
     tier: 'advanced'
@@ -1592,13 +1592,13 @@ export function ChatSidebar({
           onNavigate({
             id: 'settings',
             label: t.titlebar.openSettings,
-            icon: props => <Codicon name="gear" {...props} />,
+            icon: props => <Settings {...props} />,
             route: SETTINGS_ROUTE
           })
         }
         type="button"
       >
-        <Codicon className="size-3.5" name="gear" />
+        <Settings className="size-3.5" />
       </SidebarMenuButton>
     </Tip>
   )
@@ -2166,7 +2166,7 @@ export function ChatSidebar({
           </div>
         )}
         {(!sidebarOpen || !profileRailVisible) && (
-          <div className="flex items-center gap-1">
+          <div className={cn('flex gap-1', sidebarOpen ? 'flex-row items-center' : 'w-full flex-col items-center')}>
             {commandCenterButton}
             {footerNavButtons}
             {settingsButton}

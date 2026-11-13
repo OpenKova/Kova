@@ -45,10 +45,15 @@ specifications.
   other; never make the user infer that a home glyph changes workspaces.
 - The left sidebar is a navigation and session rail, not a stack of boxed
   panels. Keep primary actions close to the list they affect.
+- Use one consistent, semantic icon family for first-party navigation. In the
+  collapsed rail, center each action in its own compact hit target; never let
+  footer actions overflow horizontally. A destination should have one primary
+  entry point rather than a second status-bar shortcut.
 - The account control is a compact identity row anchored at the bottom of the
-  rail. Its menu is a solid, quietly elevated surface with the avatar and
-  account name first, editable identity next, and sign-out as a separated
-  secondary action. Avoid a bordered mini-card nested inside the sidebar.
+  rail. Its menu opens on a calm identity overview. Put identity editing
+  behind an explicit pencil affordance, and keep sign-out as a separated
+  secondary action. Avoid focusing or selecting editable text just by opening
+  the account menu.
 - Settings are a workspace with a stable title, clear section navigation,
   search when useful, and an obvious route back. Do not make settings cover
   the whole app in a modal popup.
@@ -80,6 +85,9 @@ specifications.
 - Text actions use readable labels. Keep icon buttons compact, aligned, and
   close to a 32px target; hover backgrounds follow the control shape rather
   than painting a large square.
+- Status indicators should name the product or capability in user language.
+  Keep build hashes, install identifiers, exact paths, and runtime provenance
+  available as optional diagnostics rather than the everyday update summary.
 - Use short motion only to clarify a state transition. Hover/press feedback is
   immediate; panels and menus settle quickly. Honor `prefers-reduced-motion`.
 - A dialog is for a focused decision or short form. Navigation, settings,

@@ -6,5 +6,11 @@
  * localized copy already carries.
  */
 export function shortVersion(version: string): string {
-  return version.replace(/^v/, '').replace(/(\+\d+)\.g[0-9a-f]+(?:\.dirty)?$/i, '$1')
+  const normalized = version.replace(/^v/, '')
+
+  if (/^git\.[0-9a-f]+(?:\.dirty)?$/i.test(normalized)) {
+    return 'Development build'
+  }
+
+  return normalized.replace(/(\+\d+)\.g[0-9a-f]+(?:\.dirty)?$/i, '$1')
 }
