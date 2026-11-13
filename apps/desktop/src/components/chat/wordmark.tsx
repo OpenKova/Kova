@@ -2,44 +2,29 @@ import type { CSSProperties } from 'react'
 
 import { cn } from '@/lib/utils'
 
-/**
- * The oversized display lettering of an empty chat — the Collapse face that
- * writes "KOVA AGENT" across a fresh draft, and a bot's name across its own
- * empty chat.
- *
- * The doubled children are load-bearing, not a typo: `.fit-text` sizes the
- * visible span from a container query and needs the `aria-hidden` twin laid
- * out beside it as the width reference. Anything that renders this lettering
- * comes through here rather than restating that structure.
- */
+/** A restrained chat title shared by bot empty states. */
 export function Wordmark({
   className,
-  fitMin = '2.75rem',
+  fitMin = '1.5rem',
   text,
   width = 'calc(100% - 1rem)'
 }: {
   className?: string
-  /** Floor for the fitted font size, as a CSS length. */
+  /** Minimum title size, as a CSS length. */
   fitMin?: string
   text: string
-  /** How much of the column the lettering spans. `.fit-text` sizes to fill
-   *  this, so a short word set at full width comes out enormous — a name gets
-   *  less room than a twelve-character wordmark. */
+  /** Width available to the title. */
   width?: string
 }) {
   return (
-    <p
-      aria-label={text}
+    <h1
       className={cn(
-        'wordmark fit-text mx-auto text-midground mix-blend-plus-lighter dark:text-foreground/90',
+        'mx-auto max-w-full font-sans text-center font-semibold leading-tight tracking-[-0.035em] text-foreground text-balance',
         className
       )}
-      style={{ '--fit-min': fitMin, width } as CSSProperties}
+      style={{ fontSize: `clamp(${fitMin}, 3.2vw, 2.5rem)`, width } as CSSProperties}
     >
-      <span>
-        <span>{text}</span>
-      </span>
-      <span aria-hidden="true">{text}</span>
-    </p>
+      {text}
+    </h1>
   )
 }

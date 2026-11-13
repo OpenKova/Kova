@@ -92,14 +92,6 @@
    (this variant) flatten everything into one shared scroll. See ChatSidebar. */
 @custom-variant compact (@media (max-height: 768px));
 
-@font-face {
-  font-family: 'Collapse';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('@nous-research/ui/fonts/Collapse-Bold.woff2') format('woff2');
-}
-
 /* JetBrains Mono — bundled terminal font (Apache-2.0) so bold/italic share the
    regular face's metrics instead of squeezing against a system fallback. */
 @font-face {
@@ -2006,65 +1998,6 @@ body.guest-pointer-lock :is(webview, iframe) {
   color: var(--ui-text-tertiary);
   font-size: 0.875rem;
   line-height: 1.45;
-}
-
-.fit-text {
-  --fit-captured-length: initial;
-  --fit-support-sentinel: var(--fit-captured-length, 9999px);
-
-  display: flex;
-  container-type: inline-size;
-}
-
-/* The display lettering an empty chat is titled with. Kept here beside
-   `.fit-text` rather than as utilities on the element: the two always travel
-   together, and the face is the whole point of the treatment — it must not be
-   something a class-merge or a missed scan can quietly drop, leaving the
-   wordmark rendered in body text. */
-.wordmark {
-  font-family: 'Collapse', var(--font-sans);
-  font-weight: 700;
-  line-height: 0.9;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.fit-text > [aria-hidden] {
-  visibility: hidden;
-}
-
-.fit-text > :not([aria-hidden]) {
-  flex-grow: 1;
-  container-type: inline-size;
-
-  --fit-captured-length: 100cqi;
-  --fit-available-space: var(--fit-captured-length);
-}
-
-.fit-text > :not([aria-hidden]) > * {
-  --fit-support-sentinel: inherit;
-  --fit-captured-length: 100cqi;
-  --fit-ratio: tan(atan2(var(--fit-available-space), var(--fit-available-space) - var(--fit-captured-length)));
-
-  display: block;
-  inline-size: var(--fit-available-space);
-  font-size: clamp(
-    var(--fit-min, 1em),
-    1em * var(--fit-ratio),
-    var(--fit-max, infinity * 1px) - var(--fit-support-sentinel)
-  );
-}
-
-@container (inline-size > 0) {
-  .fit-text > :not([aria-hidden]) > * {
-    white-space: nowrap;
-  }
-}
-
-@property --fit-captured-length {
-  syntax: '<length>';
-  initial-value: 0px;
-  inherits: true;
 }
 
 /* The dock column owns the composer's width; the composer keeps the 5px
