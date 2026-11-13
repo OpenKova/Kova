@@ -1269,22 +1269,25 @@ class GatewaySlashCommandsMixin(
         return await self._run_in_executor_with_context(_run)
 
     async def _handle_debug_command(self, event: MessageEvent) -> str:
-        """Handle /debug — upload ONLY the summary (system info + log tails), never full logs, to
-        protect privacy; ``kova debug share`` from the CLI does full uploads."""
-        from kova_cli.debug import (_GATEWAY_PRIVACY_NOTICE, _best_effort_sweep_expired_pastes,
-                                      _capture_dump, _is_dpaste_url, _schedule_auto_delete,
-                                      collect_debug_report, upload_to_pastebin)
+        """Handle /debug — upload a redacted summary to Kova after the command is sent."""
+        from kova_cli.debug import (
+            _GATEWAY_PRIVACY_NOTICE,
+            _capture_dump,
+            build_kova_bundle,
+            collect_debug_report,
+        )
+        from kova_cli.diagnostics_upload import share_to_kova
         from kova_cli.debug_redaction import redact_debug_support_text
 
         wants_local = "local" in {w.lower() for w in (event.get_command_args() or "").split()}
         if wants_local and getattr(event.source, "platform", None) != Platform.LOCAL:
             # From a chat the report can't stay on the machine; `/debug local` must never fall
-            # through to the public paste. Bare `/debug` is the upload form.
+            # through to a remote upload. Bare `/debug` is the upload form.
             return t("gateway.debug.local_refused")
         if wants_local:
             # A local session's `/debug local` (main's CLI form) asks for the report on this machine:
             # return the redacted report for the client to show, with no network call at all (not
-            # even the expired-paste sweep). Uploading stays on the explicit `/debug` form (T7).
+            # even a remote upload).
             from kova_cli.debug import collect_share_bundle
 
             def _collect_local():
@@ -1293,25 +1296,20 @@ class GatewaySlashCommandsMixin(
             return await self._run_in_executor_with_context(_collect_local)
 
         def _collect_and_upload():  # blocking I/O (dump capture, log reads, uploads) -> thread
-            _best_effort_sweep_expired_pastes()
             report = collect_debug_report(log_lines=200, dump_text=_capture_dump())
             try:
-                urls = {t("gateway.debug.report_label"): upload_to_pastebin(report)}
+                result = share_to_kova(build_kova_bundle({"report": report}, redact=True))
             except Exception as exc:
                 return t("gateway.debug.upload_failed", error=redact_debug_support_text(exc))
-            _schedule_auto_delete(list(urls.values()))  # paste.rs only; dpaste.com has no delete
-            label_width = max(len(k) for k in urls)
-            # The 6-hour line is only true for paste.rs; the privacy notice above already states
-            # the dpaste.com fallback retention, so drop the line rather than contradict it.
-            auto_delete = [] if any(map(_is_dpaste_url, urls.values())) else [
-                t("gateway.debug.auto_delete")]
+            view_url = result.get("view_url")
+            if not isinstance(view_url, str):
+                return t("gateway.debug.upload_failed", error="Kova storage returned no link.")
             return "\n".join([_GATEWAY_PRIVACY_NOTICE, "", t("gateway.debug.header"), "",
-                              *(f"`{label:<{label_width}}`  {url}" for label, url in urls.items()),
-                              "", *auto_delete, t("gateway.debug.full_logs_hint"),
-                              t("gateway.debug.share_hint")])
+                              f"`{t('gateway.debug.report_label')}`  {view_url}",
+                              "", "This private link expires after 14 days."])
 
         # _run_in_executor_with_context, not a bare hop: this collects the profile's logs/config off
-        # ``get_kova_home()`` and uploads them to a public paste. Losing the contextvar override
+        # ``get_kova_home()`` and uploads them to Kova storage. Losing the contextvar override
         # would publish the DEFAULT profile's diagnostics from another profile's chat.
         return await self._run_in_executor_with_context(_collect_and_upload)
 

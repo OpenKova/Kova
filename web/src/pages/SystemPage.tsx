@@ -1411,9 +1411,9 @@ export default function SystemPage() {
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">Share debug report</span>
                   <span className="text-xs text-muted-foreground max-w-prose">
-                    Uploads system info + logs to a public paste service and
-                    returns links to send the Kova team. Pastes auto-delete
-                    after 6 hours.
+                    Uploads system info + logs to Kova private storage and
+                    returns an expiring link to send the Kova team. Links
+                    stop working after 14 days.
                   </span>
                 </div>
               </div>
