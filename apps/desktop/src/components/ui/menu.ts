@@ -6,7 +6,7 @@
 // `dt-portal-scrollbar` reproduces the thin themed scrollbar from
 // `.scrollbar-dt` for portaled overlays (Radix renders under document.body,
 // outside #root's scope). See styles.css.
-// Kova design (DESIGN-KOVA.md): solid card matching the prompt box — opaque
+// Kova design (DESIGN.md): solid card matching the prompt box — opaque
 // fill, 16px radius, hairline border, soft shadow. No translucent glass.
 export const menuSurfaceClass =
   'dt-portal-scrollbar rounded-[16px] border border-border/65 bg-(--dt-card) p-1.5 text-[length:var(--conversation-text-font-size)] text-popover-foreground shadow-[0_12px_32px_-12px_rgba(0,0,0,0.5)]'

@@ -24,17 +24,16 @@ plugin-catalog URLs are intentional compatibility contracts, not branding.
 
 ## 2. What this workstream is
 
-A full visual and product rebrand of the desktop app into a **Codex / OpenClaw**
-style, plus repo slimming and CI reduction. No release has been cut yet; all
-work lands on `main` in small, tested commits.
+A Kova visual refresh using OpenBot's clear shell arrangement and settings
+hierarchy, alongside repo slimming and CI reduction. Kova keeps its own product
+identity, components, and visual tokens. No release has been cut yet; all work
+lands on `main` in small, tested commits.
 
-Design contracts:
+Design contract:
 
-- `apps/desktop/DESIGN-KOVA.md` — **active** contract: OpenClaw design
-  system (glass, red accent, motion) with the **Codex prompt box** as the
-  composer reference.
-- `apps/desktop/DESIGN-KOVA-OPENBOT.md` — parked clone of the OpenBot look,
-  kept for reference only.
+- `apps/desktop/DESIGN.md` — the single active desktop contract, using
+  OpenBot's shell arrangement and settings hierarchy with Kova's own identity,
+  components, and visual tokens.
 
 Ground rules followed throughout:
 
@@ -63,18 +62,18 @@ Ground rules followed throughout:
 ### Composer / prompt box
 - Centered empty state via `shouldCenterComposer`, hero + suggestion chips in
   the composer dock, 300ms slide to bottom on first send.
-- Codex prompt box: permanent stacked layout (input row above controls),
+- Composer: permanent stacked layout (input row above controls),
   solid card, 20px radius, white round send, inset ~1in per side
   (`706e6a5b`), borderless surface with shadow only (`16ee5ac8`).
 - Attach (`+`) menu restyled solid 20px card (`9fb83afb`).
 - Approval pill moved into the composer, right of `+`; statusbar chip removed.
-  Modes renamed Codex-style: **Ask for approval / Approve for me / Full access**
+  Modes renamed: **Ask for approval / Approve for me / Full access**
   (`de68f129`).
 - Reasoning menu replaced by a 7-stop slider popover (minimal → ultra)
   (`de68f129`).
 
 ### Sidebar and shell
-- Codex-style threads list: flat nav rows, single active pill, no chat tab
+- Compact session list: flat nav rows, single active pill, no chat tab
   strip, ⌘T still opens a tab (`2a197435`, `0dc37ace`).
 - Search icon lives in the **SESSIONS** header and filters sessions for real.
 - Removed: top session switcher, `+` before session names, duplicate `+`

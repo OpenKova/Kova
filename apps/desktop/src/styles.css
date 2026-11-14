@@ -2126,7 +2126,7 @@ body.guest-pointer-lock :is(webview, iframe) {
   --composer-fill: var(--dt-card);
 }
 
-/* OpenClaw clone: focus is a single accent border. The old accent ring and
+/* Kova focus treatment: use a single accent border. The old accent ring and
    glow drew a second blue line around the composer. */
 [data-slot='composer-root']:focus-within [data-slot='composer-surface'] {
   border-color: var(--ui-accent);
