@@ -278,7 +278,7 @@ function Tip({ label, children, delayDuration = TIP_DELAY_MS, ...props }: TipPro
   }
 
   const tip = (
-    <Tooltip delayDuration={delayDuration} disableHoverableContent>
+    <Tooltip delayDuration={delayDuration} disableHoverableContent={false}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent {...props}>{label}</TooltipContent>
     </Tooltip>

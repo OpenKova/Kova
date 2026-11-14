@@ -27,7 +27,7 @@ import { Contribute } from '@/contrib/react/contribute'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { useI18n } from '@/i18n'
 import { type SessionInfo, type SessionSearchResult } from '@/kova'
-import { AudioLines, Brain, Clock, FileText, MessageCircle, PencilLine, Search, Settings } from '@/lib/icons'
+import { AudioLines, BuildingStore, Clock, FileText, MessageCircle, PencilLine, Search, Settings } from '@/lib/icons'
 import { sessionMatchesSearch } from '@/lib/session-search'
 import { normalizeSessionSource, sessionSourceLabel } from '@/lib/session-source'
 import { cn } from '@/lib/utils'
@@ -225,7 +225,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   {
     id: 'capabilities',
     label: '',
-    icon: props => <Brain {...props} />,
+    icon: props => <BuildingStore {...props} />,
     route: CAPABILITIES_ROUTE,
     keybindActionId: 'nav.capabilities'
   },
