@@ -11,7 +11,7 @@
   z-index: 0;
   inset: 4rem 0.5rem 0.5rem 3rem;
   border-radius: 1rem;
-  background: var(--ui-bg-elevated);
+  background: var(--ui-bg-workspace-surface);
   content: '';
   pointer-events: none;
 }
@@ -60,4 +60,13 @@
 /* The composer uses the darker chrome surface inside the shared workspace. */
 [data-contrib-shell] [data-workspace-tree] [data-slot='composer-root'] {
   --composer-fill: var(--ui-bg-chrome);
+}
+
+/* OpenCode's dark surfaces sit around #1a1a1a. Give the prompt dock a little
+   more breathing room while keeping its existing responsive width limits. */
+[data-contrib-shell] [data-workspace-tree] [data-slot='composer-dock'] {
+  width: min(
+    50.6rem,
+    calc(min(var(--composer-width), 46rem, max(20rem, calc(100% - 14rem))) + 10% + 10px)
+  );
 }

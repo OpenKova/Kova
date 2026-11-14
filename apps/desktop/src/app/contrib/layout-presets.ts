@@ -34,7 +34,7 @@ export const DEFAULT_TREE = split(
       'spl-right'
     )
   ],
-  [1, 3.4, 1.25],
+  [1.5, 3.4, 1.25],
   'spl-root'
 )
 
@@ -44,7 +44,7 @@ export const DEFAULT_TREE = split(
 const FOCUS_TREE = split(
   'row',
   [group(['sessions']), split('column', [group(['workspace', 'files', 'review']), group(['terminal'])], [3, 1])],
-  [1, 4.6]
+  [1.45, 4.6]
 )
 
 // Basic is sessions and chat with the tooling RESTING in its own slots: the
@@ -60,7 +60,7 @@ export const BASIC_TREE = split(
     split('column', [group(['workspace']), group(['terminal'])], [3, 1]),
     split('row', [group(['review']), group(['files'])], [1, 1.2])
   ],
-  [1, 3.4, 1.25]
+  [1.5, 3.4, 1.25]
 )
 
 const BASIC_RESTING = ['terminal', 'files', 'review'] as const
@@ -68,7 +68,7 @@ const BASIC_RESTING = ['terminal', 'files', 'review'] as const
 const TERMINAL_TREE = split(
   'column',
   [
-    split('row', [group(['sessions']), group(['workspace']), group(['files', 'review'])], [1, 3.2, 1.2]),
+    split('row', [group(['sessions']), group(['workspace']), group(['files', 'review'])], [1.5, 3.2, 1.2]),
     group(['terminal'])
   ],
   [3, 1]

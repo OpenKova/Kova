@@ -29,6 +29,12 @@ source of truth for future desktop design work.
 - Dark mode uses a near-black canvas with gently raised sidebars and controls.
   Light mode uses a soft neutral canvas with clear text contrast, not a direct
   color inversion of the dark theme.
+- Use bundled Inter Variable for interface text, following OpenBot's default
+  desktop font. Keep platform font fallbacks for glyph coverage and native
+  controls; keep JetBrains Mono for code and technical output.
+- The inset workspace surface uses `--ui-bg-workspace-surface`, a gently lifted
+  graphite (`#1a1a1a`) in dark mode. Feature styles consume the token rather than
+  hardcoding that color.
 - Use background surfaces to group related content, following OpenBot's quiet
   filled panels. Keep cards and rows flat; use subtle borders as separators.
   Avoid nested boxes, repeated inset borders, glass blur, glow, and oversized
@@ -54,11 +60,14 @@ source of truth for future desktop design work.
 - Keep workspace identity and search at the top of the session sidebar, with
   conversations below. Put session-specific actions next to the session list;
   keep account identity and Settings anchored at the bottom.
+- Keep the expanded session sidebar near 330px overall, including the 48px
+  destination rail, so titles, previews, and timestamps have room to breathe.
 - Keep the global icon rail on the dark window canvas. Leave a clear top row for
   the workspace identity, then place the session list, conversation, and open
   folder/tool panes together over one inset workspace surface.
-- Do not draw divider lines between workspace panes. Use the shared surface and
-  spacing to organize the areas; keep the outer frame quiet and rounded.
+- Use subtle resize hairlines between the session sidebar, chat, and folder pane
+  so their boundaries remain easy to read and resize. Keep separators out of
+  the profile footer and destination-rail content.
 - The account menu opens as a clean identity overview. Make profile editing
   available through an explicit pencil affordance. Keep sign-out visually
   separate from ordinary profile actions.
@@ -122,6 +131,8 @@ source of truth for future desktop design work.
 - Keep the composer anchored at the bottom of an existing chat. On a genuinely
   new draft, a small prompt may sit above it; do not show a second welcome hero
   behind a bot, project, or existing conversation identity.
+- Make the composer dock about 10% wider than its base layout, capped at 50.6rem
+  and constrained to the available chat width.
 - Group composer controls by task: attachments and context on the left, model
   and reasoning near the input, and send/stop on the right. Give icon-only
   controls accessible names and tooltips.

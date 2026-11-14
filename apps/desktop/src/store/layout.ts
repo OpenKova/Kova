@@ -31,13 +31,12 @@ import { $showAllProfiles, setShowAllProfiles } from './profile'
 import type { PullRequestBucket } from './pull-requests'
 import type { SessionStatusBucket } from './session-dot-state'
 
-export const SIDEBAR_DEFAULT_WIDTH = 237
-export const SIDEBAR_MAX_WIDTH = 360
+export const SIDEBAR_DEFAULT_WIDTH = 330
+export const SIDEBAR_MAX_WIDTH = 440
 export const SIDEBAR_COMPACT_WIDTH = 48
-// Open at the same width as the sessions sidebar so the two rails match, but
-// allow shrinking well below that (~30% under the old 14rem floor) for users who
-// want a narrow tree.
-export const FILE_BROWSER_DEFAULT_WIDTH = `${SIDEBAR_DEFAULT_WIDTH}px`
+// Keep the folder browser at its existing width; the wider default belongs to
+// the sessions list, which needs more room for titles and preview text.
+export const FILE_BROWSER_DEFAULT_WIDTH = '237px'
 export const FILE_BROWSER_MIN_WIDTH = '10rem'
 export const FILE_BROWSER_MAX_WIDTH = '20rem'
 
