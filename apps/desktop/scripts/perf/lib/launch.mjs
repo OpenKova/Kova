@@ -164,7 +164,7 @@ const ANTI_THROTTLE_FLAGS = [
  */
 export async function startIsolatedInstance({
   port = 9222,
-  devPort = 5174,
+  devPort = 5187,
   prod = false,
   coldStart = false,
   kovaHome,
@@ -337,7 +337,7 @@ export async function startIsolatedInstance({
 // ONE profile across runs: run 0 warms the cache (discarded), runs 1..N are the
 // warm samples. Each run steps the port so a just-killed instance can't be
 // re-attached, and we pause between runs so the single-instance lock releases.
-export async function coldStartSamples({ runs = 3, port = 9222, devPort = 5174, prod = false, warm = true } = {}) {
+export async function coldStartSamples({ runs = 3, port = 9222, devPort = 5187, prod = false, warm = true } = {}) {
   const pickNumeric = timings => Object.fromEntries(Object.entries(timings).filter(([, v]) => typeof v === 'number'))
   const samples = []
 
