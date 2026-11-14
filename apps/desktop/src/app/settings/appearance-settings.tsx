@@ -77,7 +77,7 @@ import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/use
 import { setKovaConfigCache, useKovaConfigRecord } from '../hooks/use-config-record'
 
 import { AppearanceExtraSlot } from './appearance-contrib'
-import type { AppearanceSubpageId } from './appearance-subpages'
+import type { AppearanceSectionId, AppearanceSubpageId } from './appearance-subpages'
 import { ChatFontSetting } from './chat-font-setting'
 import { MODE_OPTIONS } from './constants'
 import { setNested } from './helpers'
@@ -469,7 +469,11 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
     }
 
   const [query, setQuery] = useState('')
-  const show = (id: AppearanceSubpageId) => subpage === undefined || subpage === id
+
+  const show = (id: AppearanceSectionId) =>
+    subpage === undefined ||
+    subpage === id ||
+    (subpage === 'general' && ['typography', 'window-layout', 'chat-display'].includes(id))
 
   useSettingDeepLink('config:appearance', page => page !== undefined && show(page as AppearanceSubpageId))
 

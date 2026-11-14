@@ -103,13 +103,19 @@ source of truth for future desktop design work.
   sections beneath it, and the selected section's content in the right pane.
 - Keep the settings sidebar narrow, consistently spaced, and easy to scan.
   Group related options into sections such as General, Agents, Profile,
-  Notifications, Voice, Computer Use, Billing, Mobile Connect, and Updates.
+  Notifications, Voice, Computer Use, and Updates. Keep hidden or legacy routes
+  reachable from saved links without surfacing them as primary navigation.
   Use one selected-row treatment and do not add decorative red highlights.
 - Keep each settings section focused on its own controls. Preserve the full
   range of settings; organization must not hide or delete existing options.
-- Arrange controls in a readable content column. Use quiet filled background
-  groups for related settings, with clear labels, short descriptions, and
-  aligned controls. Avoid long ungrouped forms and excessive nested cards.
+- Give the content pane one calm workspace surface. Arrange controls in a
+  readable content column with clear labels, short descriptions, aligned
+  controls, and subtle row separation. Reserve filled backgrounds for controls
+  or a genuinely related group; do not wrap every settings page or category in
+  another card.
+- Keep Appearance's General, Theme, and Pet destinations concise. Place
+  typography, window/layout, and chat display controls in General so existing
+  settings and search links continue to work without expanding the navigation.
 - Expand details inline in the settings content when that keeps the current
   context clear. Do not force routine settings into dropdown-only navigation.
 - Make navigation back to the app obvious. Settings should not cover the

@@ -98,7 +98,7 @@ describe('settings subpage routing', () => {
       ['vault', 'kind=login', 'credentials'],
       ['vault', 'label=Example', 'credentials'],
       ['vault', 'origin=https%3A%2F%2Fexample.com', 'credentials'],
-      ['config:appearance', 'setting=appearance.hide-thread-timeline', 'chat-display']
+      ['config:appearance', 'setting=appearance.hide-thread-timeline', 'general']
     ]
 
     for (const [view, search, expected] of cases) {

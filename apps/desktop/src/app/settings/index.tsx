@@ -529,14 +529,18 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     }
 
     return [
-      category('general', t.settings.nav.general, Settings2, ['config:chat', 'config:appearance', 'config:workspace', 'keybinds', 'sessions'], 'config:chat'),
+      category(
+        'general',
+        t.settings.nav.general,
+        Settings2,
+        ['config:chat', 'config:appearance', 'config:workspace', 'keybinds'],
+        'config:chat'
+      ),
       category('agents', t.settings.nav.agents, Cpu, ['config:model', 'config:safety', 'config:memory', 'config:advanced', 'providers', 'keys', 'plugins'], 'config:model'),
       rename('profile', t.settings.nav.profile),
       rename('notifications', t.settings.nav.notifications),
       rename('config:voice', t.settings.sections.voice),
       category('computer-use', t.settings.nav.computerUse, codiconIcon('mouse'), ['config:browser', 'vault', 'web-access'], 'config:browser'),
-      rename('billing', t.settings.nav.billing),
-      rename('gateway', t.settings.nav.mobileConnect),
       rename('about', t.settings.nav.updates)
     ].filter((group): group is OverlayNavGroup => group !== null)
   }, [allNavGroups, t.settings.nav, t.settings.sections.voice])
@@ -732,10 +736,10 @@ function SettingsOverview({
 }) {
   const categories = [
     { ids: ['config:model', 'providers'], label: overview.ai },
-    { ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'], label: overview.workspace },
+    { ids: ['config:workspace', 'config:browser', 'web-access', 'vault'], label: overview.workspace },
     { ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'], label: overview.personalize },
     { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'], label: overview.agent },
-    { ids: ['profile', 'billing', 'about'], label: overview.account }
+    { ids: ['profile', 'about'], label: overview.account }
   ]
 
   return (

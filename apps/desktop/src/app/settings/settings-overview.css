@@ -1,5 +1,5 @@
 .settings-glass-panel {
-  background: var(--ui-bg-elevated);
+  background: var(--ui-bg-chrome);
   border-color: var(--ui-stroke-tertiary);
 }
 
@@ -43,18 +43,11 @@
 }
 
 .settings-glass-panel [data-overlay-main] {
-  background: var(--ui-chat-surface-background);
+  background: var(--ui-bg-workspace-surface);
 }
 
 .settings-glass-panel [data-overlay-main] > div {
   scrollbar-gutter: stable;
-}
-
-.settings-glass-panel [data-overlay-main] > div > section {
-  border: 1px solid var(--ui-stroke-tertiary);
-  border-radius: 0.75rem;
-  background: var(--ui-bg-elevated);
-  padding: 1rem;
 }
 
 .settings-glass-panel [data-variant='default'] {
@@ -71,10 +64,7 @@
 }
 
 .settings-overview-grid > section {
-  border-radius: 0.75rem;
-  background: var(--ui-bg-elevated);
-  border: 1px solid var(--ui-stroke-tertiary);
-  padding: 1rem;
+  min-width: 0;
 }
 
 @container settings-overview (max-width: 44rem) {

@@ -1,11 +1,11 @@
 import type { Translations } from '@/i18n'
-import { servedByKovaCloud } from '@/lib/kova-cloud-host'
 import { hostHas } from '@/lib/host-capabilities'
+import { servedByKovaCloud } from '@/lib/kova-cloud-host'
 import { NATIVE_NOTIFICATION_KINDS } from '@/store/native-notifications'
 import { canUseQuickEntry } from '@/store/quick-entry'
 import { TRANSLUCENCY_SUPPORTED } from '@/store/translucency'
 
-import type { AppearanceSubpageId } from './appearance-subpages'
+import type { AppearanceSectionId } from './appearance-subpages'
 import { nativeHostOnly } from './other-subpages'
 import type { SettingsView } from './types'
 
@@ -40,8 +40,12 @@ const appearanceCopy =
     }
   }
 
-const appearanceSetting = (subpage: AppearanceSubpageId, keywords: readonly string[], key: TitledKey) =>
-  ({ subpage, keywords, copy: appearanceCopy(key) }) satisfies SettingDefinition
+const appearanceSetting = (subpage: AppearanceSectionId, keywords: readonly string[], key: TitledKey) =>
+  ({
+    subpage: ['typography', 'window-layout', 'chat-display'].includes(subpage) ? 'general' : subpage,
+    keywords,
+    copy: appearanceCopy(key)
+  }) satisfies SettingDefinition
 
 /**
  * The manifest of every hand-built settings row — the ones that are not a
