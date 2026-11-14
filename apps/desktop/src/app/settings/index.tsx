@@ -497,9 +497,49 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     ]
   )
 
-  // Keep every destination visible in the Settings rail; the overview page
-  // still groups destinations in its content, while navigation stays flat.
-  const navGroups = useMemo(() => allNavGroups.filter(group => group.id !== 'home'), [allNavGroups])
+  // Keep OpenBot's compact top-level categories, but populate them from the
+  // existing Kova destinations so every settings page stays directly reachable.
+  const navGroups = useMemo<OverlayNavGroup[]>(() => {
+    const byId = new Map(allNavGroups.map(group => [group.id, group]))
+
+    const collect = (ids: string[]) => ids.flatMap(id => {
+      const group = byId.get(id)
+
+      return group ? [group] : []
+    })
+
+    const category = (id: string, label: string, icon: OverlayNavGroup['icon'], ids: string[], target: string) => {
+      const children = collect(ids)
+      const destination = children.find(child => child.id === target)
+
+      return {
+        active: children.some(child => child.active),
+        children,
+        icon,
+        id,
+        label,
+        onSelect: destination?.onSelect ?? (() => undefined)
+      }
+    }
+
+    const rename = (id: string, label: string) => {
+      const group = byId.get(id)
+
+      return group ? { ...group, label } : null
+    }
+
+    return [
+      category('general', t.settings.nav.general, Settings2, ['config:chat', 'config:appearance', 'config:workspace', 'keybinds', 'sessions'], 'config:chat'),
+      category('agents', t.settings.nav.agents, Cpu, ['config:model', 'config:safety', 'config:memory', 'config:advanced', 'providers', 'keys', 'plugins'], 'config:model'),
+      rename('profile', t.settings.nav.profile),
+      rename('notifications', t.settings.nav.notifications),
+      rename('config:voice', t.settings.sections.voice),
+      category('computer-use', t.settings.nav.computerUse, codiconIcon('mouse'), ['config:browser', 'vault', 'web-access'], 'config:browser'),
+      rename('billing', t.settings.nav.billing),
+      rename('gateway', t.settings.nav.mobileConnect),
+      rename('about', t.settings.nav.updates)
+    ].filter((group): group is OverlayNavGroup => group !== null)
+  }, [allNavGroups, t.settings.nav, t.settings.sections.voice])
 
   const activeGroup = navGroups.find(group => group.active)
   const activeChild = activeGroup?.children?.find(child => child.active)
@@ -590,7 +630,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     <SettingsOverview
       groups={allNavGroups}
       overview={t.settings.overview}
-      title={t.titlebar.openSettings}
+      title={t.settings.title}
     />
   ) : activeView.startsWith('config:') ? (
     <ConfigSettings
@@ -645,14 +685,14 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
           header={
             <div className="mb-2 space-y-2 px-1" data-settings-search-header="">
               <div className="flex items-center justify-between px-1">
-              <button
-                aria-current={activeView === 'home' ? 'page' : undefined}
-                className="text-left text-sm font-semibold text-foreground"
-                onClick={() => setActiveView('home')}
-                type="button"
-              >
-                {t.titlebar.openSettings}
-              </button>
+                <button
+                  aria-current={activeView === 'home' ? 'page' : undefined}
+                  className="text-left text-sm font-semibold text-foreground"
+                  onClick={() => setActiveView('home')}
+                  type="button"
+                >
+                  {t.settings.title}
+                </button>
                 <Button aria-label={t.common.back} className="size-7 text-(--ui-text-tertiary)" onClick={onClose} size="icon-xs" variant="ghost">
                   <ChevronLeft />
                 </Button>
@@ -691,7 +731,7 @@ function SettingsOverview({
   title: string
 }) {
   const categories = [
-    { ids: ['config:model', 'providers', 'keys'], label: overview.ai },
+    { ids: ['config:model', 'providers'], label: overview.ai },
     { ids: ['config:workspace', 'config:browser', 'gateway', 'web-access', 'vault', 'sessions'], label: overview.workspace },
     { ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'], label: overview.personalize },
     { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'], label: overview.agent },

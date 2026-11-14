@@ -601,6 +601,7 @@ export interface Translations extends NoticeTranslations {
   }
 
   settings: {
+    title: string
     subpages: Record<string, string>
     overview: { intro: string; ai: string; workspace: string; personalize: string; agent: string; account: string }
     closeSettings: string
@@ -614,6 +615,12 @@ export interface Translations extends NoticeTranslations {
       pageCount: (n: number) => string
     }
     nav: {
+      general: string
+      agents: string
+      computerUse: string
+      mobileConnect: string
+      updates: string
+      allSettings: string
       providers: string
       providerAccounts: string
       providerApiKeys: string
