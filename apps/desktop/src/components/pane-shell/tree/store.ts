@@ -1397,7 +1397,7 @@ export function declareDefaultTree(tree: LayoutNode, simpleTree: LayoutNode = tr
     current.id === 'spl-root' &&
     current.orientation === 'row' &&
     current.weights.length === 3 &&
-    current.weights[0] === 1 &&
+    (current.weights[0] === 1 || current.weights[0] === 1.5) &&
     current.weights[1] === 3.4 &&
     current.weights[2] === 1.25 &&
     current.children[0]?.type === 'group' &&

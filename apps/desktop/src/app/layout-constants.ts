@@ -22,11 +22,12 @@ export const PAGE_MAX_W = 'max-w-[75rem]'
 // leave the grid and become the hover-reveal overlay. Single source of truth for
 // the responsive collapse point.
 //
-// A rail costs 330px (SIDEBAR_DEFAULT_WIDTH) and the chat beside it wants roughly
+// A session pane costs 378px (SIDEBAR_DEFAULT_WIDTH, including the separate
+// 48px destination rail) and the chat beside it wants roughly
 // what a popped-out session window enforces on itself (420px), so docking stops
 // paying for itself around here — while still leaving an overlay band down to the
 // window's own 400px minimum. Expressed as a dock floor rather than a collapse
-// ceiling so half-screen splits stay docked on common laptop widths (1520 → 760).
-export const SIDEBAR_DOCK_MIN_WIDTH_PX = 760
+// ceiling so half-screen splits stay docked on common laptop widths (1600 → 800).
+export const SIDEBAR_DOCK_MIN_WIDTH_PX = 800
 // `max-width` is inclusive: shave a hair so an exactly-640px window docks.
 export const SIDEBAR_COLLAPSE_MEDIA_QUERY = `(max-width: ${SIDEBAR_DOCK_MIN_WIDTH_PX - 0.02}px)`

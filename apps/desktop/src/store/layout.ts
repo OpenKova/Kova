@@ -31,8 +31,8 @@ import { $showAllProfiles, setShowAllProfiles } from './profile'
 import type { PullRequestBucket } from './pull-requests'
 import type { SessionStatusBucket } from './session-dot-state'
 
-export const SIDEBAR_DEFAULT_WIDTH = 330
-export const SIDEBAR_MAX_WIDTH = 440
+export const SIDEBAR_DEFAULT_WIDTH = 378
+export const SIDEBAR_MAX_WIDTH = 480
 export const SIDEBAR_COMPACT_WIDTH = 48
 // Keep the folder browser at its existing width; the wider default belongs to
 // the sessions list, which needs more room for titles and preview text.

@@ -60,8 +60,9 @@ source of truth for future desktop design work.
 - Keep workspace identity and search at the top of the session sidebar, with
   conversations below. Put session-specific actions next to the session list;
   keep account identity and Settings anchored at the bottom.
-- Keep the expanded session sidebar near 330px overall, including the 48px
-  destination rail, so titles, previews, and timestamps have room to breathe.
+- Keep the expanded session list pane near 330px, separate from the 48px
+  destination rail (378px total), so titles, previews, and timestamps have room
+  to breathe.
 - Keep the global icon rail on the dark window canvas. Leave a clear top row for
   the workspace identity, then place the session list, conversation, and open
   folder/tool panes together over one inset workspace surface.
