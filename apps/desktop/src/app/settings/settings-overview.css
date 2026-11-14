@@ -5,7 +5,7 @@
 
 .settings-glass-panel [data-overlay-nav-rail] {
   background: var(--ui-bg-sidebar);
-  border-right: 1px solid var(--ui-stroke-tertiary);
+  border-right: 0;
   padding-inline: 0.75rem;
 }
 
@@ -44,6 +44,9 @@
 
 .settings-glass-panel [data-overlay-main] {
   background: var(--ui-bg-workspace-surface);
+  margin-inline: 0;
+  max-width: none;
+  width: 100%;
 }
 
 .settings-glass-panel [data-overlay-main] > div {

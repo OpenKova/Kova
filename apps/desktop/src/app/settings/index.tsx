@@ -536,7 +536,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
         ['config:chat', 'config:appearance', 'config:workspace', 'keybinds'],
         'config:chat'
       ),
-      category('agents', t.settings.nav.agents, Cpu, ['config:model', 'config:safety', 'config:memory', 'config:advanced', 'providers', 'keys', 'plugins'], 'config:model'),
+      category('agents', t.settings.nav.agents, Cpu, ['config:model', 'config:safety', 'config:memory', 'config:advanced', 'keys'], 'config:model'),
+      rename('providers', t.settings.nav.providers),
       rename('profile', t.settings.nav.profile),
       rename('notifications', t.settings.nav.notifications),
       rename('config:voice', t.settings.sections.voice),
@@ -708,7 +709,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
         <OverlayMain className="px-0 pb-0">
           <SettingsBreadcrumbContext.Provider value>
-            <div className="mx-auto flex min-h-0 w-full max-w-[784px] flex-1 flex-col">
+            <div className="mx-auto flex min-h-0 w-full max-w-[75rem] flex-1 flex-col px-[clamp(2rem,4vw,5rem)]">
               {activeGroup && activeView !== 'home' && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
               {needsSubpageRedirect ? (
                 <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
@@ -738,7 +739,7 @@ function SettingsOverview({
     { ids: ['config:model', 'providers'], label: overview.ai },
     { ids: ['config:workspace', 'config:browser', 'web-access', 'vault'], label: overview.workspace },
     { ids: ['config:appearance', 'config:chat', 'config:voice', 'keybinds', 'notifications'], label: overview.personalize },
-    { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys', 'plugins'], label: overview.agent },
+    { ids: ['config:safety', 'config:memory', 'config:advanced', 'keys'], label: overview.agent },
     { ids: ['profile', 'about'], label: overview.account }
   ]
 

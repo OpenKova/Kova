@@ -91,7 +91,30 @@ export const FILES_PANE_ID = 'files'
 export type RightRailTabId = `artifact:${string}` | `file:${string}` | `url:${string}`
 
 ensurePaneRegistered(CHAT_SIDEBAR_PANE_ID, { open: true })
-ensurePaneRegistered(FILE_BROWSER_PANE_ID, { open: false })
+ensurePaneRegistered(FILE_BROWSER_PANE_ID, { open: true })
+
+// The refreshed default workspace includes the file tree beside the chat.
+// Migrate existing layouts once, while preserving an explicit later close.
+const $fileBrowserVisibilityMigrated = modeLayout.atom<boolean>(
+  'fileBrowserVisibility.v1',
+  () => false,
+  Codecs.bool
+)
+
+function migrateFileBrowserVisibility() {
+  if ($fileBrowserVisibilityMigrated.get()) {
+    return
+  }
+
+  if (!$paneStates.get()[FILE_BROWSER_PANE_ID]?.open) {
+    setPaneOpen(FILE_BROWSER_PANE_ID, true)
+  }
+
+  $fileBrowserVisibilityMigrated.set(true)
+}
+
+migrateFileBrowserVisibility()
+modeLayout.onRestore(migrateFileBrowserVisibility)
 
 export const $sidebarOpen: ReadableAtom<boolean> = computed($paneStates, states => {
   const state = states[CHAT_SIDEBAR_PANE_ID]
