@@ -1647,7 +1647,7 @@ export function ChatSidebar({
           'flex-row gap-0 overflow-hidden bg-transparent p-0 transition-[padding] duration-200 ease-linear motion-reduce:transition-none'
         )}
       >
-        <SidebarGroup className="w-12 shrink-0 border-r border-(--ui-stroke-tertiary) px-1 py-1">
+        <SidebarGroup className="w-14 shrink-0 border-r border-(--ui-stroke-tertiary) px-1 py-1">
           <SidebarGroupContent>
             <SidebarMenu className="items-center gap-1">
               {navItems.map(item => {
@@ -1682,7 +1682,7 @@ export function ChatSidebar({
                         // resolved region has been observed to swallow clicks on the
                         // top rows. Same carve-out as USER_BUBBLE_BASE_CLASS in
                         // thread.tsx.
-                        'flex h-8 w-8 min-w-8 justify-center gap-0 rounded-lg border border-transparent p-0 text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
+                        'flex h-7 w-7 min-w-7 justify-center gap-0 rounded-lg border border-transparent p-0 text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
                         active && 'bg-(--ui-control-active-background) text-foreground shadow-none',
                         !isInteractive &&
                           'cursor-default hover:border-transparent hover:bg-transparent hover:text-inherit'
