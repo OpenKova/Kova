@@ -261,6 +261,8 @@ export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControl
   const visibleLeftTools = (
     appActionsSide === 'left' ? [sidebarTool, ...systemTools, ...leftTools] : [sidebarTool, ...leftTools]
   ).filter(visibleTool)
+  const sidebarControl = visibleLeftTools.find(tool => tool.id === 'sidebar')
+  const remainingLeftTools = visibleLeftTools.filter(tool => tool.id !== 'sidebar')
 
   const visibleSystemTools = appActionsSide === 'right' ? systemTools.filter(visibleTool) : []
   const visiblePaneTools = tools.filter(visibleTool)
@@ -269,10 +271,13 @@ export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControl
   return (
     <>
       <div aria-label={t.shell.windowControls} className={leftClusterClass} data-titlebar-cluster="left">
-        {visibleLeftTools.map(tool => (
+        {sidebarControl && (
+          <TitlebarToolButton key={sidebarControl.id} navigate={navigate} tool={sidebarControl} />
+        )}
+        <Slot area="titleBar.left" />
+        {remainingLeftTools.map(tool => (
           <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />
         ))}
-        <Slot area="titleBar.left" />
         <Slot area="titleBar.center" />
       </div>
 

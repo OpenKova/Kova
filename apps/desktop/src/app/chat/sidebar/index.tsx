@@ -17,13 +17,13 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { Tip, TipKeybindLabel } from '@/components/ui/tooltip'
 import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
+import { Contribute } from '@/contrib/react/contribute'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { useI18n } from '@/i18n'
 import { type SessionInfo, type SessionSearchResult } from '@/kova'
@@ -1637,11 +1637,11 @@ export function ChatSidebar({
       data-tip-region=""
       data-tour="sessions-sidebar"
     >
-      <SidebarHeader
-        className={cn('shrink-0 pb-1', sidebarOpen ? 'items-stretch px-2.5 pt-2' : 'items-center px-1.5 pt-2')}
-      >
-        <ProfileSwitcher compact={!sidebarOpen} />
-      </SidebarHeader>
+      <Contribute area="titleBar.left" id="desktop:workspace-switcher">
+        <div className="ml-1 flex h-8 w-52 items-center">
+          <ProfileSwitcher />
+        </div>
+      </Contribute>
       <SidebarContent
         className={cn(
           'flex-row gap-0 overflow-hidden bg-transparent p-0 transition-[padding] duration-200 ease-linear motion-reduce:transition-none'

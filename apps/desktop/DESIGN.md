@@ -57,14 +57,14 @@ source of truth for future desktop design work.
   destinations in the icon rail. Give each one a clear active state, an
   accessible name, and a standard horizontal tooltip. Never show rotated or
   vertically stacked hover labels.
-- Keep workspace identity and search at the top of the session sidebar, with
-  conversations below. Put session-specific actions next to the session list;
-  keep account identity and Settings anchored at the bottom.
+- Keep the workspace switcher in the title bar beside the hide-sidebar control.
+  Keep search and session-specific actions at the top of the session list, with
+  conversations below; keep account identity and Settings anchored at the bottom.
 - Keep the expanded session list pane near 330px, separate from the 48px
   destination rail (378px total), so titles, previews, and timestamps have room
   to breathe.
 - Keep the global icon rail on the dark window canvas. Leave a clear top row for
-  the workspace identity, then place the session list, conversation, and open
+  the workspace switcher, then place the session list, conversation, and open
   folder/tool panes together over one inset workspace surface.
 - Use subtle resize hairlines between the session sidebar, chat, and folder pane
   so their boundaries remain easy to read and resize. Keep separators out of
