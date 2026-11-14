@@ -1,10 +1,12 @@
 .settings-glass-panel {
   background: var(--ui-bg-elevated);
-  border-color: var(--ui-stroke-secondary);
+  border-color: var(--ui-stroke-tertiary);
 }
 
 .settings-glass-panel [data-overlay-nav-rail] {
   background: var(--ui-bg-sidebar);
+  border-right: 1px solid var(--ui-stroke-tertiary);
+  padding-inline: 0.75rem;
 }
 
 .settings-glass-panel [data-tour='overlay-nav'] {
@@ -12,9 +14,10 @@
 }
 
 .settings-glass-panel [data-tour='overlay-nav'] button {
-  min-height: 2rem;
-  height: 2rem;
+  min-height: 2.125rem;
+  height: 2.125rem;
   font-size: 0.875rem;
+  border-radius: 0.5rem;
 }
 
 .settings-glass-panel [data-settings-search-header] > div:first-child > button:first-child {
@@ -31,12 +34,27 @@
 
 .settings-glass-panel [data-tour='overlay-nav'] button[aria-current='page'] {
   border-color: transparent;
-  background: color-mix(in srgb, var(--kova-signature-accent) 13%, var(--ui-bg-tertiary));
+  background: var(--ui-bg-tertiary);
   color: var(--ui-text-primary);
 }
 
 .settings-glass-panel [data-tour='overlay-nav'] button[aria-current='page'] svg {
-  color: var(--kova-signature-accent);
+  color: var(--ui-text-primary);
+}
+
+.settings-glass-panel [data-overlay-main] {
+  background: var(--ui-chat-surface-background);
+}
+
+.settings-glass-panel [data-overlay-main] > div {
+  scrollbar-gutter: stable;
+}
+
+.settings-glass-panel [data-overlay-main] > div > section {
+  border: 1px solid var(--ui-stroke-tertiary);
+  border-radius: 0.75rem;
+  background: var(--ui-bg-elevated);
+  padding: 1rem;
 }
 
 .settings-glass-panel [data-variant='default'] {
@@ -54,7 +72,8 @@
 
 .settings-overview-grid > section {
   border-radius: 0.75rem;
-  background: var(--ui-bg-quinary);
+  background: var(--ui-bg-elevated);
+  border: 1px solid var(--ui-stroke-tertiary);
   padding: 1rem;
 }
 
