@@ -1664,6 +1664,7 @@ export function ChatSidebar({
                 const isNewSession = item.id === 'new-session'
 
                 const label = s.nav[item.id] ?? item.label
+
                 const button = (
                   <Tip
                     label={

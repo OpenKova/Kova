@@ -261,6 +261,7 @@ export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControl
   const visibleLeftTools = (
     appActionsSide === 'left' ? [sidebarTool, ...systemTools, ...leftTools] : [sidebarTool, ...leftTools]
   ).filter(visibleTool)
+
   const sidebarControl = visibleLeftTools.find(tool => tool.id === 'sidebar')
   const remainingLeftTools = visibleLeftTools.filter(tool => tool.id !== 'sidebar')
 
