@@ -39,13 +39,12 @@
   background: var(--ui-bg-chrome);
 }
 
-/* The chat transcript and folder pane used to start at the window edge even
-   though their shared card starts below the workspace row. Inset their live
-   pane hosts so their first content sits fully inside the card. */
-[data-contrib-shell] [data-workspace-tree] [data-pane-host][data-tree-group='grp-main'],
-[data-contrib-shell] [data-workspace-tree] [data-pane-host][data-tree-group='grp-files'] {
-  box-sizing: border-box;
-  padding-top: 1.5rem;
+/* Keep the workspace header clear. Move the actual surfaces down together
+   with their contents so messages and the folder title stay inside the card. */
+[data-contrib-shell] [data-workspace-tree] [data-chat-surface],
+[data-contrib-shell] [data-workspace-tree] [data-tree-group='grp-files'] aside {
+  top: 1.5rem;
+  height: calc(100% - 1.5rem);
 }
 
 /* Keep the icon rail visually open: neither its sidebar seam nor the profile
@@ -61,10 +60,4 @@
 /* The composer uses the darker chrome surface inside the shared workspace. */
 [data-contrib-shell] [data-workspace-tree] [data-slot='composer-root'] {
   --composer-fill: var(--ui-bg-chrome);
-}
-
-/* Resizers keep their hit targets and keyboard semantics; only their visible
-   hairlines are removed so pane boundaries do not divide the shared surface. */
-[data-contrib-shell] [data-workspace-tree] [data-sash-overlap] > span {
-  opacity: 0;
 }
