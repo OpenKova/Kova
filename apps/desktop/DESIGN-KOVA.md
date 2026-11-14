@@ -1,11 +1,12 @@
 # Kova Desktop Design System
 
 This is the visual and interaction contract for Kova Desktop and Kova Setup.
-Kova takes cues from the clarity of Codex and the quiet, neutral surfaces in
-OpenBot, then uses its own layout, marks, labels, motion, and color. These are
-references for principles, not templates to copy. This file is the authority;
-the legacy `DESIGN.md` and `DESIGN-KOVA-OPENBOT.md` are not implementation
-specifications.
+The desktop shell follows the clear, two-rail arrangement shown by OpenBot:
+global destinations in a narrow rail, sessions in an adjacent sidebar, and
+workspace identity and chat controls across the top. Kova implements this with
+its own React components, routes, state, marks, and tokens. This file is the
+authority; the legacy `DESIGN.md` points here and `DESIGN-KOVA-OPENBOT.md`
+records the reference mapping.
 
 ## Product feel
 
@@ -40,15 +41,32 @@ specifications.
 
 ## Navigation and workspace
 
-- Keep the global navigation persistent and make the current workspace
-  explicit. **Sessions** and **Bots** must each have a clear route back to the
-  other; never make the user infer that a home glyph changes workspaces.
-- The left sidebar is a navigation and session rail, not a stack of boxed
-  panels. Keep primary actions close to the list they affect.
+- Use a two-part left shell: a narrow, icon-led app rail for destinations, then
+  a session sidebar for search, the active workspace, and its conversations.
+  Keep the app rail about 44–52px wide and give the session list the remaining
+  sidebar width. The rail stays visible when the session sidebar is collapsed.
+- Put New chat, Marketplace, Channels, Artifacts, Scheduled, and other primary
+  destinations in that app rail. Use one icon per destination, a clear active
+  state, accessible names, and tooltips; avoid repeating the same destinations
+  as a text menu above the session list.
+- The session sidebar begins with the workspace/profile switcher and search,
+  then shows the selected workspace's conversations. Keep list-specific
+  actions beside the list. Anchor account identity and settings at the bottom.
+- Keep workspace identity and chat navigation explicit in the top bar. Use the
+  left side for workspace/profile and history, the middle for open chat tabs
+  and the right side for model/reasoning and pane controls. Keep New chat in
+  the app rail and leave native window controls their reserved space. At
+  narrow widths, collapse
+  labels before hiding the active chat or its model choice.
+- **Sessions** and **Bots** must each have a clear route back to the other;
+  never make the user infer that a home glyph changes workspaces.
+- The left shell is not a stack of boxed panels. Use one subtle separator
+  between the app rail and session list; keep surrounding surfaces flat.
 - Use one consistent, semantic icon family for first-party navigation. In the
   collapsed rail, center each action in its own compact hit target; never let
   footer actions overflow horizontally. A destination should have one primary
-  entry point rather than a second status-bar shortcut.
+  entry point rather than a second status-bar shortcut. Keep hover names beside
+  the icon in a normal tooltip, never rotated or vertically stacked text.
 - The account control is a compact identity row anchored at the bottom of the
   rail. Its menu opens on a calm identity overview. Put identity editing
   behind an explicit pencil affordance, and keep sign-out as a separated
@@ -72,6 +90,9 @@ specifications.
 - Keep controls grouped by task: attach/context on the left; model and
   reasoning near the input; send/stop at the right. Give every icon-only
   action an accessible name and tooltip.
+- Keep the top bar visually quiet: workspace and chat identity first, then
+  compact history/tab controls, then model and pane actions. Do not put
+  navigation destinations in the transcript header.
 - Empty states belong to the surface they describe. A bot empty state owns its
   avatar/name; the generic new-chat welcome must not show behind it.
 - Streaming, loading, and errors are separate states. Loading should not look
@@ -88,6 +109,9 @@ specifications.
 - Status indicators should name the product or capability in user language.
   Keep build hashes, install identifiers, exact paths, and runtime provenance
   available as optional diagnostics rather than the everyday update summary.
+- The bottom status bar reports live connection, task, and usage state. Keep
+  navigation out of it. Separate stable idle status from in-progress task
+  feedback, and let a progress indicator explain itself on hover or focus.
 - Use short motion only to clarify a state transition. Hover/press feedback is
   immediate; panels and menus settle quickly. Honor `prefers-reduced-motion`.
 - A dialog is for a focused decision or short form. Navigation, settings,
