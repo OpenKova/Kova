@@ -272,9 +272,6 @@ export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControl
   return (
     <>
       <div aria-label={t.shell.windowControls} className={leftClusterClass} data-titlebar-cluster="left">
-        {sidebarControl && (
-          <TitlebarToolButton key={sidebarControl.id} navigate={navigate} tool={sidebarControl} />
-        )}
         <Slot area="titleBar.left" />
         {remainingLeftTools.map(tool => (
           <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />

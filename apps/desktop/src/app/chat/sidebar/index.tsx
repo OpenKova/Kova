@@ -1647,7 +1647,7 @@ export function ChatSidebar({
           'flex-row gap-0 overflow-hidden bg-transparent p-0 transition-[padding] duration-200 ease-linear motion-reduce:transition-none'
         )}
       >
-        <SidebarGroup className="w-14 shrink-0 border-r border-(--ui-stroke-tertiary) px-1 py-1">
+        <SidebarGroup className="w-14 shrink-0 border-r border-(--ui-stroke-tertiary) px-1 pt-2.5 pb-1">
           <SidebarGroupContent>
             <SidebarMenu className="items-center gap-1">
               {navItems.map(item => {
@@ -2102,8 +2102,8 @@ export function ChatSidebar({
           )}
         </div>
       </SidebarContent>
-      <SidebarFooter className="flex-row items-stretch gap-0 border-t border-(--ui-stroke-tertiary) p-0">
-        <div className="flex w-12 shrink-0 flex-col items-center gap-1 border-r border-(--ui-stroke-tertiary) py-2">
+      <SidebarFooter className="flex-row items-stretch gap-0 border-t border-(--ui-stroke-tertiary) bg-transparent p-0">
+        <div className="flex w-14 shrink-0 flex-col items-center gap-1 border-r border-(--ui-stroke-tertiary) bg-transparent py-2">
           {!sidebarOpen && <KovaAccountCard compact />}
           {commandCenterButton}
           {footerNavButtons}
