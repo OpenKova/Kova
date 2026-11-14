@@ -26,7 +26,14 @@ import { arraysEqual, insertUniqueId, readKey } from '@/lib/storage'
 import { modeBound, modeLayout } from '@/store/interface-mode'
 
 import { trackArea } from './desktop-metrics'
-import { $paneStates, ensurePaneRegistered, setPaneOpen, setPaneOpenAndWidthOverride, setPaneWidthOverride } from './panes'
+import {
+  $paneStates,
+  ensurePaneRegistered,
+  type PaneStateSnapshot,
+  setPaneOpen,
+  setPaneOpenAndWidthOverride,
+  setPaneWidthOverride
+} from './panes'
 import { $showAllProfiles, setShowAllProfiles } from './profile'
 import type { PullRequestBucket } from './pull-requests'
 import type { SessionStatusBucket } from './session-dot-state'
@@ -126,6 +133,20 @@ export const $sidebarWidth: ReadableAtom<number> = computed($paneStates, states 
 
   return typeof override === 'number' ? override : SIDEBAR_DEFAULT_WIDTH
 })
+
+// The expanded sidebar minimum grew when the destination rail became its own
+// 48px pane. Bring forward saved expanded widths that the current resize UI
+// can no longer produce; preserve the explicit compact (rail-only) state.
+function migrateExpandedSidebarWidth(states: Record<string, PaneStateSnapshot>) {
+  const width = states.sessions?.widthOverride ?? states[CHAT_SIDEBAR_PANE_ID]?.widthOverride
+
+  if (typeof width === 'number' && width !== SIDEBAR_COMPACT_WIDTH && width < SIDEBAR_DEFAULT_WIDTH) {
+    setPaneWidthOverride('sessions', SIDEBAR_DEFAULT_WIDTH)
+  }
+}
+
+migrateExpandedSidebarWidth($paneStates.get())
+$paneStates.listen(migrateExpandedSidebarWidth)
 
 // Pins and the manual session order are CONNECTION-scoped, not global: they
 // are lists of session ids owned by one gateway's state.db, and multiple

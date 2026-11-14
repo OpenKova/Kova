@@ -39,6 +39,12 @@
   background: var(--ui-bg-chrome);
 }
 
+/* Start session controls inside the inset workspace, aligned with the chat
+   and folder content below the intentionally empty workspace header. */
+[data-contrib-shell] [data-workspace-tree] [data-session-list-pane] {
+  padding-block-start: 1.25rem;
+}
+
 /* Keep the workspace header clear. Move the actual surfaces down together
    with their contents so messages and the folder title stay inside the card. */
 [data-contrib-shell] [data-workspace-tree] [data-chat-surface],
@@ -67,6 +73,7 @@
 [data-contrib-shell] [data-workspace-tree] [data-slot='composer-dock'] {
   width: min(
     50.6rem,
-    calc(min(var(--composer-width), 46rem, max(20rem, calc(100% - 14rem))) + 10% + 10px)
+    calc(min(var(--composer-width), 46rem, max(20rem, calc(100% - 14rem))) + 10% + 10px),
+    max(0px, calc(100% - 1rem))
   );
 }

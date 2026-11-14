@@ -1389,23 +1389,7 @@ export function declareDefaultTree(tree: LayoutNode, simpleTree: LayoutNode = tr
     return
   }
 
-  // Give users who are still on the untouched original root proportions the
-  // wider sessions list from the current default. A manually resized root has
-  // different weights and remains the user's choice.
-  const defaultSessionWidth =
-    current.type === 'split' &&
-    current.id === 'spl-root' &&
-    current.orientation === 'row' &&
-    current.weights.length === 3 &&
-    (current.weights[0] === 1 || current.weights[0] === 1.5) &&
-    current.weights[1] === 3.4 &&
-    current.weights[2] === 1.25 &&
-    current.children[0]?.type === 'group' &&
-    current.children[0].panes.length === 1 &&
-    current.children[0].panes[0] === 'sessions'
-
-  const startingTree = defaultSessionWidth ? { ...current, weights: [...defaultTree.weights] } : current
-  const next = adoptMissingPanes(startingTree, defaultTree)
+  const next = adoptMissingPanes(current, defaultTree)
 
   if (next !== current) {
     commit(next)

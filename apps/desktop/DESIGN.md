@@ -62,10 +62,14 @@ source of truth for future desktop design work.
   conversations below; keep account identity and Settings anchored at the bottom.
 - Keep the expanded session list pane near 330px, separate from the 48px
   destination rail (378px total), so titles, previews, and timestamps have room
-  to breathe.
+  to breathe. Migrate undersized saved expanded widths to the current minimum;
+  preserve the compact rail-only state.
 - Keep the global icon rail on the dark window canvas. Leave a clear top row for
   the workspace switcher, then place the session list, conversation, and open
   folder/tool panes together over one inset workspace surface.
+- Keep the session list's search and pinned header inside that surface and
+  below the clear workspace header. Clamp the composer to its pane's available
+  width at every window size, including narrow layouts.
 - Use subtle resize hairlines between the session sidebar, chat, and folder pane
   so their boundaries remain easy to read and resize. Keep separators out of
   the profile footer and destination-rail content.

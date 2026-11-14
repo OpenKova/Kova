@@ -1760,7 +1760,7 @@ export function ChatSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2.5">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2.5" data-session-list-pane="">
           {!showWorkspaceSidebar && sidebarOpen && <SidebarStorageCorruptNotice />}
 
           {showWorkspaceSidebar && workspaceContribution?.render ? (
