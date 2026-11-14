@@ -4,6 +4,7 @@ import { type ComponentProps, type MouseEvent, type ReactNode, useEffect } from 
 import { useLocation, useNavigate } from 'react-router'
 
 import { hudTargetSessionId } from '@/app/hud/handoff'
+import { BrandMark } from '@/components/brand-mark'
 import { PANE_TOGGLE_REVEAL_EVENT } from '@/components/pane-shell'
 import { $narrowOverlayPaneIds } from '@/components/pane-shell/narrow-overlay-state'
 import { $narrowViewport } from '@/components/pane-shell/tree/store'
@@ -272,6 +273,7 @@ export function TitlebarControls({ leftTools = [], tools = [] }: TitlebarControl
   return (
     <>
       <div aria-label={t.shell.windowControls} className={leftClusterClass} data-titlebar-cluster="left">
+        <BrandMark aria-label="Kova" className="size-5" role="img" />
         <Slot area="titleBar.left" />
         {remainingLeftTools.map(tool => (
           <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />
