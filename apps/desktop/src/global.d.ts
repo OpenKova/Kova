@@ -1381,6 +1381,8 @@ export interface DesktopRosterAgent {
   profile: string
   targetProfile?: string
   handle: string
+  /** Bot Mode metadata; bot profiles are excluded from workspace navigation. */
+  profileMetadata?: { title?: string }
   // False when this source lists the profile but does not serve it.
   // Absent means the source's own reachable flag.
   reachable?: boolean

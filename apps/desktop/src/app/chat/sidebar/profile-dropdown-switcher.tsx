@@ -73,6 +73,9 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
   const p = t.profiles
   const navigate = useNavigate()
   const profiles = useStore($profiles)
+  // Bot Mode owns profiles with a bot title; keep those identities in its own
+  // roster instead of mixing them into the workspace switcher.
+  const workspaces = useMemo(() => profiles.filter(profile => !profile.bot_title?.trim()), [profiles])
   const order = useStore($profileOrder)
   const colors = useStore($profileColors)
   const gatewayProfile = useStore($activeGatewayProfile)
@@ -86,7 +89,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
   const { dialog: localDeviceDialog, request: requestLocalDevice } = useLocalDeviceSwitch()
 
   useFleetRoster(multipleConnections)
-  const unserved = useUnservedProfiles(profiles)
+  const unserved = useUnservedProfiles(workspaces)
   // The Webapp always takes this dropdown in place of the rail's squares
   // (profile-switcher.tsx), so there it keeps the list fresh the same way and
   // carries the rail's right-click launch menu. Native Desktop's picker is main's.
@@ -120,15 +123,15 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
   // named profiles on This device keep the legacy door (per-profile overrides).
   const namedConnectionId = activeConnectionId === LOCAL_CONNECTION_ID ? null : activeConnectionId
   const activeKey = normalizeProfileKey(gatewayProfile)
-  const defaultProfile = profiles.find(profile => profile.is_default)
+  const defaultProfile = workspaces.find(profile => profile.is_default)
 
   const named = sortByProfileOrder(
-    profiles.filter(profile => !profile.is_default),
+    workspaces.filter(profile => !profile.is_default),
     order
   )
 
   const ordered = defaultProfile ? [defaultProfile, ...named] : named
-  const active = showAll ? undefined : profiles.find(profile => normalizeProfileKey(profile.name) === activeKey)
+  const active = showAll ? undefined : workspaces.find(profile => normalizeProfileKey(profile.name) === activeKey)
   const value = showAll ? ALL_PROFILES : (active?.name ?? '')
 
   const choose = (name: string) => {
@@ -179,7 +182,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
     <div
       aria-busy={pendingRoute !== null}
       aria-label={p.title}
-      className={cn('min-w-16 shrink overflow-hidden', compact ? 'h-full max-w-40' : 'max-w-72')}
+      className={cn('min-w-0 shrink overflow-hidden', compact ? 'size-8' : 'w-full max-w-72')}
       data-slot="profile-switcher"
       role="group"
     >
@@ -188,8 +191,8 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
           <Button
             aria-label={`${p.title}: ${triggerLabel}`}
             className={cn(
-              'w-full min-w-0 justify-between overflow-hidden px-1 text-(--ui-text-secondary) data-[state=open]:bg-(--ui-control-active-background) data-[state=open]:text-foreground',
-              compact && 'h-full min-h-0 rounded-none px-1.5 text-[0.6875rem] font-normal'
+              'w-full min-w-0 justify-between overflow-hidden px-2 text-(--ui-text-secondary) data-[state=open]:bg-(--ui-control-active-background) data-[state=open]:text-foreground',
+              compact && 'size-8 justify-center rounded-lg p-0'
             )}
             size="xs"
             type="button"
@@ -209,12 +212,12 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
                   name={active.name}
                 />
               )}
-              <span className="truncate">{triggerLabel}</span>
+              <span className={cn('truncate', compact && 'sr-only')}>{triggerLabel}</span>
             </span>
-            <Codicon aria-hidden="true" className="shrink-0 opacity-60" name="chevron-down" size="0.875rem" />
+            {!compact && <Codicon aria-hidden="true" className="shrink-0 opacity-60" name="chevron-down" size="0.875rem" />}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-48 max-w-72" collisionPadding={8} side="top">
+        <DropdownMenuContent align="start" className="min-w-48 max-w-72" collisionPadding={8} side="bottom">
           <DropdownMenuRadioGroup onValueChange={choose} value={value}>
             {ordered.map(profile => (
               <ProfileItem
@@ -230,7 +233,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
             ))}
             {/* Nothing to widen to with one profile: the ALL view only exists
                 once a second profile does (the rail hides its toggle then too). */}
-            {profiles.length > 1 && (
+            {workspaces.length > 1 && (
               <DropdownMenuRadioItem className="min-w-0" value={ALL_PROFILES}>
                 <span className="flex min-w-0 items-center gap-1.5">
                   <Codicon aria-hidden="true" className="text-(--ui-text-tertiary)" name="layers" size="0.875rem" />

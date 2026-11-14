@@ -18,6 +18,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem
@@ -92,7 +93,6 @@ import {
   normalizeProfileKey,
   sidebarProfileForScope
 } from '@/store/profile'
-import { $profileRailVisible } from '@/store/profile-rail-prefs'
 import { $projectScope, ALL_PROJECTS, exitProjectScope } from '@/store/project-scope'
 import {
   $activeProjectId,
@@ -165,8 +165,8 @@ import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySession
 import { KovaAccountCard } from './kova-account-card'
 import { SidebarLoadMoreRow } from './load-more-row'
 import { orderByIds, reconcileOrderIds, resolveManualSessionOrderIds, sameIds } from './order'
+import { ProfileSwitcher } from './profile-dropdown-switcher'
 import { filterSessionsByProfileScope } from './profile-scope'
-import { ProfileRail } from './profile-switcher'
 import { ProjectDialog } from './project-dialog'
 import { filterToSessionBearingProjects, resolveLiveProjectFilter } from './project-filter'
 import {
@@ -613,7 +613,6 @@ export function ChatSidebar({
   }, [])
 
   const activeSidebarSessionId = currentView === 'chat' ? selectedSessionId : null
-  const profileRailVisible = useStore($profileRailVisible)
 
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -1663,6 +1662,9 @@ export function ChatSidebar({
       data-tip-region=""
       data-tour="sessions-sidebar"
     >
+      <SidebarHeader className={cn('shrink-0 pb-1', sidebarOpen ? 'items-stretch px-2.5 pt-2' : 'items-center px-1.5 pt-2')}>
+        <ProfileSwitcher compact={!sidebarOpen} />
+      </SidebarHeader>
       <SidebarContent
         className={cn(
           'gap-0 overflow-hidden bg-transparent transition-[padding] duration-200 ease-linear motion-reduce:transition-none',
@@ -2152,26 +2154,11 @@ export function ChatSidebar({
       </SidebarContent>
       <SidebarFooter className={cn('p-2', sidebarOpen ? 'items-start' : 'items-center')}>
         <KovaAccountCard compact={!sidebarOpen} />
-        {profileRailVisible && (
-          <div className={cn('mb-1 w-full min-w-0 px-0.5 pt-0.5', !sidebarOpen && 'hidden')}>
-            <ProfileRail
-              afterHome={
-                <>
-                  {commandCenterButton}
-                  {footerNavButtons}
-                  {settingsButton}
-                </>
-              }
-            />
-          </div>
-        )}
-        {(!sidebarOpen || !profileRailVisible) && (
-          <div className={cn('flex gap-1', sidebarOpen ? 'flex-row items-center' : 'w-full flex-col items-center')}>
-            {commandCenterButton}
-            {footerNavButtons}
-            {settingsButton}
-          </div>
-        )}
+        <div className={cn('flex gap-1', sidebarOpen ? 'flex-row items-center' : 'w-full flex-col items-center')}>
+          {commandCenterButton}
+          {footerNavButtons}
+          {settingsButton}
+        </div>
       </SidebarFooter>
       <ProjectDialog />
       {/* One mount for the whole app. The header of WorktreeDialog tells why. */}

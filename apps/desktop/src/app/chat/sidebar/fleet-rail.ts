@@ -15,6 +15,7 @@ export interface FleetAgent {
   /** Pre-computed @name-device mention handle from the roster. */
   handle: string
   isDefault: boolean
+  profileMetadata?: { title?: string }
 }
 
 export interface FleetGroup {
@@ -74,19 +75,22 @@ export function buildRestGroups({
       continue
     }
 
-    const toAgent = (profile: string, handle?: string): FleetAgent => ({
+    const toAgent = (profile: string, handle?: string, profileMetadata?: { title?: string }): FleetAgent => ({
       connectionId: connection.id,
       connectionKind: connection.kind,
       connectionLabel: connection.label,
       profile,
       handle: handle ?? profile,
-      isDefault: profile === DEFAULT_PROFILE
+      isDefault: profile === DEFAULT_PROFILE,
+      profileMetadata
     })
 
     const defaultRow = rows.find(row => row.profile === DEFAULT_PROFILE)
 
     const named = sortByProfileOrder(
-      rows.filter(row => row.profile !== DEFAULT_PROFILE).map(row => toAgent(row.profile, row.handle)),
+      rows
+        .filter(row => row.profile !== DEFAULT_PROFILE && !row.profileMetadata?.title?.trim())
+        .map(row => toAgent(row.profile, row.handle, row.profileMetadata)),
       order,
       agent => agent.profile
     )
@@ -98,7 +102,7 @@ export function buildRestGroups({
       reachable: source?.reachable ?? true,
       ...(source?.error && source.error !== 'connect-on-demand' ? { error: source.error } : {}),
       ...(source?.needsSignIn ? { needsSignIn: true } : {}),
-      defaultAgent: toAgent(DEFAULT_PROFILE, defaultRow?.handle),
+      defaultAgent: toAgent(DEFAULT_PROFILE, defaultRow?.handle, defaultRow?.profileMetadata),
       named
     })
   }
