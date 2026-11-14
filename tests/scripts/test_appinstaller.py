@@ -10,6 +10,30 @@ from scripts.bundles import release_artifacts as artifacts
 from tests.scripts.test_release_r2 import r2_server
 
 
+def test_automatic_updates_are_background_checked_and_pinned_feeds_stay_pinned(tmp_path):
+    namespace = '{http://schemas.microsoft.com/appx/appinstaller/2017/2}'
+    common = {
+        'identity': 'Fixture.App',
+        'publisher': 'CN=Fixture',
+        'version': '1.2.3.0',
+        'self_uri': 'https://example.test/stable.appinstaller',
+        'artifact_uri': 'https://example.test/app.msixbundle',
+    }
+
+    automatic_path = tmp_path / 'automatic.appinstaller'
+    artifacts.write_appinstaller(automatic_path, **common)
+    automatic = ET.parse(automatic_path).getroot()
+    settings = automatic.find(f'{namespace}UpdateSettings')
+    assert settings is not None
+    assert settings.find(f'{namespace}AutomaticBackgroundTask') is not None
+    assert settings.find(f'{namespace}OnLaunch').attrib == {'HoursBetweenUpdateChecks': '12'}
+
+    pinned_path = tmp_path / 'pinned.appinstaller'
+    artifacts.write_appinstaller(pinned_path, **common, update_policy='pinned')
+    pinned = ET.parse(pinned_path).getroot()
+    assert pinned.find(f'{namespace}UpdateSettings') is None
+
+
 @pytest.mark.parametrize('variant', ['bundled', 'light'])
 def test_canary_publication_verifies_native_identity_and_uploads_bundle_before_pointer(tmp_path, r2_server, variant):
     import zipfile

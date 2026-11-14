@@ -323,6 +323,9 @@ def write_appinstaller(out: Path, *, identity: str, publisher: str, version: str
         raise ValueError("Unknown App Installer update policy")
     if update_policy == "automatic":
         settings = ET.SubElement(descriptor, f"{{{ns}}}UpdateSettings")
+        # Let App Installer check and apply stable updates while Kova is not
+        # running. Keep OnLaunch as a fallback for older Windows versions.
+        ET.SubElement(settings, f"{{{ns}}}AutomaticBackgroundTask")
         ET.SubElement(settings, f"{{{ns}}}OnLaunch", {"HoursBetweenUpdateChecks": "12"})
     out.parent.mkdir(parents=True, exist_ok=True)
     ET.ElementTree(descriptor).write(out, encoding="utf-8", xml_declaration=True)
