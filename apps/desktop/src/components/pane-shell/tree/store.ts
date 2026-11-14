@@ -1403,6 +1403,7 @@ export function declareDefaultTree(tree: LayoutNode, simpleTree: LayoutNode = tr
     current.children[0]?.type === 'group' &&
     current.children[0].panes.length === 1 &&
     current.children[0].panes[0] === 'sessions'
+
   const startingTree = defaultSessionWidth ? { ...current, weights: [...defaultTree.weights] } : current
   const next = adoptMissingPanes(startingTree, defaultTree)
 
