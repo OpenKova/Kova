@@ -1,48 +1,46 @@
-/* The global icon rail stays on the window canvas. The session list and chat
-   sit together inside one inset workspace, separated by the tree's sash. */
-[data-workspace-tree] > [data-tree-split='spl-root'] {
+/* OpenBot's app frame keeps a blank workspace header above one shared pane.
+   Kova's tree uses the same surface idea while preserving its resizable zones. */
+[data-contrib-shell] [data-workspace-tree] {
+  position: relative;
+  isolation: isolate;
   background: var(--ui-bg-chrome);
 }
 
-[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-main']) {
-  min-height: 0;
-  margin-block: 0.5rem;
-  overflow: hidden;
-  border-block: 1px solid var(--ui-stroke-secondary);
+[data-contrib-shell] [data-workspace-tree]::before {
+  position: absolute;
+  z-index: 0;
+  inset: 4rem 0.5rem 0.5rem 3rem;
+  border-radius: 1rem;
   background: var(--ui-bg-elevated);
+  content: '';
+  pointer-events: none;
 }
 
-[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-sessions']) {
+[data-contrib-shell] [data-workspace-tree] > [data-tree-split='spl-root'] {
+  position: relative;
+  z-index: 1;
   background: transparent;
 }
 
-[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-main']) {
-  margin-right: 0.5rem;
-  border-right: 1px solid var(--ui-stroke-secondary);
-  border-radius: 0 0.75rem 0.75rem 0;
-}
-
-[data-workspace-tree] [data-tree-group='grp-sessions'] {
+/* The rail is the only part of the sidebar that stays on the dark canvas.
+   Session, conversation and tool panes all reveal the shared frame underneath. */
+[data-contrib-shell] [data-workspace-tree] [data-tree-group],
+[data-contrib-shell] [data-workspace-tree] [data-tree-group] :is(aside, [data-slot='sidebar']) {
   background: transparent;
+  box-shadow: none;
 }
 
-[data-workspace-tree] [data-tree-group='grp-main'] {
-  background: var(--ui-bg-elevated);
+[data-contrib-shell] [data-workspace-tree] [data-tree-group] :is(aside, [data-slot='sidebar']) {
+  border-inline-width: 0;
 }
 
-[data-workspace-tree] [data-tree-group='grp-sessions'] [data-sidebar='sidebar'] {
-  border-color: transparent;
-  background: transparent;
+[data-contrib-shell] [data-workspace-tree] [data-tour='sessions-sidebar'] > [data-sidebar='content'] > div:first-child {
+  border-right-color: transparent;
+  background: var(--ui-bg-chrome);
 }
 
-/* SidebarContent's second column is the session list; inset it beside the
-   chat surface while leaving the fixed navigation rail flush with the edge. */
-[data-workspace-tree] [data-tree-group='grp-sessions'] [data-tour='sessions-sidebar'] > [data-sidebar='content'] > div:last-child {
-  min-width: 0;
-  margin-block: 0.5rem;
-  overflow: hidden;
-  border-block: 1px solid var(--ui-stroke-secondary);
-  border-left: 1px solid var(--ui-stroke-secondary);
-  border-radius: 0.75rem 0 0 0.75rem;
-  background: var(--ui-bg-elevated);
+/* Resizers keep their hit targets and keyboard semantics; only their visible
+   hairlines are removed so pane boundaries do not divide the shared surface. */
+[data-contrib-shell] [data-workspace-tree] [data-sash-overlap] > span {
+  opacity: 0;
 }

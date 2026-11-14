@@ -54,11 +54,11 @@ source of truth for future desktop design work.
 - Keep workspace identity and search at the top of the session sidebar, with
   conversations below. Put session-specific actions next to the session list;
   keep account identity and Settings anchored at the bottom.
-- Keep the shell flat and aligned. Use a subtle separator between the rail and
-  sidebar; do not turn each navigation area into a separate outlined card.
-- Keep the global icon rail on the window canvas. Frame the session list and
-  conversation together as one inset workspace with shared outer corners and
-  a quiet divider between them.
+- Keep the global icon rail on the dark window canvas. Leave a clear top row for
+  the workspace identity, then place the session list, conversation, and open
+  folder/tool panes together over one inset workspace surface.
+- Do not draw divider lines between workspace panes. Use the shared surface and
+  spacing to organize the areas; keep the outer frame quiet and rounded.
 - The account menu opens as a clean identity overview. Make profile editing
   available through an explicit pencil affordance. Keep sign-out visually
   separate from ordinary profile actions.
