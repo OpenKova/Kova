@@ -9,7 +9,7 @@
 [data-contrib-shell] [data-workspace-tree]::before {
   position: absolute;
   z-index: 0;
-  inset: 4rem 0.5rem 0.5rem 3rem;
+  inset: 1.5rem 0.5rem 0.5rem 3rem;
   border-radius: 1rem;
   background: var(--ui-bg-workspace-surface);
   content: '';
