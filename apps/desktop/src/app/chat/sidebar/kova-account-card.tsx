@@ -120,9 +120,6 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
             compact ? 'size-9 justify-center p-0' : 'min-h-12 w-full gap-2.5 px-2.5 py-2',
             open && 'bg-(--ui-control-hover-background)'
           )}
-          onClick={event => {
-            setEditingUsername(Boolean((event.target as HTMLElement).closest('[data-profile-edit]')))
-          }}
           type="button"
         >
           <span className="relative size-8 shrink-0">
@@ -142,7 +139,6 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
               <span
                 aria-hidden="true"
                 className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full border border-(--ui-bg-tertiary) bg-(--ui-bg-secondary) text-muted-foreground"
-                data-profile-edit
               >
                 <Pencil className="size-2.5" />
               </span>
@@ -198,6 +194,22 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
               {profile?.email || t.firstRun.account.privacy}
             </p>
           </div>
+          {profile && (
+            <Button
+              aria-label={`${t.common.change} ${t.firstRun.account.username}`}
+              className="ml-auto size-8 shrink-0"
+              onClick={() => {
+                setUsername(profile.username || '')
+                setEditingUsername(true)
+              }}
+              size="icon-sm"
+              title={`${t.common.change} ${t.firstRun.account.username}`}
+              type="button"
+              variant="ghost"
+            >
+              <Pencil aria-hidden className="size-3.5" />
+            </Button>
+          )}
         </div>
         {open && <MiniUsageSummary />}
         {profile && editingUsername ? (
@@ -253,16 +265,6 @@ export function KovaAccountCard({ compact = false }: { compact?: boolean }) {
           </>
         ) : profile ? (
           <div className="space-y-2 p-2">
-            <Button
-              className="h-9 w-full justify-start rounded-xl px-2.5"
-              onClick={() => setEditingUsername(true)}
-              size="sm"
-              type="button"
-              variant="ghost"
-            >
-              <Pencil aria-hidden className="size-3.5" />
-              {t.firstRun.account.username}
-            </Button>
             <Button
               className="h-9 w-full justify-start rounded-xl px-2.5"
               disabled={busy || !account}

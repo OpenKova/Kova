@@ -1,10 +1,7 @@
 import { gaugeTitle } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router'
 
-import { ConnectionSwitcher } from '@/app/chat/sidebar/connection-switcher'
-import { ProfileSwitcher } from '@/app/chat/sidebar/profile-dropdown-switcher'
 import type { CommandCenterSection } from '@/app/command-center'
 import { toggleTerminalPane } from '@/app/right-sidebar/terminal/reveal-focus'
 import { ContextMeterDetail, ContextUsagePanel } from '@/app/shell/context-usage-panel'
@@ -36,7 +33,6 @@ import { $freeTierSignInOpen, $freeTierStatus, FREE_TIER_MODEL } from '@/store/f
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { revealFileInTree } from '@/store/layout'
 import { $activeGatewayProfile } from '@/store/profile'
-import { $profileRailVisible } from '@/store/profile-rail-prefs'
 import { $projectTree, projectNameForCwd } from '@/store/projects'
 import {
   $activeSessionId,
@@ -142,7 +138,6 @@ export function useStatusbarItems({
   // minimized zone, which lit the button for a pane the user couldn't see.
   const terminalShowing = useStore($paneVisible('terminal'))
   const sessionsShowing = useStore($paneVisible('sessions'))
-  const profileRailVisible = useStore($profileRailVisible)
   const botsShowing = useStore($paneVisible('kova-bots:pane'))
   const primaryBusy = useStore($busy)
   // Draft / primary composer atom — used only while the focused surface is the
@@ -472,20 +467,6 @@ export function useStatusbarItems({
   const coreLeftStatusbarItems = useMemo<readonly StatusbarItem[]>(
     () => [
       {
-        hidden: !sessionsShowing,
-        id: 'gateway-switcher',
-        lockedVisible: true,
-        render: () => <StatusbarGatewaySwitcher />
-      },
-      {
-        // The rail's stand-in: the profile picker moves down here while the
-        // colored strip is hidden, so switching profiles always has a door.
-        hidden: !sessionsShowing || profileRailVisible,
-        id: 'profile-switcher',
-        lockedVisible: true,
-        render: () => <ProfileSwitcher compact />
-      },
-      {
         className: gatewayRestarting ? undefined : gatewayClassName,
         detail: gatewayHealth.detail,
         hidden: botsShowing,
@@ -637,7 +618,6 @@ export function useStatusbarItems({
       inferenceReady,
       inferenceStatus?.reason,
       openAgents,
-      profileRailVisible,
       projectName,
       sessionsShowing,
       subagentsFailed,
@@ -780,10 +760,4 @@ export function useStatusbarItems({
   )
 
   return { leftStatusbarItems, statusbarItems }
-}
-
-function StatusbarGatewaySwitcher() {
-  const navigate = useNavigate()
-
-  return <ConnectionSwitcher compact onConnect={() => navigate(`${SETTINGS_ROUTE}?tab=connections`)} />
 }
