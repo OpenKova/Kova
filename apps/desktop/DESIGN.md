@@ -56,6 +56,9 @@ source of truth for future desktop design work.
   keep account identity and Settings anchored at the bottom.
 - Keep the shell flat and aligned. Use a subtle separator between the rail and
   sidebar; do not turn each navigation area into a separate outlined card.
+- Keep the global icon rail on the window canvas. Frame the session list and
+  conversation together as one inset workspace with shared outer corners and
+  a quiet divider between them.
 - The account menu opens as a clean identity overview. Make profile editing
   available through an explicit pencil affordance. Keep sign-out visually
   separate from ordinary profile actions.

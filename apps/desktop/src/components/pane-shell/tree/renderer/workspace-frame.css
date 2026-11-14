@@ -1,0 +1,48 @@
+/* The global icon rail stays on the window canvas. The session list and chat
+   sit together inside one inset workspace, separated by the tree's sash. */
+[data-workspace-tree] > [data-tree-split='spl-root'] {
+  background: var(--ui-bg-chrome);
+}
+
+[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-main']) {
+  min-height: 0;
+  margin-block: 0.5rem;
+  overflow: hidden;
+  border-block: 1px solid var(--ui-stroke-secondary);
+  background: var(--ui-bg-elevated);
+}
+
+[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-sessions']) {
+  background: transparent;
+}
+
+[data-workspace-tree] > [data-tree-split='spl-root'] > :has(> [data-tree-group='grp-main']) {
+  margin-right: 0.5rem;
+  border-right: 1px solid var(--ui-stroke-secondary);
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+
+[data-workspace-tree] [data-tree-group='grp-sessions'] {
+  background: transparent;
+}
+
+[data-workspace-tree] [data-tree-group='grp-main'] {
+  background: var(--ui-bg-elevated);
+}
+
+[data-workspace-tree] [data-tree-group='grp-sessions'] [data-sidebar='sidebar'] {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* SidebarContent's second column is the session list; inset it beside the
+   chat surface while leaving the fixed navigation rail flush with the edge. */
+[data-workspace-tree] [data-tree-group='grp-sessions'] [data-tour='sessions-sidebar'] > [data-sidebar='content'] > div:last-child {
+  min-width: 0;
+  margin-block: 0.5rem;
+  overflow: hidden;
+  border-block: 1px solid var(--ui-stroke-secondary);
+  border-left: 1px solid var(--ui-stroke-secondary);
+  border-radius: 0.75rem 0 0 0.75rem;
+  background: var(--ui-bg-elevated);
+}
